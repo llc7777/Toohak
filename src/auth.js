@@ -10,6 +10,14 @@ function adminAuthLogin(email, password) {
   };
 }
 
+/**
+ * Given details relating to a password change, update the password of a logged in user.
+ * @param {integer} authUserId 
+ * @param {string} oldPassword 
+ * @param {string} newPassword 
+ * @returns {object} - Returns an empty object
+ */
+function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
   
-
-  
+  return {};
+}
