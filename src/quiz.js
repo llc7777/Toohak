@@ -1,4 +1,22 @@
-/*
+/**
+ * Retrieve a list of all quizzes created by the authenticated user.
+ * @param {integer} authUserId 
+ * @returns {object} 
+ */
+function adminQuizList(authUserId ) {
+
+	return {
+    quizzes: [
+      {
+        quizId: 1,
+        name: 'My Quiz',
+      }
+    ]
+  };
+}
+
+
+/**
 *	Updates the name of the relevant quiz
 *	@param {integer} authUser Id of user
 *	@param {integer} quizId of user
@@ -13,7 +31,7 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 	};
 }
 
-/*
+/**
 *	Gets information for a given quiz given a quizId and authUserId
 *
 *	@param {integer} authUser Id of user
@@ -48,3 +66,4 @@ function adminQuizCreate(authUserId, name, description) {
         quizId: 2
     }
 }
+
