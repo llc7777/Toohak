@@ -1,4 +1,60 @@
 /**
+ * Retrieve a list of all quizzes created by the authenticated user.
+ * @param {integer} authUserId 
+ * @returns {object} 
+ */
+function adminQuizList(authUserId ) {
+
+	return {
+    quizzes: [
+      {
+        quizId: 1,
+        name: 'My Quiz',
+      }
+    ]
+  };
+}
+
+
+/**
+*	Updates the name of the relevant quiz
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+*	@param {string} name
+*	@returns empty object {
+* 	}
+*/
+
+function adminQuizNameUpdate(authUserId, quizId, name) {
+	return {
+
+	};
+}
+
+/**
+*	Gets information for a given quiz given a quizId and authUserId
+*
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+* @returns {object} - An object containing the following keys that show quiz info:
+*		- {integer} quizId:
+*		- {string} name:
+*		- {integer} timeCreated:
+*		- {integer} timeLastEdited:
+*		- {string} description:
+*
+*/
+function adminQuizInfo(authUserId, quizId) {
+
+	return {
+		quizId: 1,
+  	name: 'My Quiz',
+  	timeCreated: 1683125870,
+  	timeLastEdited: 1683125871,
+  	description: 'This is my quiz',
+	};
+}
+/**
  * 
  * @param {integer} authUserId Id of user
  * @param {string} name Name of user 
@@ -10,3 +66,4 @@ function adminQuizCreate(authUserId, name, description) {
         quizId: 2
     }
 }
+
