@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3b68edcbd3ee46e2fb45bc8a8df7956d6fc35614
 /*
 *	Gets information for a given quiz given a quizId and authUserId
 *
