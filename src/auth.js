@@ -11,6 +11,18 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
   };
 }
 
+/*
+Given a registered user's email and password returns their authUserId value.
+Parameters: email, password
+Return object: authUserId: 1
+*/
+
+function adminAuthLogin(email, password) {
+  return {
+    authUserId: 1,
+  };
+}
+
 /**
  * Given details relating to a password change, update the password of a logged in user.
  * @param {integer} authUserId 
