@@ -5,7 +5,7 @@ Group: Aero
 |z5510644  |Jason    |
 |z5564630  |sangyeon |
 |z5466869  |Bahar    |
-|          |Mindy    |
+|z5477066  |Mindy    |
 
 1. When and where will we schedule meetings (e.g. 11am Wednesdays and 2pm Fridays: in-person at X location, on Teams video call, on Discord)?
 Meetings will be held on every lab, otherwise, we will stay back, or MS Teams.
