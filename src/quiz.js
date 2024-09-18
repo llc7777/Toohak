@@ -1,16 +1,15 @@
+<<<<<<< HEAD
 /*
-*	Paramters: authUserId, quizId
+*	Gets information for a given quiz given a quizId and authUserId
 *
-*	Gets all the relevant information of a current quiz that
-*	is specified by the quizId. 
-
-*	Returns an object {
-* quizId:
-*	name:
-*	timeCreated:
-*	timeLastEdited:
-*	description:
-*	}
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+* @returns {object} - An object containing the following keys that show quiz info:
+*		- {integer} quizId:
+*		- {string} name:
+*		- {integer} timeCreated:
+*		- {integer} timeLastEdited:
+*		- {string} description:
 *
 */
 function adminQuizInfo (authUserId, quizId) {
@@ -22,4 +21,16 @@ function adminQuizInfo (authUserId, quizId) {
   	timeLastEdited: 1683125871,
   	description: 'This is my quiz',
 	};
+}
+/**
+ * 
+ * @param {integer} authUserId Id of user
+ * @param {string} name Name of user 
+ * @param {string} description Description of new quiz
+ * @returns 
+ */
+function adminQuizCreate(authUserId, name, description) {
+    return {
+        quizId: 2
+    }
 }
