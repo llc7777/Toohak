@@ -1,4 +1,19 @@
 /*
+*	Updates the name of the relevant quiz
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+*	@param {string} name
+*	@returns empty object {
+* 	}
+*/
+
+function adminQuizNameUpdate(authUserId, quizId, name) {
+	return {
+
+	};
+}
+
+/*
 *	Gets information for a given quiz given a quizId and authUserId
 *
 *	@param {integer} authUser Id of user
@@ -11,7 +26,7 @@
 *		- {string} description:
 *
 */
-function adminQuizInfo (authUserId, quizId) {
+function adminQuizInfo(authUserId, quizId) {
 
 	return {
 		quizId: 1,
