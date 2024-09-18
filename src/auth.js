@@ -9,5 +9,5 @@
 
 function adminUserPasswordUpdate(authUserId, email, nameFirst, nameLast) {
   
-  return {};
-}
+
+  

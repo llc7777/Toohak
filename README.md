@@ -8,6 +8,9 @@
 
 ## Change Log
 
+* 17/09: Specify 12 merge requests rather than 11 for iteration 0, since there are 12 function stubs.
+* 18/09: Changed weighting of iterations 1, 2 and 3.
+
 ## 🫡 0. Aims:
 
 1. Demonstrate effective use of software development tools to build full-stack end-user applications.
@@ -81,7 +84,7 @@ function adminAuthLogin(email, password) {
     * Create a group contract by completing `contract.md` - you may add/edit this template as you see fit.
     * You are expected to have **at least 1 meeting** with your group, and document the meeting(s) in meeting minutes which should be stored at a timestamped location in your repo (e.g. uploading a word doc/pdf or writing in the GitLab repo Wiki after each meeting). We have provided you with a `minutes-template.md` which you may use if you choose.
     * For this iteration each team member will need to make a minimum of **1 merge request per person** in your group into the `master` branch.
-    * **1 merge request per function** must be made (11 in total).
+    * **1 merge request per function** must be made (12 in total).
     * Check out the lab on Git from week 1 to get familiar with using Git.
 
 ### 🐭 2.2. Functions to stub
@@ -380,9 +383,9 @@ Coming soon!
 | Iteration | Due date                             | Demonstration to tutor(s)     | Assessment weighting (%) |
 | --------- | ------------------------------------ | ----------------------------- | ------------------------ |
 | 0         | 8pm Friday 20th Sept (**week 2**)    | No demonstration              | 5% of project mark       |
-| 1         | 8pm Friday 4th Oct (**week 4**)    | In YOUR **week 5** laboratory | 30% of project mark      |
-| 2         | 8pm Friday 25th Oct (**week 7**)    | In YOUR **week 8** laboratory | 35% of project mark      |
-| 3         | 8pm Friday 15th Nov (**week 10**)    | Final demonstration week 11   | 30% of project mark      |
+| 1         | 8pm Friday 4th Oct (**week 4**)    | In YOUR **week 5** laboratory | 20% of project mark      |
+| 2         | 8pm Friday 25th Oct (**week 7**)    | In YOUR **week 8** laboratory | 40% of project mark      |
+| 3         | 8pm Friday 15th Nov (**week 10**)    | Final demonstration week 11   | 35% of project mark      |
 
 For more information about demonstrations see section `6.2`.
 
