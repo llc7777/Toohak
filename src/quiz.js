@@ -1,4 +1,24 @@
 /**
+*	Updates the description of the relevant quiz
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+*	@param {string} name
+*	@returns empty object {
+* 	}
+*/
+
+function adminQuizDescriptionUpdate(authUserId, quizId, name) {
+	return {
+
+	};
+}
+
+function adminQuizNameUpdate(authUserId, quizId, name) {
+	return {
+
+	};
+}
+/**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
  * @returns {object} 
