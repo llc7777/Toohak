@@ -24,8 +24,8 @@ function adminQuizList(authUserId) {
  */
 function adminQuizCreate(authUserId, name, description) {
   return {
-      quizId: 2
-  }
+    quizId: 2
+  };
 }
 
 /**
@@ -69,11 +69,11 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 *	Updates the description of the relevant quiz
 *	@param {integer} authUser Id of user
 *	@param {integer} quizId of user
-*	@param {string} name
+*	@param {string} description
 *	@returns empty object {
 * 	}
 */
-function adminQuizDescriptionUpdate(authUserId, quizId, name) {
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
 	return {
 
 	};
