@@ -12,6 +12,8 @@ let data = {
 				score: -1,
 				authUserId: -1,
 				timeCreated: -1,
+				numSuccessfulLogins: -1,
+				numFailedPasswordsSinceLastLogin: -1,
 			}
 		],
 		quizzes: [
