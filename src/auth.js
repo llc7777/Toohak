@@ -5,9 +5,9 @@ Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
 function adminAuthRegister(email, password, nameFirst, nameLast) {
-    return {
-        authUserId: 1,
-    };
+  return {
+    authUserId: 1,
+  };
 }
 
 /*
@@ -16,30 +16,29 @@ Parameters: email, password
 Return object: authUserId: 1
 */
 function adminAuthLogin(email, password) {
-    return {
-        authUserId: 1,
-        authUserId: 1,
-    };
+  return {
+    authUserId: 1,
+    authUserId: 1,
+  };
 }
 
 /**
  * Given an admin user's authUserId, return details about the user.
     "name" is the first and last name concatenated with a single space between them.
-
  * @param {Integer} authUserId 
  * @returns {Object} user
  */
 function adminUserDetails(authUserId) {
-    return {
-        user:
-        {
-            userId: 1,
-            name: 'Hayden Smith',
-            email: 'hayden.smith@unsw.edu.au',
-            numSuccessfulLogins: 3,
-            numFailedPasswordsSinceLastLogin: 1,
-        }
-    };
+  return {
+    user:
+    {
+      userId: 1,
+      name: 'Hayden Smith',
+      email: 'hayden.smith@unsw.edu.au',
+      numSuccessfulLogins: 3,
+      numFailedPasswordsSinceLastLogin: 1,
+    }
+  };
 }
 
 /**
@@ -50,10 +49,11 @@ function adminUserDetails(authUserId) {
  * @param {String} nameLast 
  * @returns {object} - Returns an empty object
  */
-
 function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
-    return {};
+  return {
+
+  };
 }
 
 /**
@@ -65,5 +65,7 @@ function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  */
 function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
 
-    return {};
+  return {
+
+  };
 }
