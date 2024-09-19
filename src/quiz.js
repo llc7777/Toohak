@@ -1,29 +1,9 @@
 /**
-*	Updates the description of the relevant quiz
-*	@param {integer} authUser Id of user
-*	@param {integer} quizId of user
-*	@param {string} name
-*	@returns empty object {
-* 	}
-*/
-
-function adminQuizDescriptionUpdate(authUserId, quizId, name) {
-	return {
-
-	};
-}
-
-function adminQuizNameUpdate(authUserId, quizId, name) {
-	return {
-
-	};
-}
-/**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
  * @returns {object} 
  */
-function adminQuizList(authUserId ) {
+function adminQuizList(authUserId) {
 
 	return {
     quizzes: [
@@ -35,25 +15,21 @@ function adminQuizList(authUserId ) {
   };
 }
 
-
 /**
-*	Updates the name of the relevant quiz
-*	@param {integer} authUser Id of user
-*	@param {integer} quizId of user
-*	@param {string} name
-*	@returns empty object {
-* 	}
-*/
-
-function adminQuizNameUpdate(authUserId, quizId, name) {
-	return {
-
-	};
+ * 
+ * @param {integer} authUserId Id of user
+ * @param {string} name Name of user 
+ * @param {string} description Description of new quiz
+ * @returns 
+ */
+function adminQuizCreate(authUserId, name, description) {
+  return {
+      quizId: 2
+  }
 }
 
 /**
 *	Gets information for a given quiz given a quizId and authUserId
-*
 *	@param {integer} authUser Id of user
 *	@param {integer} quizId of user
 * @returns {object} - An object containing the following keys that show quiz info:
@@ -74,16 +50,31 @@ function adminQuizInfo(authUserId, quizId) {
   	description: 'This is my quiz',
 	};
 }
+
 /**
- * 
- * @param {integer} authUserId Id of user
- * @param {string} name Name of user 
- * @param {string} description Description of new quiz
- * @returns 
- */
-function adminQuizCreate(authUserId, name, description) {
-    return {
-        quizId: 2
-    }
+*	Updates the name of the relevant quiz
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+*	@param {string} name
+*	@returns empty object {
+* 	}
+*/
+function adminQuizNameUpdate(authUserId, quizId, name) {
+	return {
+
+	};
 }
 
+/**
+*	Updates the description of the relevant quiz
+*	@param {integer} authUser Id of user
+*	@param {integer} quizId of user
+*	@param {string} name
+*	@returns empty object {
+* 	}
+*/
+function adminQuizDescriptionUpdate(authUserId, quizId, name) {
+	return {
+
+	};
+}
