@@ -23,9 +23,19 @@ function adminQuizList(authUserId) {
  * @returns 
  */
 function adminQuizCreate(authUserId, name, description) {
-  return {
-    quizId: 2
-  };
+    return {
+        quizId: 2
+    }
+}
+
+/**
+ * 
+ * @param {integer} authUserId Id of user
+ * @param {integer} quizId Id of quiz
+ * @returns 
+ */
+function adminQuizRemove(authUserId, quizId) {
+    return {};
 }
 
 /**
