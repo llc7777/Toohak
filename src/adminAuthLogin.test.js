@@ -22,15 +22,15 @@ describe('tests for adminAuthLogin', ()=> {
         expect(adminAuthLogin(email, password)).toStrictEqual({ error: expect.any(String) });
     });
 
-    test('invalid email returns error', async ()=> {
+    test('invalid email returns error', ()=> {
         const email = 'invalidemail';
         const password = '123abs!@#'
-        await expect(adminAuthLogin(email, password)).toStrictEqual({ error: expect.any(String) });
+        expect(adminAuthLogin(email, password)).toStrictEqual({ error: expect.any(String) });
     });
 
-    test('incorrect password returns error', async()=> {
+    test('incorrect password returns error', ()=> {
         const email = 'validemail@gmail.com';
         const password = 'incorrectpassword'
-        await expect(adminAuthLogin(email, password)).toStrictEqual({ error: expect.any(String) });
+        expect(adminAuthLogin(email, password)).toStrictEqual({ error: expect.any(String) });
     });
 });
