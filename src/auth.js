@@ -14,31 +14,31 @@ import validator from 'validator'
 function adminAuthRegister(email, password, nameFirst, nameLast) {
 
 	// Validate email
-	if (!isEmail(email)) {
+	if (!validator.isEmail(email)) {
 		return {
 			error: 'Email is not valid. Please try another email',
 		}
 	}
 
 	// Validate first name
-	if (nameFirst > 20) {
+	if (nameFirst.length > 20) {
 		return {
 			error: 'First name is too long. Maximum number of characters is 20.'
 		}
 	}
-	if (nameFirst < 2) {
+	if (nameFirst.length < 2) {
 		return {
 			error: 'First name is too short. Minimum number of characters is 2.'
 		}
 	}
 
 	// Validate last name
-	if (nameLast > 20) {
+	if (nameLast.length > 20) {
 		return {
 			error: 'Last name is too long. Maximum number of characters is 20.'
 		}
 	}
-	if (nameLast < 2) {
+	if (nameLast.length < 2) {
 		return {
 			error: 'Last name is too short. Minimum number of characters is 2.'
 		}
@@ -103,7 +103,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 		nameLast: nameLast,
 		name: nameFirst + ' ' + nameLast,
 		authUserId: numOfUsers+ 1,
-		timeCreated: Math.floor(Date.now()),
+		timeCreated: Date.now(),
 		numSuccessfulLogins: -1,
 	}
 
