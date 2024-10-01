@@ -1,4 +1,4 @@
-import test from "node:test";
+import { adminAuthLogin } from './auth.js';
 
 // adminAuthLogin testing (MINDY)
 describe('tests for adminAuthLogin', ()=> {
