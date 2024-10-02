@@ -5,12 +5,10 @@ Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
 import { getData } from './dataStore.js';
-import {
-  isValidEmail,
-  isValidName}  from './helper.js';
-
+import { isValidName }  from './helper.js';
+import  validator  from 'validator'
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  if (!isValidEmail(email)) {
+  if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
   }
 
