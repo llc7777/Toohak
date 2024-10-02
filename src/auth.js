@@ -4,13 +4,14 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
+import validator from 'validator';
 import { getData } from './dataStore.js';
 import {
   isValidEmail,
   isValidName}  from './helper.js';
 
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  if (!isValidEmail(email)) {
+  if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
   }
 
