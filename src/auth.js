@@ -50,7 +50,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 		name: nameFirst + ' ' + nameLast,
 		authUserId: numOfUsers+ 1,
 		timeCreated: Date.now(),
-		numSuccessfulLogins: -1,
+		numSuccessfulLogins: 1,
 	}
 
 	store.users.push(newUser);
