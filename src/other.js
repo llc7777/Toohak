@@ -6,10 +6,10 @@
 import { getData } from './dataStore.js'
 
 export function clear() {
-    let store = getData();
-    store.users = [];
-    store.quizzes = [];
-    return {};
+  let store = getData();
+  store.users = [];
+  store.quizzes = [];
+  return {};
 }
 
 
