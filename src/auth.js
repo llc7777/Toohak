@@ -4,12 +4,63 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-function adminAuthRegister(email, password, nameFirst, nameLast) {
-  return {
-    authUserId: 1,
-  };
-}
+import { getData } from './dataStore.js';
+import {
+  isValidEmail,
+  isValidName}  from './helper.js';
 
+export function adminAuthRegister(email, password, nameFirst, nameLast) {
+  if (!isValidEmail(email)) {
+    return { error: "Invalid email format." };
+  }
+
+  if (!isValidName(nameFirst)) {
+    return { error: "First name contains invalid characters or is not within length limits." };
+  }
+
+  if (!isValidName(nameLast)) {
+    return { error: "Last name contains invalid characters or is not within length limits." };
+  }
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters long." };
+  }
+
+  const hasLetter = [...password].some(char => /[a-zA-Z]/.test(char));
+  const hasNumber = [...password].some(char => /[0-9]/.test(char));
+  
+  if (!hasLetter || !hasNumber) {
+    return { error: "Password must contain at least one letter and one number." };
+  }
+
+  let store = getData();	
+	const index = store.users.findIndex( (user) => user.email === email);
+
+	if (index !== -1) {
+		return {
+			error: 'This email is already registered to another user. Please use another email'
+		}
+	}
+
+	let numOfUsers = store.users.length;
+
+	let newUser = {
+		email: email,
+		password: password,
+		nameFirst: nameFirst,
+		nameLast: nameLast,
+		name: nameFirst + ' ' + nameLast,
+		authUserId: numOfUsers+ 1,
+		timeCreated: Date.now(),
+		numSuccessfulLogins: -1,
+	}
+
+	store.users.push(newUser);
+
+	return {
+		authUserId: numOfUsers + 1
+	}
+}
 /*
 Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
