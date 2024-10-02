@@ -1,3 +1,4 @@
+import { getData } from './dataStore.js'
 /*
 Register a user with an email, password, and names, then returns 
 their authUserId value.
@@ -16,10 +17,24 @@ Parameters: email, password
 Return object: authUserId: 1
 */
 function adminAuthLogin(email, password) {
-  return {
-    authUserId: 1,
-    authUserId: 1,
-  };
+
+	let data = getData();
+
+	const index = data.users.findIndex((user) => user.email === email);
+	if (index === -1) {
+		return {
+			error: 'No user with this email exists'
+		}
+	}
+	if (data.user[i].password !== password) {
+		return {
+			error: 'Password is incorrect'
+		}
+	}
+	return {
+		authUserId: data.users[index].authUserId
+	};
+
 }
 
 /**
