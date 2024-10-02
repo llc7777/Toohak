@@ -17,24 +17,10 @@ Parameters: email, password
 Return object: authUserId: 1
 */
 function adminAuthLogin(email, password) {
-
-	let data = getData();
-
-	const index = data.users.findIndex((user) => user.email === email);
-	if (index === -1) {
-		return {
-			error: 'No user with this email exists'
-		}
-	}
-	if (data.user[i].password !== password) {
-		return {
-			error: 'Password is incorrect'
-		}
-	}
 	return {
-		authUserId: data.users[index].authUserId
-	};
-
+		authUserId: 1,
+		authUserId: 1,
+	}
 }
 
 /**
