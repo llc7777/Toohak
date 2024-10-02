@@ -3,14 +3,12 @@
  * Parameters: no parameters
  * Return object: empty object
  */
-export let users = [];
-export let quizzes = [];
-export let currentQuiz = { authUserId: null }; 
+import { getData } from './dataStore.js'
 
 export function clear() {
-    users = [];
-    quizzes = [];
-    currentQuiz = { authUserId: null };
+    let store = getData();
+    store.users = [];
+    store.quizzes = [];
     return {};
 }
 
