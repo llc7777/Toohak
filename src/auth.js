@@ -66,11 +66,23 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-function adminAuthLogin(email, password) {
-  return {
-    authUserId: 1,
-    authUserId: 1,
-  };
+export function adminAuthLogin(email, password) {
+	let data = getData();
+
+	const index = data.users.findIndex((user) => user.email === email);
+	if (index === -1) {
+		return {
+			error: 'No user with this email exists'
+		}
+	}
+	if (data.users[index].password !== password) {
+		return {
+			error: 'Password is incorrect'
+		}
+	}
+	return {
+		authUserId: data.users[index].authUserId
+	}
 }
 
 /**
