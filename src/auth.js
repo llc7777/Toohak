@@ -4,10 +4,7 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-
-const users = []; 
-
-function isValidEmail(email) {
+export function isValidEmail(email) {
   const emailAt = email.indexOf('@');
   const emailDot = email.lastIndexOf('.');
   
@@ -16,7 +13,7 @@ function isValidEmail(email) {
   );
 }
 
-function isValidName(name) {
+export function isValidName(name) {
   if (name.length < 2 || name.length > 20) {
     return false;
   }
@@ -31,7 +28,7 @@ function isValidName(name) {
   return true;
 }
 
-function adminAuthRegister(email, password, nameFirst, nameLast) {
+export function adminAuthRegister(users, email, password, nameFirst, nameLast) {
   if (users.some(user => user.email === email)) {
     return { error: "Email address is already in use." };
   }
@@ -64,8 +61,6 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   return { authUserId };
 }
-
-export { adminAuthRegister, users }; 
 
 /*
 Given a registered user's email and password returns their authUserId value.
