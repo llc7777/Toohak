@@ -13,7 +13,7 @@ describe('clear function', () => {
         currentQuiz.authUserId = 1;
     });
 
-    test('reset users, quizzes, and current session', () => {
+    test('reset users, quizzes, and current quiz', () => {
         const result = clear();
         expect(result).toEqual({});
         expect(users).toEqual([]);
