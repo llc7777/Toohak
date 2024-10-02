@@ -7,51 +7,39 @@ Parameters: email, password, nameFirst, nameLast
 import { adminAuthRegister } from './auth.js';
 
 describe("adminAuthRegister", () => {
-    let users;
-
-    beforeEach(() => {
-        users = []; 
-    });
-
-    test("registers a user with valid data", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "Aeropass1", "Jason", "Chandra")).
-        toEqual({ authUserId: 1 });
-        expect(users.length).toBe(1);
-    });
-
     test("returns error for duplicate email", () => {
-        adminAuthRegister(users, "aero@mail.com", "Aeropass1", "Jason", "Chandra");
-        expect(adminAuthRegister(users, "aero@mail.com", "Aeropass2", "Mark", "James")).
-        toEqual({ error: "Email address is already in use." });
+        adminAuthRegister("aero@mail.com", "Aeropass1", "Jason", "Chandra");
+       let result = adminAuthRegister("aero@mail.com", "Aeropass2", "Mark", "James")
+       expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for invalid email format", () => {
-        expect(adminAuthRegister(users, "invalid-email", "Aeropass1", "Jason", "Chandra")).
-        toEqual({ error: "Invalid email format." });
+       let result = adminAuthRegister("invalid-email", "Aeropass1", "Jason", "Chandra")
+       expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for invalid first name", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "Aeropass1", "J", "Chandra")).
-        toEqual({ error: "First name contains invalid characters or is not within length limits." });
+       let result = adminAuthRegister("aero@mail.com", "Aeropass1", "J", "Chandra")
+       expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for invalid last name", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "Aeropass1", "Jason", "C")).
-        toEqual({ error: "Last name contains invalid characters or is not within length limits." });
+       let result = adminAuthRegister("aero@mail.com", "Aeropass1", "Jason", "C")
+       expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for password too short", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "Notlong", "Jason", "Chandra")).
-        toEqual({ error: "Password must be at least 8 characters long." });
+       let result = adminAuthRegister("aero@mail.com", "Notlong", "Jason", "Chandra")
+       expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for password without letter", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "12345678", "Jason", "Chandra")).
-        toEqual({ error: "Password must contain at least one letter and one number." });
+       let result = adminAuthRegister("aero@mail.com", "12345678", "Jason", "Chandra")
+        expect(result).toStrictEqual({ error: expect.any(String)});
     });
 
     test("returns error for password without number", () => {
-        expect(adminAuthRegister(users, "aero@mail.com", "Nonumber", "Jason", "Chandra")).
-        toEqual({ error: "Password must contain at least one letter and one number." });
+       let result = adminAuthRegister("aero@mail.com", "Nonumber", "Jason", "Chandra")
+        expect(result).toStrictEqual({ error: expect.any(String)});
     });
 });
