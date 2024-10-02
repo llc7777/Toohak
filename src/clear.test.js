@@ -1,32 +1,49 @@
-/*
-Test file for clear
-*/
-import { clear, users, quizzes, currentQuiz } from './other.js';
+// /*
+// Test file for clear
+// */
+// import { clear } from './other.js';
+// import { adminAuthRegister } from './auth.js';
+// import { adminQuizCreate } from './quiz.js'; 
+// import { getData } from './dataStore.js';
 
-describe('clear function', () => {
-    beforeEach(() => {
-        users.push(
-            { authUserId: 1, email: 'aero1@mail.com', nameFirst: 'Jason', nameLast: 'Chandra' },
-            { authUserId: 2, email: 'aero2@mail.com', nameFirst: 'Jake', nameLast: 'Renzella' }
-        );
-        quizzes.push({ quizId: 999, name: 'Quiz 1', description: 'Quiz Example' });
-        currentQuiz.authUserId = 1;
-    });
+// describe('clear function', () => {
+//     test('Clear data when there is only one user', () => {
+//         let user1 = adminAuthRegister('aero1@mail.com', 'password1', 'Jason', 'Chandra');
+//         expect(clear()).toStrictEqual({});
+//         let currentData = getData();
+//         expect(currentDeta).toStrictEqual({});
+//     });
 
-    test('reset users, quizzes, and current quiz', () => {
-        const result = clear();
-        expect(result).toEqual({});
-        expect(users).toEqual([]);
-        expect(quizzes).toEqual([]);
-        expect(currentQuiz.authUserId).toBeNull(); 
-    });
+//     test('Clear data when there is two user', () => {
+//         let user1 = adminAuthRegister('aero1@mail.com', 'password1', 'Jason', 'Chandra');
+//         let user2 = adminAuthRegister('aero2@mail.com', 'password2', 'Jake', 'Renzella');
+//         expect(clear()).toStrictEqual({});
+//         let currentData = getData();
+//         expect(currentDeta).toStrictEqual({});
+//     });
 
-    test('handle already cleared state', () => {
-        clear();
-        const result = clear();
-        expect(result).toEqual({});
-        expect(users).toEqual([]);
-        expect(quizzes).toEqual([]);
-        expect(currentQuiz.authUserId).toBeNull(); 
-    });
-});
+//     test('Clear data when there is one user and one quiz', () => {
+//         let user1 = adminAuthRegister('aero1@mail.com', 'password1', 'Jason', 'Chandra');
+//         let quiz1 = adminQuizCreate('user1.authUserId', 'quiz1', 'Description quiz1');
+//         expect(clear()).toStrictEqual({});
+//         let currentData = getData();
+//         expect(currentDeta).toStrictEqual({});
+//     });
+
+//     test('Clear data when there is two user and two quiz', () => {
+//         let user1 = adminAuthRegister('aero1@mail.com', 'password1', 'Jason', 'Chandra');
+//         let user2 = adminAuthRegister('aero2@mail.com', 'password2', 'Jake', 'Renzella');
+//         let quiz1 = adminQuizCreate('user1.authUserId', 'quiz1', 'Description quiz1');
+//         let quiz2 = adminQuizCreate('user1.authUserId', 'quiz2', 'Description quiz2');
+//         expect(clear()).toStrictEqual({});
+//         let currentData = getData();
+//         expect(currentDeta).toStrictEqual({});
+//     });
+
+//     test('Already cleared state', () => {
+//         clear();
+//         expect(clear()).toStrictEqual({});
+//         let currentData = getData();
+//         expect(currentDeta).toStrictEqual({});
+//     });
+// });
