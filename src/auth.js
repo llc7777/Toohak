@@ -4,35 +4,12 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-export function isValidEmail(email) {
-  const emailAt = email.indexOf('@');
-  const emailDot = email.lastIndexOf('.');
-  
-  return (
-    emailAt > 0 && emailDot > emailAt + 1 && emailDot < email.length - 1 
-  );
-}
+import { getData } from './dataStore.js';
+import {
+  isValidEmail,
+  isValidName}  from './helper.js';
 
-export function isValidName(name) {
-  if (name.length < 2 || name.length > 20) {
-    return false;
-  }
-
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '-";
-  for (let char of name) {
-    if (!validChars.includes(char)) {
-      return false;
-    }
-  }
-  
-  return true;
-}
-
-export function adminAuthRegister(users, email, password, nameFirst, nameLast) {
-  if (users.some(user => user.email === email)) {
-    return { error: "Email address is already in use." };
-  }
-
+export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (!isValidEmail(email)) {
     return { error: "Invalid email format." };
   }
@@ -56,12 +33,34 @@ export function adminAuthRegister(users, email, password, nameFirst, nameLast) {
     return { error: "Password must contain at least one letter and one number." };
   }
 
-  const authUserId = users.length + 1;
-  users.push({ authUserId, email, password, nameFirst, nameLast });
+  let store = getData();	
+	const index = store.users.findIndex( (user) => user.email === email);
 
-  return { authUserId };
+	if (index !== -1) {
+		return {
+			error: 'This email is already registered to another user. Please use another email'
+		}
+	}
+
+	let numOfUsers = store.users.length;
+
+	let newUser = {
+		email: email,
+		password: password,
+		nameFirst: nameFirst,
+		nameLast: nameLast,
+		name: nameFirst + ' ' + nameLast,
+		authUserId: numOfUsers+ 1,
+		timeCreated: Date.now(),
+		numSuccessfulLogins: -1,
+	}
+
+	store.users.push(newUser);
+
+	return {
+		authUserId: numOfUsers + 1
+	}
 }
-
 /*
 Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
