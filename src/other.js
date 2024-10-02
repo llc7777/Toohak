@@ -3,12 +3,8 @@
  * Parameters: no parameters
  * Return object: empty object
  */
-function clear() {
-    try {
-    } catch (error) {
-        return { error: "Error resetting application state: " + error.message };
-    }
-
+export function clear() {
+    
     return {};
 }
 
