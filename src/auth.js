@@ -65,7 +65,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
   return { authUserId };
 }
 
-module.exports = { adminAuthRegister, users }; 
+export { adminAuthRegister, users }; 
 
 /*
 Given a registered user's email and password returns their authUserId value.
