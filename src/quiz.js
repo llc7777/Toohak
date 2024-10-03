@@ -5,18 +5,30 @@ import { getData } from './dataStore.js';
  * @returns {object} 
  */
 
-let data = getData();
+export function adminQuizList(authUserId) {
+	let store = getData();
+	let arr = [];
 
-function adminQuizList(authUserId) {
+	const userExists = store.users.find((user) => user.authUserId === authUserId);
+	if (!userExists) {
+		return {
+			error: 'No user with the given authUserId exists',
+		}
+	}
+
+	for (let i = 0; i < store.quizzes.length; i++) {
+		if (store.quizzes[i].authUserId === authUserId) {
+			const item = {
+				quizId: store.quizzes[i].quizId,
+				name: store.quizzes[i].name,
+			}
+			arr.push(item);
+		}
+	}
 
 	return {
-		quizzes: [
-			{
-				quizId: 1,
-				name: 'My Quiz',
-			}
-		]
-	};
+		quizzes: arr,
+	}
 }
 
 /**
@@ -26,10 +38,55 @@ function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-function adminQuizCreate(authUserId, name, description) {
-	return {
-		quizId: 2
+import { getData } from './dataStore.js';
+import { isValidName } from './helper.js';
+
+export function isUserValid(authUserId) {
+	const { users } = getData();
+	return users.some(user => user.authUserId === authUserId);
+}
+
+export function nameUsed(authUserId, name) {
+	const { quizzes } = getData();
+	return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
+}
+
+export function adminQuizCreate(authUserId, name, description) {
+	const { quizzes } = getData();
+
+	if (!isUserValid(authUserId)) {
+		return { error: 'AuthUserId is not a valid user.' };
 	}
+
+	if (name.length < 3 || name.length > 30) {
+		return { error: 'Name must be between 3 and 30 characters long.' };
+	}
+
+	if (!isValidName(name)) {
+		return { error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.' };
+	}
+
+	if (nameUsed(authUserId, name)) {
+		return { error: 'Name is already used by the current logged-in user for another quiz.' };
+	}
+
+	if (description.length > 100) {
+		return { error: 'Description is more than 100 characters in length.' };
+	}
+
+	const newQuizId = quizzes.length + 1;
+	const newQuiz = {
+		quizId: newQuizId,
+		authUserId,
+		name,
+		description,
+		timeCreated: Date.now(),
+		timeLastEdited: Date.now(),
+	};
+
+	quizzes.push(newQuiz);
+
+	return { quizId: newQuizId };
 }
 
 /**
@@ -38,7 +95,7 @@ function adminQuizCreate(authUserId, name, description) {
  * @param {integer} quizId Id of quiz
  * @returns 
  */
-function adminQuizRemove(authUserId, quizId) {
+export function adminQuizRemove(authUserId, quizId) {
 	return {};
 }
 
@@ -54,7 +111,7 @@ function adminQuizRemove(authUserId, quizId) {
 *		- {string} description:
 *
 */
-function adminQuizInfo(authUserId, quizId) {
+export function adminQuizInfo(authUserId, quizId) {
 
 	return {
 		quizId: 1,
@@ -73,7 +130,7 @@ function adminQuizInfo(authUserId, quizId) {
 *	@returns empty object {
 * 	}
 */
-function adminQuizNameUpdate(authUserId, quizId, name) {
+export function adminQuizNameUpdate(authUserId, quizId, name) {
 
 }
 /**
@@ -84,8 +141,6 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 *	@returns empty object {
 * 	}
 */
-function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
 
-}
-
-export { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate };
+};
