@@ -1,4 +1,4 @@
-import { getData } from './dataStore.js';
+//import { getData } from './dataStore.js';
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
@@ -111,16 +111,32 @@ export function adminQuizRemove(authUserId, quizId) {
 *		- {string} description:
 *
 */
-export function adminQuizInfo(authUserId, quizId) {
+//export function adminQuizInfo(authUserId, quizId) {
 
-	return {
-		quizId: 1,
-		name: 'My Quiz',
-		timeCreated: 1683125870,
-		timeLastEdited: 1683125871,
-		description: 'This is my quiz',
-	};
+export function adminQuizInfo(authUserId, quizId) {
+    const data = getData();
+		console.log(data);
+    const user = data.users.find(user => user.authUserId === authUserId)
+    if (!user) {
+        return { error: 'Unable to find user Id '}
+    };
+
+
+    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId)
+    if (!quiz) {
+      return { error: 'Quiz unable to be found'}
+    };
+
+
+    return {
+        quizId: quiz.quizId,
+        name: quiz.name,
+        timeCreated: quiz.timeCreated,
+        timeLastEdited: quiz.timeLastEdited,
+        description: quiz.description,
+    };
 }
+
 
 /**
 *	Updates the name of the relevant quiz
