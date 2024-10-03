@@ -6,8 +6,9 @@ Return object: authUserId: 1
 */
 import validator from 'validator';
 import { getData } from './dataStore.js';
-import { isValidName }  from './helper.js';
-import  validator  from 'validator'
+import { isValidName } from './helper.js';
+import validator from 'validator'
+
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
@@ -27,39 +28,39 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   const hasLetter = [...password].some(char => /[a-zA-Z]/.test(char));
   const hasNumber = [...password].some(char => /[0-9]/.test(char));
-  
+
   if (!hasLetter || !hasNumber) {
     return { error: "Password must contain at least one letter and one number." };
   }
 
-  let store = getData();	
-	const index = store.users.findIndex( (user) => user.email === email);
+  let store = getData();
+  const index = store.users.findIndex((user) => user.email === email);
 
-	if (index !== -1) {
-		return {
-			error: 'This email is already registered to another user. Please use another email'
-		}
-	}
+  if (index !== -1) {
+    return {
+      error: 'This email is already registered to another user. Please use another email'
+    }
+  }
 
-	let numOfUsers = store.users.length;
+  let numOfUsers = store.users.length;
 
-	let newUser = {
-		email: email,
-		password: password,
-		nameFirst: nameFirst,
-		nameLast: nameLast,
-		name: nameFirst + ' ' + nameLast,
-		authUserId: numOfUsers+ 1,
-		timeCreated: Date.now(),
-		numSuccessfulLogins: 1,
-		numFailedPasswordsSinceLastLogin: 0
-	}
+  let newUser = {
+    email: email,
+    password: password,
+    nameFirst: nameFirst,
+    nameLast: nameLast,
+    name: nameFirst + ' ' + nameLast,
+    authUserId: numOfUsers + 1,
+    timeCreated: Date.now(),
+    numSuccessfulLogins: 1,
+    numFailedPasswordsSinceLastLogin: 0
+  }
 
-	store.users.push(newUser);
+  store.users.push(newUser);
 
-	return {
-		authUserId: numOfUsers + 1
-	}
+  return {
+    authUserId: numOfUsers + 1
+  }
 }
 /*
 Given a registered user's email and password returns their authUserId value.
@@ -67,56 +68,99 @@ Parameters: email, password
 Return object: authUserId: 1
 */
 export function adminAuthLogin(email, password) {
-	let data = getData();
+  let data = getData();
 
-	const index = data.users.findIndex((user) => user.email === email);
-	if (index === -1) {
-		return {
-			error: 'No user with this email exists'
-		}
-	}
-	if (data.users[index].password !== password) {
-		return {
-			error: 'Password is incorrect'
-		}
-	}
-	return {
-		authUserId: data.users[index].authUserId
-	}
+  const index = data.users.findIndex((user) => user.email === email);
+  if (index === -1) {
+    return {
+      error: 'No user with this email exists'
+    }
+  }
+  if (data.users[index].password !== password) {
+    return {
+      error: 'Password is incorrect'
+    }
+  }
+  return {
+    authUserId: data.users[index].authUserId
+  }
 }
 
 /**
  * Given an admin user's authUserId, return details about the user.
-    "name" is the first and last name concatenated with a single space between them.
- * @param {Integer} authUserId 
- * @returns {Object} user
- */
-function adminUserDetails(authUserId) {
+  "name" is the first and last name concatenated with a single space between them.
+* @param {Integer} authUserId 
+* @returns {Object} user
+*/
+export function adminUserDetails(authUserId) {
+  const data = getData();
+  const user = data.users.find(user => user.authUserId === authUserId);
+
+
+  if (!user) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+
   return {
     user:
     {
-      userId: 1,
-      name: 'Hayden Smith',
-      email: 'hayden.smith@unsw.edu.au',
-      numSuccessfulLogins: 3,
-      numFailedPasswordsSinceLastLogin: 1,
+      userId: user.authUserId,
+      name: `${user.nameFirst} ${user.nameLast}`,
+      email: user.email,
+      numSuccessfulLogins: user.numSuccessfulLogins,
+      numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
     }
   };
+
 }
+
 
 /**
  * Given an admin user's authUserId and a set of properties, update the properties of this logged in admin user.
- * @param {Integer} authUserId 
- * @param {String} email 
- * @param {String} nameFirst 
- * @param {String} nameLast 
+ * @param {number} authUserId 
+ * @param {string} email 
+ * @param {string} nameFirst 
+ * @param {string} nameLast 
  * @returns {object} - Returns an empty object
  */
-function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
-  return {
+  const data = getData();
 
-  };
+  // Check if the authUserId is valid using isValidUser helper function
+  const user = data.users.find(user => user.authUserId === authUserId);
+  if (!user) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  // Check if the email is valid
+  if (!validator.isEmail(email)) {
+    return { error: 'Email is not valid. Please try another email.' };
+  }
+
+  //  Check if the email is already in use by another user
+  const emailInUse = data.users.find(user => user.email === email && user.authUserId !== authUserId);
+  if (emailInUse) {
+    return { error: 'Email is currently used by another user. Please use another email.' };
+  }
+
+  // Validating first name and last name
+  if (!isValidName(nameFirst)) {
+    return { error: "First name contains invalid characters or is not within length limits." };
+  }
+
+  if (!isValidName(nameLast)) {
+    return { error: "Last name contains invalid characters or is not within length limits." };
+  }
+
+  // Update user properties
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
+  user.name = `${nameFirst} ${nameLast}`;
+
+  return {};
 }
 
 /**
@@ -126,9 +170,74 @@ function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  * @param {string} newPassword 
  * @returns {object} - Returns an empty object
  */
-function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
+  let isUserExist = false;
+  let checkOldPassword = false;
+  let newPasswordExist = false;
 
-  return {
+  const data = getData();
 
-  };
+  // Search through the data to check if the user exists
+  for (let i = 0; i < data.users.length; i++) {
+    if (data.users[i].authUserId === authUserId) {
+      isUserExist = true;
+    }
+  }
+  // Search through the data to check if the old password is correct
+  for (let i = 0; i < data.users.length; i++) {
+    if (data.users[i].password === oldPassword) {
+      checkOldPassword = true;
+    }
+  }
+  // Search through the data to check if the new password is already used
+  for (let i = 0; i < data.users.length; i++) {
+    if (data.users[i].password === newPassword) {
+      newPasswordExist = true;
+    }
+  }
+
+  // Check user exists
+  if (!isUserExist) {
+    return {
+      error: 'User Id does not exist',
+    };
+  }
+  // Check password is right 
+  else if (!checkOldPassword) {
+    return {
+      error: 'Old password is incorrect',
+    };
+  }
+  // Check new password is different to old password
+  else if (oldPassword === newPassword) {
+    return {
+      error: 'New password must be different from the old password',
+    };
+  }
+  // Check new password is already used
+  else if (newPasswordExist) {
+    return {
+      error: 'New password is already used',
+    };
+  }
+  // Check new password is less than 8 characters
+  else if (newPassword.length < 8) {
+    return {
+      error: 'New password must be at least 8 characters long',
+    };
+  }
+  // Check new password does not contain at least one letter and one number
+  else if (!newPassword.match(/[a-zA-Z]/) || !newPassword.match(/[0-9]/)) {
+    return {
+      error: 'New password must contain at least one letter and one number',
+    };
+  }
+
+  // Update password and return empty object for indication of no error
+  for (let i = 0; i < data.users.length; i++) {
+    if (data.users[i].authUserId === authUserId) {
+      data.users[i].password = newPassword;
+      return {};
+    }
+  }
 }
