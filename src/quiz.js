@@ -1,18 +1,22 @@
+import { getData } from './dataStore.js';
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
  * @returns {object} 
  */
+
+let data = getData();
+
 function adminQuizList(authUserId) {
 
 	return {
-    quizzes: [
-      {
-        quizId: 1,
-        name: 'My Quiz',
-      }
-    ]
-  };
+		quizzes: [
+			{
+				quizId: 1,
+				name: 'My Quiz',
+			}
+		]
+	};
 }
 
 /**
@@ -23,9 +27,9 @@ function adminQuizList(authUserId) {
  * @returns 
  */
 function adminQuizCreate(authUserId, name, description) {
-    return {
-        quizId: 2
-    }
+	return {
+		quizId: 2
+	}
 }
 
 /**
@@ -35,7 +39,7 @@ function adminQuizCreate(authUserId, name, description) {
  * @returns 
  */
 function adminQuizRemove(authUserId, quizId) {
-    return {};
+	return {};
 }
 
 /**
@@ -54,10 +58,10 @@ function adminQuizInfo(authUserId, quizId) {
 
 	return {
 		quizId: 1,
-  	name: 'My Quiz',
-  	timeCreated: 1683125870,
-  	timeLastEdited: 1683125871,
-  	description: 'This is my quiz',
+		name: 'My Quiz',
+		timeCreated: 1683125870,
+		timeLastEdited: 1683125871,
+		description: 'This is my quiz',
 	};
 }
 
@@ -70,11 +74,8 @@ function adminQuizInfo(authUserId, quizId) {
 * 	}
 */
 function adminQuizNameUpdate(authUserId, quizId, name) {
-	return {
 
-	};
 }
-
 /**
 *	Updates the description of the relevant quiz
 *	@param {integer} authUser Id of user
@@ -84,7 +85,7 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 * 	}
 */
 function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-	return {
 
-	};
 }
+
+export { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate };

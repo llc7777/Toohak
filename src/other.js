@@ -4,6 +4,6 @@ Parameters: no parameters
 Return object: empty object
 */
 
-function clear() {
+export function clear() {
     return {};
 }
