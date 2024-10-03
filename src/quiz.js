@@ -38,7 +38,7 @@ export function adminQuizList(authUserId) {
  * @returns 
  */
 import { getData } from './dataStore.js';
-import { isValidName } from './helper.js';
+import { validQuizName } from './helper.js'; 
 
 export function isUserValid(authUserId) {
 	const { users } = getData();
@@ -61,8 +61,8 @@ export function adminQuizCreate(authUserId, name, description) {
 		return { error: 'Name must be between 3 and 30 characters long.' };
 	}
 
-	if (!isValidName(name)) {
-		return { error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.' };
+	if (!validQuizName(name)) {
+		return { error: 'Name contains invalid characters. Only alphanumeric characters, spaces, apostrophes, and hyphens are allowed.' };
 	}
 
 	if (nameUsed(authUserId, name)) {
@@ -87,6 +87,7 @@ export function adminQuizCreate(authUserId, name, description) {
 
 	return { quizId: newQuizId };
 }
+
 
 /**
  * 
