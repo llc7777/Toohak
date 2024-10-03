@@ -8,8 +8,6 @@ export function adminQuizList(authUserId) {
 	let store = getData();
 	let arr = [];
 
-	console.log(store)
-
 	const userExists = store.users.find((user) => user.authUserId === authUserId);
 	if (!userExists) {
 		return {
