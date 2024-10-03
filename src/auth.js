@@ -121,11 +121,42 @@ export function adminUserDetails(authUserId) {
  * @param {String} nameLast 
  * @returns {object} - Returns an empty object
  */
-function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+  const data = getData();
 
-  return {
+  // Check if the authUserId is valid using isValidUser helper function
+  const user = data.users.find(user => user.authUserId === authUserId);
+  if (!user) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
 
-  };
+  // Check if the email is valid
+  if (!validator.isEmail(email)) {
+    return { error: 'Email is not valid. Please try another email.' };
+  }
+
+  //  Check if the email is already in use by another user
+  const emailInUse = data.users.find(user => user.email === email && user.authUserId !== authUserId);
+  if (emailInUse) {
+    return { error: 'Email is currently used by another user. Please use another email.' };
+  }
+
+  // Validating first name and last name
+  if (!isValidName(nameFirst)) {
+    return { error: "First name contains invalid characters or is not within length limits." };
+  }
+
+  if (!isValidName(nameLast)) {
+    return { error: "Last name contains invalid characters or is not within length limits." };
+  }
+
+  // Update user properties
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
+  user.name = `${nameFirst} ${nameLast}`;
+  
+  return {};
 }
 
 /**
