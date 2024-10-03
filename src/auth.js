@@ -86,22 +86,32 @@ export function adminAuthLogin(email, password) {
 
 /**
  * Given an admin user's authUserId, return details about the user.
-    "name" is the first and last name concatenated with a single space between them.
- * @param {Integer} authUserId 
- * @returns {Object} user
- */
-function adminUserDetails(authUserId) {
+  "name" is the first and last name concatenated with a single space between them.
+* @param {Integer} authUserId 
+* @returns {Object} user
+*/
+export function adminUserDetails(authUserId) {
+  const data = getData();
+  const user = data.users.find(user => user.authUserId === authUserId);
+
+
+  if (!user) {
+    return {error: 'AuthUserId is not a valid user.'};
+  }
+
+
   return {
     user:
     {
-      userId: 1,
-      name: 'Hayden Smith',
-      email: 'hayden.smith@unsw.edu.au',
-      numSuccessfulLogins: 3,
-      numFailedPasswordsSinceLastLogin: 1,
+      userId: user.authUserId,
+      name: `${user.nameFirst} ${user.nameLast}`,
+      email: user.email,
+      numSuccessfulLogins: user.numSuccessfulLogins,
+      numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
     }
   };
 }
+    
 
 /**
  * Given an admin user's authUserId and a set of properties, update the properties of this logged in admin user.
