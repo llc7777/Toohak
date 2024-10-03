@@ -18,7 +18,6 @@ describe('testing for adminQuizRemove', () => {
 
     const removalResult = adminQuizRemove(authRegister.authUserId, quiz.quizId);
 
-    console.log('Removal Result:', removalResult);
     expect(removalResult).toStrictEqual({});
   });
 
