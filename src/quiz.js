@@ -1,5 +1,5 @@
 import { getData } from './dataStore.js';
-import { validQuizName } from './helper.js'; 
+import { validQuizName, isUserValid, nameUsed } from './helper.js'; 
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -40,16 +40,6 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-
-export function isUserValid(authUserId) {
-	const { users } = getData();
-	return users.some(user => user.authUserId === authUserId);
-}
-
-export function nameUsed(authUserId, name) {
-	const { quizzes } = getData();
-	return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
-}
 
 export function adminQuizCreate(authUserId, name, description) {
 	const { quizzes } = getData();
