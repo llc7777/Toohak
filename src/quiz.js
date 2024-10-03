@@ -1,3 +1,4 @@
+import { getData } from './dataStore.js';
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
@@ -37,55 +38,55 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-import { getData } from './dataStore.js'; 
+import { getData } from './dataStore.js';
 import { isValidName } from './helper.js';
 
 export function isUserValid(authUserId) {
-  const { users } = getData();
-  return users.some(user => user.authUserId === authUserId);  
+	const { users } = getData();
+	return users.some(user => user.authUserId === authUserId);
 }
 
 export function nameUsed(authUserId, name) {
-  const { quizzes } = getData();
-  return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
+	const { quizzes } = getData();
+	return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
 export function adminQuizCreate(authUserId, name, description) {
-  const { quizzes } = getData();
+	const { quizzes } = getData();
 
-  if (!isUserValid(authUserId)) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
+	if (!isUserValid(authUserId)) {
+		return { error: 'AuthUserId is not a valid user.' };
+	}
 
-  if (name.length < 3 || name.length > 30) {
-    return { error: 'Name must be between 3 and 30 characters long.' };
-  }
+	if (name.length < 3 || name.length > 30) {
+		return { error: 'Name must be between 3 and 30 characters long.' };
+	}
 
-  if (!isValidName(name)) {
-    return { error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.' };
-  }
+	if (!isValidName(name)) {
+		return { error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.' };
+	}
 
-  if (nameUsed(authUserId, name)) {
-    return { error: 'Name is already used by the current logged-in user for another quiz.' };
-  }
+	if (nameUsed(authUserId, name)) {
+		return { error: 'Name is already used by the current logged-in user for another quiz.' };
+	}
 
-  if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.' };
-  }
+	if (description.length > 100) {
+		return { error: 'Description is more than 100 characters in length.' };
+	}
 
-  const newQuizId = quizzes.length + 1;
-  const newQuiz = {
-    quizId: newQuizId,
-    authUserId,  
-    name,
-    description,
-    timeCreated: Date.now(),  
-    timeLastEdited: Date.now(),  
-  };
+	const newQuizId = quizzes.length + 1;
+	const newQuiz = {
+		quizId: newQuizId,
+		authUserId,
+		name,
+		description,
+		timeCreated: Date.now(),
+		timeLastEdited: Date.now(),
+	};
 
-  quizzes.push(newQuiz);
+	quizzes.push(newQuiz);
 
-  return { quizId: newQuizId };
+	return { quizId: newQuizId };
 }
 
 /**
@@ -94,8 +95,8 @@ export function adminQuizCreate(authUserId, name, description) {
  * @param {integer} quizId Id of quiz
  * @returns 
  */
-function adminQuizRemove(authUserId, quizId) {
-    return {};
+export function adminQuizRemove(authUserId, quizId) {
+	return {};
 }
 
 /**
@@ -110,14 +111,14 @@ function adminQuizRemove(authUserId, quizId) {
 *		- {string} description:
 *
 */
-function adminQuizInfo(authUserId, quizId) {
+export function adminQuizInfo(authUserId, quizId) {
 
 	return {
 		quizId: 1,
-  	name: 'My Quiz',
-  	timeCreated: 1683125870,
-  	timeLastEdited: 1683125871,
-  	description: 'This is my quiz',
+		name: 'My Quiz',
+		timeCreated: 1683125870,
+		timeLastEdited: 1683125871,
+		description: 'This is my quiz',
 	};
 }
 
@@ -129,12 +130,9 @@ function adminQuizInfo(authUserId, quizId) {
 *	@returns empty object {
 * 	}
 */
-function adminQuizNameUpdate(authUserId, quizId, name) {
-	return {
+export function adminQuizNameUpdate(authUserId, quizId, name) {
 
-	};
 }
-
 /**
 *	Updates the description of the relevant quiz
 *	@param {integer} authUser Id of user
@@ -143,8 +141,6 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 *	@returns empty object {
 * 	}
 */
-function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-	return {
+export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
 
-	};
-}
+};
