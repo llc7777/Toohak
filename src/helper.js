@@ -13,3 +13,9 @@ export function isValidName(name) {
   
   return true;
 }
+
+// Helper function to check if the user is valid
+export function isValidUser(authUserId) {
+  const data = getData();
+  return data.users.find(user => user.authUserId === authUserId) || null;
+}
