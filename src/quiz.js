@@ -4,6 +4,9 @@
  * @returns {object} 
  */
 
+import { getData } from './dataStore.js';
+import { validQuizName } from './helper.js';
+
 export function adminQuizList(authUserId) {
 	let store = getData();
 	let arr = [];
@@ -37,8 +40,6 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-import { getData } from './dataStore.js';
-import { validQuizName } from './helper.js'; 
 
 export function isUserValid(authUserId) {
 	const { users } = getData();
@@ -114,31 +115,31 @@ export function adminQuizRemove(authUserId, quizId) {
 //export function adminQuizInfo(authUserId, quizId) {
 
 export function adminQuizInfo(authUserId, quizId) {
-    const data = getData();
-		console.log(data);
-    const user = data.users.find(user => user.authUserId === authUserId)
-    if (!user) {
-        return { error: 'Unable to find user Id '}
-    };
+	const data = getData();
+
+	const user = data.users.find(user => user.authUserId === authUserId)
+	if (!user) {
+		return { error: 'Unable to find user Id ' }
+	};
 
 
-    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId)
-    if (!quiz) {
-      return { error: 'Quiz unable to be found'}
-    };
+	const quiz = data.quizzes.find(quiz => quiz.quizId === quizId)
+	if (!quiz) {
+		return { error: 'Quiz unable to be found' }
+	};
 
-		const userAndQuizMatch = data.quizzes.find(quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
-		if (!userAndQuizMatch) {
-      return { error: 'The given user does not own the given quiz'}
-    };
-			
-    return {
-        quizId: quiz.quizId,
-        name: quiz.name,
-        timeCreated: quiz.timeCreated,
-        timeLastEdited: quiz.timeLastEdited,
-        description: quiz.description,
-    };
+	const userAndQuizMatch = data.quizzes.find(quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
+	if (!userAndQuizMatch) {
+		return { error: 'The given user does not own the given quiz' }
+	};
+
+	return {
+		quizId: quiz.quizId,
+		name: quiz.name,
+		timeCreated: quiz.timeCreated,
+		timeLastEdited: quiz.timeLastEdited,
+		description: quiz.description,
+	};
 }
 
 
@@ -151,7 +152,73 @@ export function adminQuizInfo(authUserId, quizId) {
 * 	}
 */
 export function adminQuizNameUpdate(authUserId, quizId, name) {
+	let isUserExist = false;
+	let isQuizExist = false;
+	const data = getData();
+	// Search through the data to check if the user exists
+	for (let i = 0; i < data.users.length; i++) {
+		if (data.users[i].authUserId === authUserId) {
+			isUserExist = true;
+		}
+	}
+	// Search through the data to check if the quiz exists
+	for (let i = 0; i < data.quizzes.length; i++) {
+		if (data.quizzes[i].quizId === quizId) {
+			isQuizExist = true;
+		}
+	}
+	// Check user owns the quiz
+	for (let i = 0; i < data.quizzes.length; i++) {
+		if (data.quizzes[i].quizId === quizId) {
+			if (data.quizzes[i].userId !== authUserId) {
+				return {
+					error: 'User does not own the quiz',
+				};
+			}
+		}
+	}
+	// Check quiz name is already used
+	for (let i = 0; i < data.quizzes.length; i++) {
+		if (data.quizzes[i].name === name) {
+			return {
+				error: 'Name is already used',
+			};
+		}
+	}
 
+	// Check user exists
+	if (!isUserExist) {
+		return {
+			error: 'User Id does not exist',
+		};
+	}
+	// Check quiz exists
+	else if (!isQuizExist) {
+		return {
+			error: 'Quiz Id does not exist',
+		};
+	}
+	// Check name contains invalid characters. Valid characters are alphanumeric and spaces.
+	else if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
+		return {
+			error: 'Name contains invalid characters (Valid characters are alphanumeric and spaces)',
+		};
+	}
+	// Check name is less than 3 characters and more than 30 characters.
+	else if (name.length < 3 || name.length > 30) {
+		return {
+			error: 'Name must be between 3 and 30 characters long',
+		};
+	}
+	// Update the name of the quiz and return empty object for indication of no error
+	else {
+		for (let i = 0; i < data.quizzes.length; i++) {
+			if (data.quizzes[i].quizId === quizId) {
+				data.quizzes[i].name = name;
+				return {};
+			}
+		}
+	}
 }
 /**
 *	Updates the description of the relevant quiz
