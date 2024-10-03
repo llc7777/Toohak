@@ -7,7 +7,6 @@ Return object: authUserId: 1
 import { getData } from './dataStore.js';
 import { isValidName, isValidUser }  from './helper.js';
 import  validator  from 'validator'
-
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
