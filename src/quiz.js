@@ -1,4 +1,3 @@
-import { getData } from './dataStore.js';
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
