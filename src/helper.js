@@ -1,3 +1,5 @@
+import { getData } from './dataStore.js';
+
 //helper function for adminAuthRegister
 export function isValidName(name) {
   if (name.length < 2 || name.length > 20) {
