@@ -1,6 +1,6 @@
 //helper function for adminAuthRegister
 export function isValidName(name) {
-  if (name.length < 2 || name.length > 19) {
+  if (name.length < 2 || name.length > 20) {
     return false;
   }
 
