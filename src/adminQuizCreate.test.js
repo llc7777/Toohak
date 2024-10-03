@@ -46,8 +46,8 @@ describe('testing for adminQuizCreate', () => {
       const name = 'name';
       const description = '';
       await expect(adminQuizCreate(authregister.authUserId, name, description)).toStrictEqual(expect.objectContaining({
-         quizId: expect.any(Number)
-       }));
+        quizId: expect.any(Number)
+      }));
     });
 
 
