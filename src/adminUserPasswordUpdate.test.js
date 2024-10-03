@@ -2,7 +2,7 @@
 import { adminAuthRegister, adminUserPasswordUpdate } from './auth.js';
 import { clear } from './other.js';
 
-let validAuthUserId; 
+let validAuthUserId;
 // Store the original password
 const oldPassword = 'password123';
 
@@ -21,49 +21,47 @@ const invalidAuthUserId = validAuthUserId + 1;
 describe('Error Handling', () => {
   test('Returns error if authUserId is invalid', () => {
     let result = adminUserPasswordUpdate(invalidAuthUserId, oldPassword, 'newPassword456');
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test('Returns error if oldPassword is not the correct old password', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, 'wrongOldPassword', 'newPassword456');
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test('Returns error if oldPassword and newPassword match exactly', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, oldPassword, oldPassword);
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test('Returns error if newPassword has been used before by this user', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, oldPassword, 'passwordUsedBefore');
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test('Returns error if newPassword is less than 8 characters', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, oldPassword, 'Pass');
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test('Returns error if newPassword does not contain at least one number and one letter', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, oldPassword, 'password');
-    expect(result).toStrictEqual({error : expect.any(String)});
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
-
 });
-
 
 // Successful tests
 describe('Successful Updates', () => {
   test('Successfully updates password for valid user', () => {
     let result = adminUserPasswordUpdate(validAuthUserId, oldPassword, 'newPassword12');
-    expect(result).toStrictEqual({}); 
+    expect(result).toStrictEqual({});
   });
-  
+
   test('Successfully updates password multiple times', () => {
     let result1 = adminUserPasswordUpdate(validAuthUserId, oldPassword, 'NewPassword1');
-    expect(result1).toStrictEqual({}); 
-  
+    expect(result1).toStrictEqual({});
+
     let result2 = adminUserPasswordUpdate(validAuthUserId, 'NewPassword1', 'NewPassword2');
-    expect(result2).toStrictEqual({}); 
+    expect(result2).toStrictEqual({});
   });
 });
