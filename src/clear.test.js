@@ -11,7 +11,7 @@
          let user1 = adminAuthRegister('aero1@mail.com', 'password1', 'Jason', 'Chandra');
          expect(clear()).toStrictEqual({});
          let currentData = getData();
-         expect(currentDeta).toStrictEqual({ users: [], quizzes: [] });
+         expect(currentData).toStrictEqual({ users: [], quizzes: [] });
      });
 
      test('Clear data when there is two user', () => {
@@ -19,7 +19,7 @@
          let user2 = adminAuthRegister('aero2@mail.com', 'password2', 'Jake', 'Renzella');
          expect(clear()).toStrictEqual({});
          let currentData = getData();
-         expect(currentDeta).toStrictEqual({ users: [], quizzes: [] });
+         expect(currentData).toStrictEqual({ users: [], quizzes: [] });
      });
 
      test('Clear data when there is one user and one quiz', () => {
@@ -27,7 +27,7 @@
          let quiz1 = adminQuizCreate('user1.authUserId', 'quiz1', 'Description quiz1');
          expect(clear()).toStrictEqual({});
          let currentData = getData();
-         expect(currentDeta).toStrictEqual({ users: [], quizzes: [] });
+         expect(currentData).toStrictEqual({ users: [], quizzes: [] });
      });
 
      test('Clear data when there is two user and two quiz', () => {
@@ -37,13 +37,13 @@
          let quiz2 = adminQuizCreate('user1.authUserId', 'quiz2', 'Description quiz2');
          expect(clear()).toStrictEqual({});
          let currentData = getData();
-         expect(currentDeta).toStrictEqual({ users: [], quizzes: [] });
+         expect(currentData).toStrictEqual({ users: [], quizzes: [] });
      });
 
      test('Already cleared state', () => {
          clear();
          expect(clear()).toStrictEqual({});
          let currentData = getData();
-         expect(currentDeta).toStrictEqual({ users: [], quizzes: [] });
+         expect(currentData).toStrictEqual({ users: [], quizzes: [] });
      });
  });
