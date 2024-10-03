@@ -3,16 +3,31 @@
  * @param {integer} authUserId 
  * @returns {object} 
  */
-function adminQuizList(authUserId) {
+
+export function adminQuizList(authUserId) {
+	let store = getData();
+	let arr = [];
+
+	const userExists = store.users.find((user) => user.authUserId === authUserId);
+	if (!userExists) {
+		return {
+			error: 'No user with the given authUserId exists',
+		}
+	}
+
+	for (let i = 0; i < store.quizzes.length; i++) {
+		if (store.quizzes[i].authUserId === authUserId) {
+			const item = {
+				quizId: store.quizzes[i].quizId,
+				name: store.quizzes[i].name,
+			}
+			arr.push(item);
+		}
+	}
 
 	return {
-    quizzes: [
-      {
-        quizId: 1,
-        name: 'My Quiz',
-      }
-    ]
-  };
+		quizzes: arr,
+	}
 }
 
 /**
