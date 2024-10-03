@@ -1,3 +1,6 @@
+import { getData } from './dataStore.js';
+import { validQuizName } from './helper.js'; 
+
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
@@ -37,8 +40,6 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-import { getData } from './dataStore.js';
-import { validQuizName } from './helper.js'; 
 
 export function isUserValid(authUserId) {
 	const { users } = getData();
@@ -96,7 +97,31 @@ export function adminQuizCreate(authUserId, name, description) {
  * @returns 
  */
 export function adminQuizRemove(authUserId, quizId) {
-	return {};
+	const data = getData();
+
+  // Check if the authUserId is valid using isValidUser helper function
+  const user = isUserValid(authUserId);
+  if (!user) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  // Check if the quizId refers to a valid quiz
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  if (quizIndex === -1) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  // Check if the quiz belongs to the user
+  const quiz = data.quizzes[quizIndex];
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  }
+
+  // Remove the quiz
+  data.quizzes.splice(quizIndex, 1);
+
+  // return an empty object
+  return {};
 }
 
 /**
@@ -111,16 +136,36 @@ export function adminQuizRemove(authUserId, quizId) {
 *		- {string} description:
 *
 */
-export function adminQuizInfo(authUserId, quizId) {
+//export function adminQuizInfo(authUserId, quizId) {
 
-	return {
-		quizId: 1,
-		name: 'My Quiz',
-		timeCreated: 1683125870,
-		timeLastEdited: 1683125871,
-		description: 'This is my quiz',
-	};
+export function adminQuizInfo(authUserId, quizId) {
+    const data = getData();
+		console.log(data);
+    const user = data.users.find(user => user.authUserId === authUserId)
+    if (!user) {
+        return { error: 'Unable to find user Id '}
+    };
+
+
+    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId)
+    if (!quiz) {
+      return { error: 'Quiz unable to be found'}
+    };
+
+		const userAndQuizMatch = data.quizzes.find(quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
+		if (!userAndQuizMatch) {
+      return { error: 'The given user does not own the given quiz'}
+    };
+			
+    return {
+        quizId: quiz.quizId,
+        name: quiz.name,
+        timeCreated: quiz.timeCreated,
+        timeLastEdited: quiz.timeLastEdited,
+        description: quiz.description,
+    };
 }
+
 
 /**
 *	Updates the name of the relevant quiz
