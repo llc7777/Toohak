@@ -22,10 +22,55 @@ function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-function adminQuizCreate(authUserId, name, description) {
-    return {
-        quizId: 2
-    }
+import { getData } from './dataStore.js'; 
+import { isValidName } from './helper.js';
+
+export function isUserValid(authUserId) {
+  const { users } = getData();
+  return users.some(user => user.authUserId === authUserId);  
+}
+
+export function nameUsed(authUserId, name) {
+  const { quizzes } = getData();
+  return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
+}
+
+export function adminQuizCreate(authUserId, name, description) {
+  const { quizzes } = getData();
+
+  if (!isUserValid(authUserId)) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  if (name.length < 3 || name.length > 30) {
+    return { error: 'Name must be between 3 and 30 characters long.' };
+  }
+
+  if (!isValidName(name)) {
+    return { error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.' };
+  }
+
+  if (nameUsed(authUserId, name)) {
+    return { error: 'Name is already used by the current logged-in user for another quiz.' };
+  }
+
+  if (description.length > 100) {
+    return { error: 'Description is more than 100 characters in length.' };
+  }
+
+  const newQuizId = quizzes.length + 1;
+  const newQuiz = {
+    quizId: newQuizId,
+    authUserId,  
+    name,
+    description,
+    timeCreated: Date.now(),  
+    timeLastEdited: Date.now(),  
+  };
+
+  quizzes.push(newQuiz);
+
+  return { quizId: newQuizId };
 }
 
 /**

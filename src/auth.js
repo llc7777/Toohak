@@ -6,10 +6,8 @@ Return object: authUserId: 1
 */
 import validator from 'validator';
 import { getData } from './dataStore.js';
-import {
-  isValidEmail,
-  isValidName}  from './helper.js';
-
+import { isValidName }  from './helper.js';
+import  validator  from 'validator'
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
@@ -53,7 +51,8 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 		name: nameFirst + ' ' + nameLast,
 		authUserId: numOfUsers+ 1,
 		timeCreated: Date.now(),
-		numSuccessfulLogins: -1,
+		numSuccessfulLogins: 1,
+		numFailedPasswordsSinceLastLogin: 0
 	}
 
 	store.users.push(newUser);
@@ -67,11 +66,23 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-function adminAuthLogin(email, password) {
-  return {
-    authUserId: 1,
-    authUserId: 1,
-  };
+export function adminAuthLogin(email, password) {
+	let data = getData();
+
+	const index = data.users.findIndex((user) => user.email === email);
+	if (index === -1) {
+		return {
+			error: 'No user with this email exists'
+		}
+	}
+	if (data.users[index].password !== password) {
+		return {
+			error: 'Password is incorrect'
+		}
+	}
+	return {
+		authUserId: data.users[index].authUserId
+	}
 }
 
 /**
