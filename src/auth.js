@@ -5,9 +5,8 @@ Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
 import { getData } from './dataStore.js';
-import { isValidName, isValidUser }  from './helper.js';
+import { isValidName }  from './helper.js';
 import  validator  from 'validator'
-
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (!validator.isEmail(email)) {
     return { error: "Invalid email format." };
@@ -126,7 +125,7 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
   const data = getData();
 
   // Check if the authUserId is valid using isValidUser helper function
-  const user = isValidUser(authUserId);
+  const user = data.users.find(user => user.authUserId === authUserId);
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
