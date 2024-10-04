@@ -155,6 +155,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 	let isUserExist = false;
 	let isQuizExist = false;
 	const data = getData();
+
 	// Search through the data to check if the user exists
 	for (let i = 0; i < data.users.length; i++) {
 		if (data.users[i].authUserId === authUserId) {
@@ -170,7 +171,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 	// Check user owns the quiz
 	for (let i = 0; i < data.quizzes.length; i++) {
 		if (data.quizzes[i].quizId === quizId) {
-			if (data.quizzes[i].userId !== authUserId) {
+			if (data.quizzes[i].authUserId !== authUserId) {
 				return {
 					error: 'User does not own the quiz',
 				};
@@ -215,6 +216,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 		for (let i = 0; i < data.quizzes.length; i++) {
 			if (data.quizzes[i].quizId === quizId) {
 				data.quizzes[i].name = name;
+
 				return {};
 			}
 		}
