@@ -40,7 +40,6 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-
 export function adminQuizCreate(authUserId, name, description) {
 	const { quizzes } = getData();
 
@@ -78,7 +77,6 @@ export function adminQuizCreate(authUserId, name, description) {
 
 	return { quizId: newQuizId };
 }
-
 
 /**
  * 
