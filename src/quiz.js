@@ -129,6 +129,7 @@ export function adminQuizRemove(authUserId, quizId) {
 export function adminQuizInfo(authUserId, quizId) {
 	const data = getData();
 
+
 	const user = data.users.find(user => user.authUserId === authUserId)
 	if (!user) {
 		return { error: 'Unable to find user Id ' }
@@ -243,5 +244,59 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 * 	}
 */
 export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+	let isUserExist = false;
+	let isQuizExist = false;
+	const data = getData();
 
+	// Search through the data to check if the user exists
+	for (let i = 0; i < data.users.length; i++) {
+		if (data.users[i].authUserId === authUserId) {
+			isUserExist = true;
+		}
+	}
+	// Search through the data to check if the quiz exists
+	for (let i = 0; i < data.quizzes.length; i++) {
+		if (data.quizzes[i].quizId === quizId) {
+			isQuizExist = true;
+		}
+	}
+	// Check user owns the quiz
+	for (let i = 0; i < data.quizzes.length; i++) {
+		if (data.quizzes[i].quizId === quizId) {
+			if (data.quizzes[i].authUserId !== authUserId) {
+				return {
+					error: 'User does not own the quiz',
+				};
+			}
+		}
+	}
+
+
+	// Check user exists
+	if (!isUserExist) {
+		return {
+			error: 'User Id does not exist',
+		};
+	}
+	// Check quiz exists
+	else if (!isQuizExist) {
+		return {
+			error: 'Quiz Id does not exist',
+		};
+	}
+	// Check description is more than 100 characters.
+	else if (description.length > 100) {
+		return {
+			error: 'Description must be less than 100 characters long',
+		};
+	}
+	// Update the description of the quiz and return empty object for indication of no error
+	else {
+		for (let i = 0; i < data.quizzes.length; i++) {
+			if (data.quizzes[i].quizId === quizId) {
+				data.quizzes[i].description = description;
+				return {};
+			}
+		}
+	}
 };
