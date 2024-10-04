@@ -1,7 +1,6 @@
 // Test: adminQuizDescriptionUpdate
 import { clear } from './other.js';
 
-
 import {
     adminAuthRegister,
 } from './auth.js';
