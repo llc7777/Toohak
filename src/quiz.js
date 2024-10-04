@@ -1,11 +1,11 @@
-import { getData } from './dataStore.js';
-import { validQuizName, isUserValid, nameUsed } from './helper.js';
-
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
  * @returns {object} 
  */
+
+import { getData } from './dataStore.js';
+import { validQuizName, isUserValid, nameUsed } from './helper.js';
 
 export function adminQuizList(authUserId) {
 	let store = getData();
@@ -40,7 +40,6 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns 
  */
-
 export function adminQuizCreate(authUserId, name, description) {
 	const { quizzes } = getData();
 
@@ -78,7 +77,6 @@ export function adminQuizCreate(authUserId, name, description) {
 
 	return { quizId: newQuizId };
 }
-
 
 /**
  * 
