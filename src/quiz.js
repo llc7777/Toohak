@@ -1,6 +1,3 @@
-import { getData } from './dataStore.js';
-import { validQuizName, isUserValid, nameUsed } from './helper.js';
-
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 
@@ -8,7 +5,7 @@ import { validQuizName, isUserValid, nameUsed } from './helper.js';
  */
 
 import { getData } from './dataStore.js';
-import { validQuizName } from './helper.js';
+import { validQuizName, isUserValid, nameUsed } from './helper.js';
 
 export function adminQuizList(authUserId) {
 	let store = getData();
