@@ -230,7 +230,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 		for (let i = 0; i < data.quizzes.length; i++) {
 			if (data.quizzes[i].quizId === quizId) {
 				data.quizzes[i].name = name;
-
+				data.quizzes[i].timeLastEdited = Math.floor(Date.now() / 1000);
 				return {};
 			}
 		}
