@@ -1,6 +1,7 @@
-import { adminQuizCreate } from './quiz.js';
-import { adminAuthRegister } from './auth.js';
-import { clear } from './other.js'
+// @ts-nocheck
+import { adminQuizCreate } from './quiz';
+import { adminAuthRegister } from './auth';
+import { clear } from './other'
 
 // Test case for adminQuizCreate function
 describe('testing for adminQuizCreate', () => {

@@ -1,14 +1,15 @@
+// @ts-nocheck
 import {
     adminQuizNameUpdate,
     adminQuizCreate,
     adminQuizInfo,
-} from './quiz.js'
+} from './quiz'
 
 import {
     adminAuthRegister,
-} from './auth.js'
+} from './auth'
 
-import { clear } from './other.js';
+import { clear } from './other';
 
 beforeEach(() => {
     // reset the state of our data so that each tests can run independently

@@ -1,6 +1,7 @@
+// @ts-nocheck
 // Importing the function from auth.js file
-import { adminAuthRegister, adminUserPasswordUpdate } from './auth.js';
-import { clear } from './other.js';
+import { adminAuthRegister, adminUserPasswordUpdate } from './auth';
+import { clear } from './other';
 
 let validAuthUserId;
 // Store the original password

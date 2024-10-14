@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * Reset the state of the application back to the start.
  * Parameters: no parameters
  * Return object: empty object
  */
-import { getData } from './dataStore.js'
+import { getData } from './dataStore'
 
 export function clear() {
   let store = getData();
