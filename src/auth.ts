@@ -118,7 +118,8 @@ export function adminUserDetails(authUserId) {
 }
 
 /**
- * Given an admin user's authUserId and a set of properties, update the properties of this logged in admin user.
+ * Given an admin user's authUserId and a set of properties,
+ * update the properties of this logged in admin user.
  * @param {number} authUserId
  * @param {string} email
  * @param {string} nameFirst
@@ -140,7 +141,8 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
   }
 
   //  Check if the email is already in use by another user
-  const emailInUse = data.users.find(user => user.email === email && user.authUserId !== authUserId);
+  const emailInUse = data.users.find(
+    user => user.email === email && user.authUserId !== authUserId);
   if (emailInUse) {
     return { error: 'Email is currently used by another user. Please use another email.' };
   }
@@ -201,33 +203,28 @@ export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
     return {
       error: 'User Id does not exist',
     };
-  }
-  // Check password is right
-  else if (!checkOldPassword) {
+    // Check password is right
+  } else if (!checkOldPassword) {
     return {
       error: 'Old password is incorrect',
     };
-  }
-  // Check new password is different to old password
-  else if (oldPassword === newPassword) {
+    // Check new password is different to old password
+  } else if (oldPassword === newPassword) {
     return {
       error: 'New password must be different from the old password',
     };
-  }
-  // Check new password is already used
-  else if (newPasswordExist) {
+    // Check new password is already used
+  } else if (newPasswordExist) {
     return {
       error: 'New password is already used',
     };
-  }
-  // Check new password is less than 8 characters
-  else if (newPassword.length < 8) {
+    // Check new password is less than 8 characters
+  } else if (newPassword.length < 8) {
     return {
       error: 'New password must be at least 8 characters long',
     };
-  }
-  // Check new password does not contain at least one letter and one number
-  else if (!newPassword.match(/[a-zA-Z]/) || !newPassword.match(/[0-9]/)) {
+    // Check new password does not contain at least one letter and one number
+  } else if (!newPassword.match(/[a-zA-Z]/) || !newPassword.match(/[0-9]/)) {
     return {
       error: 'New password must contain at least one letter and one number',
     };
