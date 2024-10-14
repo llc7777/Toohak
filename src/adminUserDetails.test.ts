@@ -43,7 +43,8 @@ describe('Test for correct return value', () => {
     { email: 'a@gmail.com', password: 'password1', firstName: 'Hayden', lastName: 'Smith' },
     { email: 'b@gmail.com', password: 'passss123', firstName: 'John', lastName: 'Doe' },
     { email: 'c@gmail.com', password: 'mypassword1', firstName: 'Jane', lastName: 'Doe' },
-  ])('Should return userDetail with correct properties for each user', ({ email, password, firstName, lastName }) => {
+  ])('Should return userDetail with correct properties for each user', 
+    ({ email, password, firstName, lastName }) => {
     // Register the admin user
     const admin = adminAuthRegister(email, password, firstName, lastName);
     // Get the full name of the user
