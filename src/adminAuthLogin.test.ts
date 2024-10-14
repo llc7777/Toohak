@@ -6,12 +6,14 @@ import { adminAuthLogin } from './auth';
 describe('tests for adminAuthLogin', () => {
   beforeAll(() => {
     const result = adminAuthRegister('validemail@gmail.com', '123abc!@#', 'Jake', 'Renzella');
+    expect(result.authUserId).toStrictEqual(expect.any(Number));
   });
 
   test('successful valid login returns authUserId', () => {
-    expect(adminAuthLogin('validemail@gmail.com', '123abc!@#')).toStrictEqual(expect.objectContaining({
-      authUserId: expect.any(Number)
-    }));
+    expect(adminAuthLogin('validemail@gmail.com', '123abc!@#'))
+      .toStrictEqual(expect.objectContaining({
+        authUserId: expect.any(Number)
+      }));
   });
 
   test.each([
