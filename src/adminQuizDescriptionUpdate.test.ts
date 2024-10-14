@@ -138,7 +138,8 @@ describe('Test for error handling', () => {
     const user = adminAuthRegister('leo.kim@gmail.com', 'password1', 'Hayden', 'Smith');
     const quiz = adminQuizCreate(user.authUserId, 'Quiz 1', 'This is a quiz');
     // Check if error is returned for invalid authUserId by adding random number to the authUserId
-    expect(adminQuizDescriptionUpdate(user.authUserId + 1531, quiz.quizId, 'This is a new quiz')).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user.authUserId + 1531, quiz.quizId,
+      'This is a new quiz')).toStrictEqual(ERROR);
   });
 
   // Test for invalid quizId
@@ -146,7 +147,8 @@ describe('Test for error handling', () => {
     const user = adminAuthRegister('leo.kim@gmail.com', 'password1', 'Hayden', 'Smith');
     const quiz = adminQuizCreate(user.authUserId, 'Quiz 1', 'This is a quiz');
     // Check if error is returned for invalid quizId by adding random number to the quizId
-    expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId + 1531, 'This is a new quiz')).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId + 1531,
+      'This is a new quiz')).toStrictEqual(ERROR);
   });
 
   // Test for invalid authUserId and quizId
@@ -154,7 +156,8 @@ describe('Test for error handling', () => {
     const user = adminAuthRegister('leo.kim@gmail.com', 'password1', 'Hayden', 'Smith');
     const quiz = adminQuizCreate(user.authUserId, 'Quiz 1', 'This is a quiz');
     // Check if error is returned for invalid authUserId and quizId by adding random number to both
-    expect(adminQuizDescriptionUpdate(user.authUserId + 1531, quiz.quizId + 1531, 'This is a new quiz')).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user.authUserId + 1531, quiz.quizId + 1531,
+      'This is a new quiz')).toStrictEqual(ERROR);
   });
 
   // Test for invalid quiz owner
@@ -164,9 +167,11 @@ describe('Test for error handling', () => {
     const quiz = adminQuizCreate(user.authUserId, 'Quiz 1', 'This is a quiz');
     const quiz2 = adminQuizCreate(user2.authUserId, 'Quiz 2', 'This is a quiz');
     // Check if error is returned for invalid quiz owner
-    expect(adminQuizDescriptionUpdate(user2.authUserId, quiz.quizId, 'This is a new quiz')).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user2.authUserId,
+      quiz.quizId, 'This is a new quiz')).toStrictEqual(ERROR);
     // Check vice versa
-    expect(adminQuizDescriptionUpdate(user.authUserId, quiz2.quizId, 'This is a new quiz')).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user.authUserId, quiz2.quizId,
+      'This is a new quiz')).toStrictEqual(ERROR);
   });
 
   // Test for more than 100 description characters
@@ -174,6 +179,7 @@ describe('Test for error handling', () => {
     const user = adminAuthRegister('leo.kim@gmail.com', 'password1', 'Hayden', 'Smith');
     const quiz = adminQuizCreate(user.authUserId, 'Quiz 1', 'This is a quiz');
     // Check if error is returned for more than 100 characters
-    expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId, 'q'.repeat(101))).toStrictEqual(ERROR);
+    expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId,
+      'q'.repeat(101))).toStrictEqual(ERROR);
   });
 });
