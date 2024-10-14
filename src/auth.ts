@@ -79,9 +79,12 @@ export function adminAuthLogin(email, password) {
   }
   if (data.users[index].password !== password) {
     return {
+			data.users[index].numFailedPasswordsSinceLastLogin += 1;
       error: 'Password is incorrect'
     }
   }
+	data.users[index].numFailedPasswordsSinceLastLogin = 0;
+	data.users[index].numSuccessfulLogins += 1;
   return {
     authUserId: data.users[index].authUserId
   }
