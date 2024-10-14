@@ -1,14 +1,14 @@
-
+// @ts-nocheck
 import {
    adminQuizInfo,
    adminQuizCreate,
-} from './quiz.js'
+} from './quiz'
 import {
    adminAuthRegister,
-} from './auth.js'
+} from './auth'
 import {
    clear,
-} from './other.js'
+} from './other'
 
 
 beforeEach(() => {

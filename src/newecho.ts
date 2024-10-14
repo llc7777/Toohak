@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Do not delete this file
 type ErrorMsg = {
   error: string;

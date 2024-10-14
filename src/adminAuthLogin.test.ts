@@ -1,5 +1,6 @@
-import { adminAuthRegister } from './auth.js'
-import { adminAuthLogin } from './auth.js'
+// @ts-nocheck
+import { adminAuthRegister } from './auth'
+import { adminAuthLogin } from './auth'
 
 describe('tests for adminAuthLogin', ()=> {
    

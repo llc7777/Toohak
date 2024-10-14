@@ -1,16 +1,17 @@
+// @ts-nocheck
 // Test: adminQuizDescriptionUpdate
-import { clear } from './other.js';
+import { clear } from './other';
 
 import {
     adminAuthRegister,
-} from './auth.js';
+} from './auth';
 
 
 import {
     adminQuizCreate,
     adminQuizDescriptionUpdate,
     adminQuizInfo,
-} from './quiz.js';
+} from './quiz';
 
 
 // Constant for error object

@@ -1,11 +1,12 @@
+// @ts-nocheck
 import {
   adminUserDetailsUpdate,
   adminAuthRegister,
   adminUserDetails,
-} from './auth.js'
+} from './auth'
 import {
   clear,
-} from './other.js'
+} from './other'
 
 beforeEach(() => {
 // Reset the state of our data so that each tests can run independently
