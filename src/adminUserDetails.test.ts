@@ -43,15 +43,15 @@ describe('Test for correct return value', () => {
     { email: 'a@gmail.com', password: 'password1', firstName: 'Hayden', lastName: 'Smith' },
     { email: 'b@gmail.com', password: 'passss123', firstName: 'John', lastName: 'Doe' },
     { email: 'c@gmail.com', password: 'mypassword1', firstName: 'Jane', lastName: 'Doe' },
-  ])('Should return userDetail with correct properties for each user', 
+  ])('Should return userDetail with correct properties for each user',
     ({ email, password, firstName, lastName }) => {
-    // Register the admin user
-    const admin = adminAuthRegister(email, password, firstName, lastName);
-    // Get the full name of the user
-    const fullName = `${firstName} ${lastName}`;
-    // Check if user details are returned correctly
-    expect(adminUserDetails(admin.authUserId)).toStrictEqual({
-      user:
+      // Register the admin user
+      const admin = adminAuthRegister(email, password, firstName, lastName);
+      // Get the full name of the user
+      const fullName = `${firstName} ${lastName}`;
+      // Check if user details are returned correctly
+      expect(adminUserDetails(admin.authUserId)).toStrictEqual({
+        user:
             {
               userId: admin.authUserId,
               name: fullName,
@@ -59,11 +59,11 @@ describe('Test for correct return value', () => {
               numSuccessfulLogins: expect.any(Number),
               numFailedPasswordsSinceLastLogin: expect.any(Number),
             }
-    });
+      });
 
-    // Check if numSuccessfulLogins is at least 1
-    expect(adminUserDetails(admin.authUserId).user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
-  });
+      // Check if numSuccessfulLogins is at least 1
+      expect(adminUserDetails(admin.authUserId).user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
+    });
 });
 
 // Test for error handling
