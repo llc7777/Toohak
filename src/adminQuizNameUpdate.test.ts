@@ -18,10 +18,10 @@ beforeEach(() => {
 });
 
 /* ---------------------------------------------------|
-*                                                                                                         |
-*    adminQuizNameUpdate tests done by MOHAMMAD                 |
-*                                                                                                           |
-*   ----------------------------------------------------|
+*                                                     |
+*    adminQuizNameUpdate tests done by MOHAMMAD       |
+*                                                     |
+*   --------------------------------------------------|
 */
 
 describe('adminQuizNameUpdate', () => {
@@ -74,6 +74,7 @@ describe('adminQuizNameUpdate', () => {
       const user = adminAuthRegister('jake.renzella@gmail.com', 'password1', 'Jake', 'Renzella');
       const quiz1 = adminQuizCreate(user.authUserId, 'VIM', 'A basic quiz on VIM commands');
       const quiz2 = adminQuizCreate(user.authUserId, 'VIM is bad', 'A quiz on why VIM is bad');
+      expect(quiz2.quizId).toStrictEqual(expect.any(Number));
       const result = adminQuizNameUpdate(user.authUserId, quiz1.quizId, 'VIM is bad');
       expect(result).toStrictEqual({ error: expect.any(String) });
     });
@@ -92,6 +93,8 @@ describe('adminQuizNameUpdate', () => {
       const quiz1 = adminQuizCreate(user.authUserId, 'VIM', 'A basic quiz on VIM commands');
       const quiz2 = adminQuizCreate(user.authUserId, 'VSCode', 'A basic quiz on VSCode');
       const quiz3 = adminQuizCreate(user.authUserId, 'Emacs', 'A basic quiz on Emacs');
+      expect(quiz2.quizId).toStrictEqual(expect.any(Number));
+      expect(quiz3.quizId).toStrictEqual(expect.any(Number));
       const result = adminQuizNameUpdate(user.authUserId, quiz1.quizId, 'VIM is bad');
       const newDetails = adminQuizInfo(user.authUserId, quiz1.quizId);
       expect(newDetails.name).toStrictEqual('VIM is bad'); // Check if we actually changed name
@@ -102,6 +105,8 @@ describe('adminQuizNameUpdate', () => {
       const quiz1 = adminQuizCreate(user1.authUserId, 'VIM', 'A basic quiz on VIM commands');
       const user2 = adminAuthRegister('hayden.smith@gmail.com', 'password1', 'Hayden', 'Smith');
       const quiz2 = adminQuizCreate(user1.authUserId, 'VSCode', 'A basic quiz on VSCode');
+      expect(user2.authUserId).toStrictEqual(expect.any(Number));
+      expect(quiz2.quizId).toStrictEqual(expect.any(Number));
       const result = adminQuizNameUpdate(user1.authUserId, quiz1.quizId, 'VIM is bad');
       const newDetails = adminQuizInfo(user1.authUserId, quiz1.quizId);
       expect(newDetails.name).toStrictEqual('VIM is bad'); // Check if we actually changed name
