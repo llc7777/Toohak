@@ -1,10 +1,10 @@
 /*
  Test file for clear
  */
- import { clear } from './other.js';
- import { adminAuthRegister } from './auth.js';
- import { adminQuizCreate } from './quiz.js'; 
- import { getData } from './dataStore.js';
+ import { clear } from './other';
+ import { adminAuthRegister } from './auth';
+ import { adminQuizCreate } from './quiz'; 
+ import { getData } from './dataStore';
 
  describe('clear function', () => {
      test('Clear data when there is only one user', () => {

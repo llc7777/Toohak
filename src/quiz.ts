@@ -4,8 +4,8 @@
  * @returns {object} 
  */
 
-import { getData } from './dataStore.js';
-import { validQuizName, isUserValid, nameUsed } from './helper.js';
+import { getData } from './dataStore';
+import { validQuizName, isUserValid, nameUsed } from './helper';
 
 export function adminQuizList(authUserId) {
 	let store = getData();

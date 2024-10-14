@@ -7,7 +7,7 @@ Parameters: email, password, nameFirst, nameLast
 import { 
    adminAuthRegister, 
    adminAuthLogin 
-} from './auth.js';
+} from './auth';
  
 describe("adminAuthRegister", () => {
    test("Succesful case", () => {

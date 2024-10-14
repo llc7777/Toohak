@@ -1,11 +1,11 @@
 // Test: adminUserDetails
-import { clear } from './other.js';
+import { clear } from './other';
 
 
 import {
     adminAuthRegister,
     adminUserDetails,
-} from './auth.js';
+} from './auth';
 
 
 // Constant for error object

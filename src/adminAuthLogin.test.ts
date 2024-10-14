@@ -1,5 +1,5 @@
-import { adminAuthRegister } from './auth.js'
-import { adminAuthLogin } from './auth.js'
+import { adminAuthRegister } from './auth'
+import { adminAuthLogin } from './auth'
 
 describe('tests for adminAuthLogin', ()=> {
    

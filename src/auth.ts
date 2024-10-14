@@ -4,8 +4,8 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-import { getData } from './dataStore.js';
-import { isValidName } from './helper.js';
+import { getData } from './dataStore';
+import { isValidName } from './helper';
 import validator from 'validator'
 
 export function adminAuthRegister(email, password, nameFirst, nameLast) {

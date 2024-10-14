@@ -1,4 +1,4 @@
-import { getData } from './dataStore.js';
+import { getData } from './dataStore';
 
 //helper function for adminAuthRegister
 export function isValidName(name) {
