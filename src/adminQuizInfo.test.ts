@@ -77,7 +77,7 @@ describe('adminQuizInfo', () => {
       const quiz1 = adminQuizCreate(user1.authUserId, 'quiz1', 'A quiz by Jake Renzella');
       const user2 = adminAuthRegister('yuchao.zhang@gmail.com', 'password1', 'Yuchao', 'Zhang');
       const quiz2 = adminQuizCreate(user2.authUserId, 'quiz2', 'A quiz by Yuchao Zhang');
-      expect(quiz2.quizId).toStrictEqual(expect.anyString());
+      expect(quiz2.quizId).toStrictEqual(expect.any(Number));
       const result = adminQuizInfo(user1.authUserId, quiz1.quizId);
       expect(result).toStrictEqual({
         quizId: quiz1.quizId,
