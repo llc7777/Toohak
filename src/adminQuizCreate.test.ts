@@ -11,9 +11,10 @@ describe('testing for adminQuizCreate', () => {
     const authregister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
     const name = 'name';
     const description = 'description';
-    expect(adminQuizCreate(authregister.authUserId, name, description)).toStrictEqual(expect.objectContaining({
-      quizId: expect.any(Number)
-    }));
+    expect(adminQuizCreate(authregister.authUserId, name, description))
+      .toStrictEqual(expect.objectContaining({
+        quizId: expect.any(Number)
+      }));
   });
 
   test('nonexistent user id returns error', () => {
@@ -21,7 +22,8 @@ describe('testing for adminQuizCreate', () => {
     const authUserId = -1;
     const name = 'name';
     const description = 'description';
-    expect(adminQuizCreate(authUserId, name, description)).toStrictEqual({ error: expect.any(String) });
+    expect(adminQuizCreate(authUserId, name, description))
+      .toStrictEqual({ error: expect.any(String) });
   });
 
   test('invalid name returns error', () => {
@@ -29,7 +31,8 @@ describe('testing for adminQuizCreate', () => {
     const authregister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
     const name = '1';
     const description = 'description';
-    expect(adminQuizCreate(authregister.authUserId, name, description)).toStrictEqual({ error: expect.any(String) });
+    expect(adminQuizCreate(authregister.authUserId, name, description))
+      .toStrictEqual({ error: expect.any(String) });
   });
 
   test.each([
@@ -38,7 +41,8 @@ describe('testing for adminQuizCreate', () => {
     // Name longer than 30 characters
     ['1', 'Name Thats Really Long and Over Thirty Characters', 'description'],
   ])('invalid name length returns error', (authUserId, name, description) => {
-    expect(adminQuizCreate(authUserId, name, description)).toStrictEqual({ error: expect.any(String) });
+    expect(adminQuizCreate(authUserId, name, description))
+      .toStrictEqual({ error: expect.any(String) });
   });
 
   test('empty description does NOT return error', () => {
@@ -46,17 +50,21 @@ describe('testing for adminQuizCreate', () => {
     const authregister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
     const name = 'name';
     const description = '';
-    expect(adminQuizCreate(authregister.authUserId, name, description)).toStrictEqual(expect.objectContaining({
-      quizId: expect.any(Number)
-    }));
+    expect(adminQuizCreate(authregister.authUserId, name, description))
+      .toStrictEqual(expect.objectContaining({
+        quizId: expect.any(Number)
+      }));
   });
 
   test('description longer than 100 characters returns error', () => {
     clear();
     const authregister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
     const name = 'name';
-    const description = 'This description is longer than 100 characters and should return error yap yap yap yap yap yap yap yap yap yap';
-    expect(adminQuizCreate(authregister.authUserId, name, description)).toStrictEqual({ error: expect.any(String) });
+    const description = 'This description is longer than' +
+                        '100 characters and should return error yap yap yap yap yap yap' +
+                        'yap yap yap yap';
+    expect(adminQuizCreate(authregister.authUserId, name, description))
+      .toStrictEqual({ error: expect.any(String) });
   });
 
   test.each([
@@ -67,6 +75,7 @@ describe('testing for adminQuizCreate', () => {
     // missing authUserId and name
     ['', '', 'description']
   ])('missing parameters returns error', (authUserId, name, description) => {
-    return expect(adminQuizCreate(authUserId, name, description)).toStrictEqual({ error: expect.any(String) });
+    return expect(adminQuizCreate(authUserId, name, description))
+      .toStrictEqual({ error: expect.any(String) });
   });
 });
