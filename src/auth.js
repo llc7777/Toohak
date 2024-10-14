@@ -50,7 +50,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     nameLast: nameLast,
     name: nameFirst + ' ' + nameLast,
     authUserId: numOfUsers + 1,
-    timeCreated: Date.now(),
+    timeCreated: Math.floor(Date.now() / 1000),
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0
   }

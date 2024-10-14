@@ -69,8 +69,8 @@ export function adminQuizCreate(authUserId, name, description) {
 		authUserId,
 		name,
 		description,
-		timeCreated: Date.now(),
-		timeLastEdited: Date.now(),
+		timeCreated: Math.floor(Date.now() / 1000),
+		timeLastEdited: Math.floor(Date.now() / 1000),
 	};
 
 	quizzes.push(newQuiz);
@@ -295,6 +295,7 @@ export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
 		for (let i = 0; i < data.quizzes.length; i++) {
 			if (data.quizzes[i].quizId === quizId) {
 				data.quizzes[i].description = description;
+				data.quizzes[i].timeLastEdited = Math.floor(Date.now() / 1000);
 				return {};
 			}
 		}
