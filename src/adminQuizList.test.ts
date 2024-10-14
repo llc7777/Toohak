@@ -54,7 +54,7 @@ describe('adminQuizList', () => {
   // No user Id (null).
   test('should return an error for missing user ID', () => {
     const result = adminQuizList(null);
- 		expect(result).toStrictEqual({ error: expect.any(String) });
+    expect(result).toStrictEqual({ error: expect.any(String) });
   });
 
   // The function is called with a non-number as the user ID.
