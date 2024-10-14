@@ -42,21 +42,22 @@ describe('adminQuizInfo', () => {
       const user2 = adminAuthRegister('andrew.taylor@gmail.com', 'password1', 'Andrew', 'Taylor');
       const quiz1 = adminQuizCreate(user1.authUserId, 'quiz1', 'A quiz by Hayden Smith');
       const quiz2 = adminQuizCreate(user2.authUserId, 'quiz2', 'A quiz by Andrew Taylor');
+      expect(quiz2.quizId).toStrictEqual(expect.any(Number));
       const result = adminQuizInfo(user2.authUserId, quiz1.quizId);
       expect(result).toStrictEqual({ error: expect.any(String) });
     });
     test.each([
-     		'string', // Non-numeric string
-     		null, // Null value
-     		{}, // Object
-     		[], // Array
-     		NaN, // Not-a-Number
-   		])('authId is not a number', (input) => {
+      'string', // Non-numeric string
+      null, // Null value
+      {}, // Object
+      [], // Array
+      NaN, // Not-a-Number
+    ])('authId is not a number', (input) => {
       const user = adminAuthRegister('andrew.taylor@gmail.com', 'password1', 'Andrew', 'Taylor');
       const quiz = adminQuizCreate(user.authUserId, 'quiz', 'A quiz by Andrew Taylor');
       const result = adminQuizInfo(input, quiz.quizId);
       expect(result).toStrictEqual({ error: expect.any(String) });
-		 	});
+    });
   });
   describe('cases with no errors', () => {
     test('successfully return value for one user and one quiz', () => {
@@ -76,6 +77,7 @@ describe('adminQuizInfo', () => {
       const quiz1 = adminQuizCreate(user1.authUserId, 'quiz1', 'A quiz by Jake Renzella');
       const user2 = adminAuthRegister('yuchao.zhang@gmail.com', 'password1', 'Yuchao', 'Zhang');
       const quiz2 = adminQuizCreate(user2.authUserId, 'quiz2', 'A quiz by Yuchao Zhang');
+      expect(quiz2.quizId).toStrictEqual(expect.anyString());
       const result = adminQuizInfo(user1.authUserId, quiz1.quizId);
       expect(result).toStrictEqual({
         quizId: quiz1.quizId,
