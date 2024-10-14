@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import {
   adminQuizCreate,
@@ -10,10 +11,10 @@ import { clear } from './other';
 describe('testing for adminQuizRemove', () => {
   test('successful quiz removal returns empty object', () => {
     clear();
-    const authRegister = adminAuthRegister("aero@mail.com", "Aeropass1", "Jason", "Chandra");
+    const authRegister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
     const name = 'name';
     const description = 'description';
-    
+
     const quiz = adminQuizCreate(authRegister.authUserId, name, description);
     expect(quiz).toHaveProperty('quizId');
 
@@ -21,7 +22,6 @@ describe('testing for adminQuizRemove', () => {
 
     expect(removalResult).toStrictEqual({});
   });
-
 
   test('nonexistent user ID returns error', async () => {
     clear();
@@ -32,21 +32,19 @@ describe('testing for adminQuizRemove', () => {
     });
   });
 
-
   test('nonexistent quiz ID returns error', async () => {
     clear();
-    const authRegister = adminAuthRegister("aero@mail.com", "Aeropass1", "Jason", "Chandra");
-    const quizId = -1; 
+    const authRegister = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
+    const quizId = -1;
     expect(adminQuizRemove(authRegister.authUserId, quizId)).toStrictEqual({
       error: expect.any(String),
     });
   });
 
-
   test('user tries to remove quiz not owned by them returns error', async () => {
     clear();
-    const authRegister1 = adminAuthRegister("aero@mail.com", "Aeropass1", "Jason", "Chandra");
-    const authRegister2 = adminAuthRegister("other@mail.com", "OtherPass1", "John", "Doe");
+    const authRegister1 = adminAuthRegister('aero@mail.com', 'Aeropass1', 'Jason', 'Chandra');
+    const authRegister2 = adminAuthRegister('other@mail.com', 'OtherPass1', 'John', 'Doe');
     const name = 'name';
     const description = 'description';
     const quiz = adminQuizCreate(authRegister1.authUserId, name, description);
@@ -55,7 +53,6 @@ describe('testing for adminQuizRemove', () => {
     });
   });
 
-
   test.each([
     // Missing authUserId
     ['', 1],
@@ -63,7 +60,7 @@ describe('testing for adminQuizRemove', () => {
     ['authUserId', ''],
     // Missing both authUserId and quizId
     ['', '']
-])('missing parameters return error', async (authUserId, quizId) => {
+  ])('missing parameters return error', async (authUserId, quizId) => {
     expect(adminQuizRemove(authUserId, quizId)).toStrictEqual({
       error: expect.any(String),
     });
