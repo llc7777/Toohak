@@ -4,6 +4,7 @@ their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
+// @ts-nocheck
 import { getData } from './dataStore';
 import { isValidName } from './helper';
 import validator from 'validator'

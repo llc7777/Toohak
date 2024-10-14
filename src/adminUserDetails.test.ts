@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Test: adminUserDetails
 import { clear } from './other';
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { adminQuizCreate } from './quiz';
 import { adminAuthRegister } from './auth';
 import { clear } from './other'

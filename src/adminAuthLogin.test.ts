@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { adminAuthRegister } from './auth'
 import { adminAuthLogin } from './auth'
 

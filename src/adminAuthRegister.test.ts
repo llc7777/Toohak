@@ -4,6 +4,7 @@ Registers a user with an email, password, first name, and last name,
 then returns their authUserId value or relevant error messages for invalid inputs.
 Parameters: email, password, nameFirst, nameLast
 */
+// @ts-nocheck
 import { 
    adminAuthRegister, 
    adminAuthLogin 

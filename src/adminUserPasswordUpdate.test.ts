@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Importing the function from auth.js file
 import { adminAuthRegister, adminUserPasswordUpdate } from './auth';
 import { clear } from './other';

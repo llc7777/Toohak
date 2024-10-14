@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId 

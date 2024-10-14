@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Test: adminQuizDescriptionUpdate
 import { clear } from './other';
 

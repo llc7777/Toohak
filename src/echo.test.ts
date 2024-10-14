@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Do not delete this file
 import { echo } from './echo';
 

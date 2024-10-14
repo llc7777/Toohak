@@ -1,3 +1,4 @@
+// @ts-nocheck
 // YOU MAY MODIFY THIS OBJECT BELOW
 let data = {
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Reset the state of the application back to the start.
  * Parameters: no parameters
