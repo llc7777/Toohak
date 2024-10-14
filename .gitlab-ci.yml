@@ -19,4 +19,10 @@ tests:
     - kill -SIGINT %1
     - sleep 2
     - cat $SERVER_LOG
-
+linting:
+	stage: checks
+	script:
+		- echo 'npm run lint'
+		- npm run lint
+	only:
+		- master
