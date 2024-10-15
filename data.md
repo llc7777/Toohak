@@ -6,6 +6,7 @@ let data = {
 			{
 				email: 'string',
 				password: 'string',
+				oldPasswords: ['strings'],
 				nameFirst: 'string',
 				nameLast: 'string',
 				name: 'string',
