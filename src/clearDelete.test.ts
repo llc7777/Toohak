@@ -1,7 +1,5 @@
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
-import { server } from 'typescript';
-import { string } from 'yaml/dist/schema/common/string';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -9,7 +7,7 @@ const TIMEOUT_MS = 5 * 1000;
 // clear response interface
 interface ClearResponse {
   statusCode: number;
-  body: {};
+  body: Record<string, never>; // empty object
 }
 
 interface AuthRegisterResponse {
@@ -27,7 +25,7 @@ const requestClear = (): ClearResponse => {
     statusCode: res.statusCode,
     body: JSON.parse(res.body.toString()),
   };
-}
+};
 
 // Helper function to send the authRegister request
 const registerUser = (
@@ -43,7 +41,7 @@ const registerUser = (
     statusCode: res.statusCode,
     body: JSON.parse(res.body.toString()),
   };
-}
+};
 
 // Helper function to create a quiz
 const createQuiz = (authUserId: string, name: string, description: string) => {
@@ -51,26 +49,25 @@ const createQuiz = (authUserId: string, name: string, description: string) => {
     json: { authUserId, name, description },
     timeout: TIMEOUT_MS,
   });
-  return JSON.parse(res.body.toString()); 
-}
+  return JSON.parse(res.body.toString());
+};
 
 describe('DELETE /v1/clear', () => {
-  
   beforeEach(() => {
     requestClear();
   });
 
   test('clear data when there is one user', () => {
     registerUser('user1@example.com', 'password123', 'John', 'Doe');
-    
+
     const clearResponse = requestClear();
-    expect(clearResponse.statusCode).toBe(200); 
+    expect(clearResponse.statusCode).toBe(200);
     expect(clearResponse.body).toStrictEqual({});
   });
 
   test('clear data when there are two users', () => {
-    const user1 = registerUser('user1@example.com', 'password123', 'John', 'Doe');
-    const user2 = registerUser('user2@example.com', 'password456', 'Jane', 'Smith');
+    registerUser('user1@example.com', 'password123', 'John', 'Doe');
+    registerUser('user2@example.com', 'password456', 'Jane', 'Smith');
 
     // Clear the data
     const clearResponse = requestClear();
