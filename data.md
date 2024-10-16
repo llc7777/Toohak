@@ -17,7 +17,7 @@ let data = {
 		],
 		quizzes: [
 			{
-				userId: -1,
+				authUserId: -1,
 				quizId: -1,
 				name: 'string',
 				timeCreated: -1,
