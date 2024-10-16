@@ -46,7 +46,7 @@ export function nameUsed(authUserId, name) {
   return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
-export function creatingToken(authUserId: number) {
+export function createToken(authUserId: number) {
   const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
   const token = {
     sessionId: sessionId,
@@ -54,6 +54,8 @@ export function creatingToken(authUserId: number) {
   };
   return encodeURIComponent(JSON.stringify(token));
 }
-export function decodingToken(token) {
-  return decodeURIComponent(token);
+
+export function decodeToken(token) {
+  token = decodeURIComponent(token);
+  return JSON.parse(token);
 }
