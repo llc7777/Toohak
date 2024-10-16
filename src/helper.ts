@@ -47,11 +47,6 @@ export function nameUsed(authUserId, name) {
 }
 
 export function createToken(token) {
-  const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
-  const token = {
-    sessionId: sessionId,
-    user: authUserId,
-  };
   return encodeURIComponent(JSON.stringify(token));
 }
 
