@@ -1,5 +1,6 @@
 import express, { json, Request, Response } from 'express';
 import { echo } from './newecho';
+import { clear } from './other';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
@@ -38,6 +39,10 @@ app.get('/echo', (req: Request, res: Response) => {
   }
 
   return res.json(result);
+});
+
+app.delete('/v1/clear', (req: Request, res: Response) => {
+  res.json(clear());
 });
 
 // ====================================================================
