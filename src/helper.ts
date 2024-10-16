@@ -45,3 +45,16 @@ export function nameUsed(authUserId, name) {
   const { quizzes } = getData();
   return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
+
+export function creatingToken(authUserId: number) {
+	const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
+	const token = {
+		"sessionId": "sessionId",
+		"user": "authUserId",
+	}
+	return encodeURIComponent(token);
+}
+export function decodingToken(token) {
+  return decodeURIComponent(token);
+}
+
