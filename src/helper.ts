@@ -46,7 +46,7 @@ export function nameUsed(authUserId, name) {
   return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
-export function createToken(authUserId: number) {
+export function createToken(token) {
   const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
   const token = {
     sessionId: sessionId,
