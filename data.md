@@ -13,6 +13,7 @@ let data = {
 				timeCreated: -1,
 				numSuccessfulLogins: -1,
 				numFailedPasswordsSinceLastLogin: -1,
+				tokens = ['string'],
 			}
 		],
 		quizzes: [
