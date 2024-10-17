@@ -7,7 +7,7 @@ Return object: authUserId: 1
 */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { 
+import {
   isValidEmail,
   isValidName,
   isValidPassword
@@ -25,8 +25,9 @@ export function decodeToken(token: string): any {
   return JSON.parse(decoded);
 }
 
-export function adminAuthRegister(email: string, password: string, nameFirst: string, nameLast: string) {
-  const store = getData(); 
+export function adminAuthRegister(email: string, password: string,
+  nameFirst: string, nameLast: string) {
+  const store = getData();
 
   const emailError = isValidEmail(email);
   if (emailError) {
@@ -62,7 +63,7 @@ export function adminAuthRegister(email: string, password: string, nameFirst: st
     name: `${nameFirst} ${nameLast}`,
     authUserId: store.users.length + 1,
     timeCreated: Math.floor(Date.now() / 1000),
-    tokens: [token], 
+    tokens: [token],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0
   };
@@ -77,9 +78,9 @@ export function adminAuthRegister(email: string, password: string, nameFirst: st
 export function findUserFromToken(token: string) {
   const store = getData();
   const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId; 
+  const authUserId = tokenData.authUserId;
 
-  return store.users.find((user: any) => user.authUserId === authUserId); 
+  return store.users.find((user: any) => user.authUserId === authUserId);
 }
 
 /*

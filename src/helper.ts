@@ -8,7 +8,7 @@ export function isValidEmail(email: string): string {
   if (!validator.isEmail(email)) {
     return 'Invalid email format.';
   }
-  return ''; 
+  return '';
 }
 
 // helper function for adminAuthRegister
@@ -24,7 +24,7 @@ export function isValidName(name: string, type: string): string {
     }
   }
 
-  return ''; 
+  return '';
 }
 
 // helper function for adminAuthRegister
