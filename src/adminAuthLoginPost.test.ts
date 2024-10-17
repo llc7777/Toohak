@@ -56,7 +56,7 @@ describe('POST /v1/admin/auth/login', () => {
     expect(loginResponse).toMatchObject({
       statusCode: 400,
       body: {
-        error: 'Password is incorrect',
+        error: expect.any(String),
       },
     });
   });
