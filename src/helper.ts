@@ -94,8 +94,8 @@ export function findUserFromToken(token) {
     if (user.tokens.find(
       usersToken => usersToken.sessionId === token.sessionId &&
       usersToken.userId === token.userId)) {
-      return true;
+      return user;
     }
   }
-  return false;
+  return null;
 }
