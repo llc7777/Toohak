@@ -8,9 +8,11 @@ Return object: authUserId: 1
 // @ts-nocheck
 import { getData } from './dataStore';
 import {
+  generateRandomSessionId,
   isValidEmail,
   isValidName,
-  isValidPassword
+  isValidPassword,
+  createToken
 } from './helper';
 import validator from 'validator';
 
@@ -107,12 +109,17 @@ export function adminAuthLogin(email: string, password: string) {
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
 
-  // Generate a new token for the session
-  const token = generateToken();
+  const sessionId = generateRandomSessionId();
+
+  const token = {
+    authUserId: data.users[index].authUserId,
+    sessionId
+  };
+
   data.users[index].tokens.push(token);
 
   return {
-    token: token
+    token: createToken(token)
   };
 }
 
