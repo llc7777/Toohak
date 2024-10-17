@@ -7,7 +7,7 @@ Return object: authUserId: 1
 */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { isValidName, createToken } from './helper';
+import { isValidName } from './helper';
 import validator from 'validator';
 
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
@@ -55,24 +55,10 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     timeCreated: Math.floor(Date.now() / 1000),
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
-    tokens: []
   };
 
-  // Generate a random session ID
-  const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
-  // Create a token for the user
-  const token = {
-    sessionId: sessionId,
-    user: numOfUsers + 1,
-  };
-  // Add the token to the user's tokens array
-  store.tokens.push(token);
-
-  store.users.push(newUser);
-
-  // Return the token
   return {
-    token: createToken(token)
+    authUserId: numOfUsers + 1
   };
 }
 
