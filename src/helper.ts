@@ -46,11 +46,31 @@ export function nameUsed(authUserId, name) {
   return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
+// Create a token from the given token object
 export function createToken(token) {
   return encodeURIComponent(JSON.stringify(token));
 }
 
+// Decode the given token string and return the token object
 export function decodeToken(token) {
   token = decodeURIComponent(token);
   return JSON.parse(token);
+}
+
+// Generate a random session ID
+export function generateRandomSessionId() {
+  return Math.floor(Math.random() * 1000000000);
+}
+
+// Find a user from the given session ID
+export function findUserFromToken(sessionId) {
+  const data = getData();
+
+  for (const user of data.users) {
+    if (user.tokens && user.tokens.some(token => token.sessionId === sessionId)) {
+      return user;
+    }
+  }
+
+  return null;
 }
