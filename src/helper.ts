@@ -91,7 +91,7 @@ export function generateRandomSessionId() {
 export function findUserFromToken(token) {
   const data = getData();
   for (const user of data.users) {
-    if (user.token.find(usersToken => usersToken === token)) {
+    if (user.tokens.find(usersToken => usersToken === token)) {
       return true;
     }
   }
