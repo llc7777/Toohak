@@ -7,63 +7,81 @@ Return object: authUserId: 1
 */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { isValidName } from './helper';
+import {
+  isValidEmail,
+  isValidName,
+  isValidPassword
+} from './helper';
 import validator from 'validator';
 
-export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  if (!validator.isEmail(email)) {
-    return { error: 'Invalid email format.' };
-  }
+export function generateToken(): string {
+  return [...Array(32)]
+    .map(() => Math.random().toString(36)[2])
+    .join('');
+}
 
-  if (!isValidName(nameFirst)) {
-    return { error: 'First name contains invalid characters or is not within length limits.' };
-  }
+export function decodeToken(token: string): any {
+  const decoded = decodeURIComponent(token);
+  return JSON.parse(decoded);
+}
 
-  if (!isValidName(nameLast)) {
-    return { error: 'Last name contains invalid characters or is not within length limits.' };
-  }
-
-  if (password.length < 8) {
-    return { error: 'Password must be at least 8 characters long.' };
-  }
-
-  const hasLetter = [...password].some(char => /[a-zA-Z]/.test(char));
-  const hasNumber = [...password].some(char => /[0-9]/.test(char));
-
-  if (!hasLetter || !hasNumber) {
-    return { error: 'Password must contain at least one letter and one number.' };
-  }
-
+export function adminAuthRegister(email: string, password: string,
+  nameFirst: string, nameLast: string) {
   const store = getData();
-  const index = store.users.findIndex((user) => user.email === email);
 
-  if (index !== -1) {
-    return {
-      error: 'This email is already registered to another user. Please use another email'
-    };
+  const emailError = isValidEmail(email);
+  if (emailError) {
+    return { error: emailError };
   }
 
-  const numOfUsers = store.users.length;
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    return { error: firstNameError };
+  }
 
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    return { error: lastNameError };
+  }
+
+  const passwordError = isValidPassword(password);
+  if (passwordError) {
+    return { error: passwordError };
+  }
+
+  const existingUser = store.users.find((user: any) => user.email === email);
+  if (existingUser) {
+    return { error: 'This email is already registered to another user. Please use another email.' };
+  }
+
+  const token = generateToken();
   const newUser = {
     email: email,
     password: password,
     oldPasswords: [password],
     nameFirst: nameFirst,
     nameLast: nameLast,
-    name: nameFirst + ' ' + nameLast,
-    authUserId: numOfUsers + 1,
+    name: `${nameFirst} ${nameLast}`,
+    authUserId: store.users.length + 1,
     timeCreated: Math.floor(Date.now() / 1000),
+    tokens: [token],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
 
   store.users.push(newUser);
 
-  // Return the token
   return {
-    authUserId: numOfUsers + 1
+    token: token
   };
+}
+
+export function findUserFromToken(token: string) {
+  const store = getData();
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  return store.users.find((user: any) => user.authUserId === authUserId);
 }
 
 /*
