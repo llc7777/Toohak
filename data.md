@@ -6,6 +6,7 @@ let data = {
 			{
 				email: 'string',
 				password: 'string',
+				oldPasswords: ['strings'],
 				nameFirst: 'string',
 				nameLast: 'string',
 				name: 'string',
@@ -13,6 +14,7 @@ let data = {
 				timeCreated: -1,
 				numSuccessfulLogins: -1,
 				numFailedPasswordsSinceLastLogin: -1,
+				tokens = ['string'],
 			}
 		],
 		quizzes: [
