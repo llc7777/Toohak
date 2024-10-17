@@ -10,43 +10,47 @@ import { getData } from './dataStore';
 import {
   isValidEmail,
   isValidName,
-  isValidPassword
+  isValidPassword,
+  generateToken,
+  decodeToken,
+  findUserFromToken
 } from './helper';
 import validator from 'validator';
 
-export function generateToken(): string {
-  return [...Array(32)]
-    .map(() => Math.random().toString(36)[2])
-    .join('');
-}
-
-export function decodeToken(token: string): any {
-  const decoded = decodeURIComponent(token);
-  return JSON.parse(decoded);
-}
-
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string) {
+  nameFirst: string, nameLast: string, token?: string) {
   const store = getData();
 
-  const emailError = isValidEmail(email);
-  if (emailError) {
-    return { error: emailError };
+  let decodedTokenData: any = null;
+
+  if (token) {
+    decodedTokenData = decodeToken(token);
+
+    const userExist = findUserFromToken(decodedTokenData.userId);
+
+    if (userExist) {
+      return { error: 'You are already logged in as a different user. Please log out first.' };
+    }
   }
 
-  const firstNameError = isValidName(nameFirst, 'First');
-  if (firstNameError) {
-    return { error: firstNameError };
+  const wrongEmail = isValidEmail(email);
+  if (wrongEmail) {
+    return { error: wrongEmail };
   }
 
-  const lastNameError = isValidName(nameLast, 'Last');
-  if (lastNameError) {
-    return { error: lastNameError };
+  const wrongFirstName = isValidName(nameFirst, 'First');
+  if (wrongFirstName) {
+    return { error: wrongFirstName };
   }
 
-  const passwordError = isValidPassword(password);
-  if (passwordError) {
-    return { error: passwordError };
+  const wrongLastName = isValidName(nameLast, 'Last');
+  if (wrongLastName) {
+    return { error: wrongLastName };
+  }
+
+  const wrongPassword = isValidPassword(password);
+  if (wrongPassword) {
+    return { error: wrongPassword };
   }
 
   const existingUser = store.users.find((user: any) => user.email === email);
@@ -54,7 +58,8 @@ export function adminAuthRegister(email: string, password: string,
     return { error: 'This email is already registered to another user. Please use another email.' };
   }
 
-  const token = generateToken();
+  const newToken = generateToken();
+
   const newUser = {
     email: email,
     password: password,
@@ -64,7 +69,7 @@ export function adminAuthRegister(email: string, password: string,
     name: `${nameFirst} ${nameLast}`,
     authUserId: store.users.length + 1,
     timeCreated: Math.floor(Date.now() / 1000),
-    tokens: [token],
+    tokens: [newToken],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
@@ -72,16 +77,8 @@ export function adminAuthRegister(email: string, password: string,
   store.users.push(newUser);
 
   return {
-    token: token
+    token: newToken
   };
-}
-
-export function findUserFromToken(token: string) {
-  const store = getData();
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
-
-  return store.users.find((user: any) => user.authUserId === authUserId);
 }
 
 /*
