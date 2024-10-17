@@ -58,16 +58,6 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     numFailedPasswordsSinceLastLogin: 0,
   };
 
-  // Generate a random session ID
-  const sessionId: string = Math.floor(Date.now() / 1000) + Math.random();
-  // Create a token for the user
-  const token = {
-    sessionId: sessionId,
-    user: numOfUsers + 1,
-  };
-  // Add the token to the user's tokens array
-  store.tokens.push(token);
-
   store.users.push(newUser);
 
   // Return the token
