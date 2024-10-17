@@ -70,7 +70,7 @@ export function adminAuthRegister(email: string, password: string,
   };
 
   store.users.push(newUser);
-  
+
   return {
     token: token
   };
