@@ -89,7 +89,7 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email, password) {
+export function adminAuthLogin(email: string, password: string) {
   const data = getData();
 
   const index = data.users.findIndex((user) => user.email === email);
@@ -106,8 +106,13 @@ export function adminAuthLogin(email, password) {
   }
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
+
+  // Generate a new token for the session
+  const token = generateToken();
+  data.users[index].tokens.push(token);
+
   return {
-    authUserId: data.users[index].authUserId
+    token: token
   };
 }
 
