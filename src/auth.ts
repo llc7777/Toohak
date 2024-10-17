@@ -55,11 +55,12 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     authUserId: numOfUsers + 1,
     timeCreated: Math.floor(Date.now() / 1000),
     numSuccessfulLogins: 1,
-    numFailedPasswordsSinceLastLogin: 0
+    numFailedPasswordsSinceLastLogin: 0,
   };
 
   store.users.push(newUser);
 
+  // Return the token
   return {
     authUserId: numOfUsers + 1
   };
