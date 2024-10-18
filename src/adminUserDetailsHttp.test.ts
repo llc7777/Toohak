@@ -1,10 +1,10 @@
 import request from 'sync-request-curl'
 import config from './config.json';
-import { clear } from './other.js';
 
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`
+const timeout = 5 * 1000;
 
 // function to send the adminUserDetails request
 const requestAdminUserDetails = (token: string) => {
@@ -47,7 +47,7 @@ const requestAdminAuthLogin = (email: string, password: string) => {
 };
 
 beforeEach(() => {
-  clear();
+  request('DELETE', SERVER_URL + 'v1/clear', { timeout: timeout });
 });
 
 // Tests for correct return value
@@ -84,7 +84,7 @@ describe('Test for correct return value', () => {
   test.each([
     { email: 'apple@gmail.com', password: 'passswordd1', nameFirst: 'Hayden', nameLast: 'Smith' },
     { email: 'banana@gmail.com', password: 'passsss1234', nameFirst: 'Joe', nameLast: 'Mama' },
-    { email: 'coconut@gmail.com', password: 'mypasswords1', nameFirst: 'Travis', nameLast: 'Scott' },
+    { email: 'coconut@gmail.com', password: 'mypasswords1', nameFirst: 'Trevsi', nameLast: 'Scot' },
   ])('Should return user details with correct properties for each user', ({ email, password, nameFirst, nameLast }) => {
     // Register the admin user
     const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
