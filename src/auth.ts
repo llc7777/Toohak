@@ -8,9 +8,11 @@ Return object: authUserId: 1
 // @ts-nocheck
 import { getData } from './dataStore';
 import {
+  generateRandomSessionId,
   isValidEmail,
   isValidName,
-  isValidPassword
+  isValidPassword,
+  createToken
 } from './helper';
 import validator from 'validator';
 
@@ -89,7 +91,7 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email, password) {
+export function adminAuthLogin(email: string, password: string) {
   const data = getData();
 
   const index = data.users.findIndex((user) => user.email === email);
@@ -106,8 +108,18 @@ export function adminAuthLogin(email, password) {
   }
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
+
+  const sessionId = generateRandomSessionId();
+
+  const token = {
+    authUserId: data.users[index].authUserId,
+    sessionId
+  };
+
+  data.users[index].tokens.push(token);
+
   return {
-    authUserId: data.users[index].authUserId
+    token: createToken(token)
   };
 }
 
