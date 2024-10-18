@@ -12,10 +12,11 @@ import {
   isValidName,
   isValidPassword,
   generateToken,
+  createToken,
   decodeToken,
-  findUserFromToken
+  findUserFromToken,
+  generateRandomSessionId
 } from './helper';
-import validator from 'validator';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
@@ -23,10 +24,10 @@ export function adminAuthRegister(email: string, password: string,
 
   let decodedTokenData: any = null;
 
+  // If a token exist, decode and check user
   if (token) {
     decodedTokenData = decodeToken(token);
-
-    const userExist = findUserFromToken(decodedTokenData.userId);
+    const userExist = findUserFromToken(decodedTokenData.sessionId);
 
     if (userExist) {
       return { error: 'You are already logged in as a different user. Please log out first.' };
@@ -52,13 +53,18 @@ export function adminAuthRegister(email: string, password: string,
   if (wrongPassword) {
     return { error: wrongPassword };
   }
-
-  const existingUser = store.users.find((user: any) => user.email === email);
-  if (existingUser) {
+  const userExist = store.users.find((user: any) => user.email === email);
+  if (userExist) {
     return { error: 'This email is already registered to another user. Please use another email.' };
   }
 
-  const newToken = generateToken();
+  // Generate new token object
+  const newToken = {
+    authUserId: store.users.length + 1,  // Assign new user ID
+    sessionId: generateRandomSessionId() // Generate random session ID
+  };
+
+  const encodedToken = createToken(newToken);
 
   const newUser = {
     email: email,
@@ -67,17 +73,18 @@ export function adminAuthRegister(email: string, password: string,
     nameFirst: nameFirst,
     nameLast: nameLast,
     name: `${nameFirst} ${nameLast}`,
-    authUserId: store.users.length + 1,
+    authUserId: newToken.authUserId,
     timeCreated: Math.floor(Date.now() / 1000),
-    tokens: [newToken],
+    tokens: [newToken], // Store the token object before encoding
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
 
   store.users.push(newUser);
 
+  // Return the encoded token as a string
   return {
-    token: newToken
+    token: encodedToken
   };
 }
 
