@@ -8,15 +8,15 @@ Return object: authUserId: 1
 // @ts-nocheck
 import { getData } from './dataStore';
 import {
+  generateRandomSessionId,
   isValidEmail,
   isValidName,
   isValidPassword,
-  generateToken,
   createToken,
   decodeToken,
   findUserFromToken,
-  generateRandomSessionId
 } from './helper';
+import validator from 'validator';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
@@ -60,7 +60,7 @@ export function adminAuthRegister(email: string, password: string,
 
   // Generate new token object
   const newToken = {
-    authUserId: store.users.length + 1,  // Assign new user ID
+    authUserId: store.users.length + 1, // Assign new user ID
     sessionId: generateRandomSessionId() // Generate random session ID
   };
 
@@ -93,7 +93,7 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email, password) {
+export function adminAuthLogin(email: string, password: string) {
   const data = getData();
 
   const index = data.users.findIndex((user) => user.email === email);
@@ -110,8 +110,18 @@ export function adminAuthLogin(email, password) {
   }
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
+
+  const sessionId = generateRandomSessionId();
+
+  const token = {
+    authUserId: data.users[index].authUserId,
+    sessionId
+  };
+
+  data.users[index].tokens.push(token);
+
   return {
-    authUserId: data.users[index].authUserId
+    token: createToken(token)
   };
 }
 

@@ -94,15 +94,15 @@ export function generateRandomSessionId() {
   return Math.floor(Math.random() * 1000000000);
 }
 
-// Find a user from the given session ID
-export function findUserFromToken(sessionId) {
+// Find a user from the given token
+export function findUserFromToken(token) {
   const data = getData();
-
   for (const user of data.users) {
-    if (user.tokens && user.tokens.some(token => token.sessionId === sessionId)) {
+    if (user.tokens.find(usersToken =>
+      usersToken.sessionId === token.sessionId &&
+      usersToken.authUserId === token.authUserId)) {
       return user;
     }
   }
-
   return null;
 }
