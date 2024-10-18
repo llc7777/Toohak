@@ -7,7 +7,7 @@
  */
 
 import { getData } from './dataStore';
-import { validQuizName, isUserValid, nameUsed } from './helper';
+import { validQuizName, isUserValid, nameUsed, findUserFromToken } from './helper';
 
 export function adminQuizList(authUserId) {
   const store = getData();
@@ -167,17 +167,19 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(authUserId, quizId, name) {
-  let isUserExist = false;
+export function adminQuizNameUpdate(token, quizId, name) {
+  let user = false;
   let isQuizExist = false;
   const data = getData();
 
   // Search through the data to check if the user exists
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      isUserExist = true;
-    }
-  }
+  // for (let i = 0; i < data.users.length; i++) {
+  //   if (data.users[i].authUserId === authUserId) {
+  //     isUserExist = true;
+  //   }
+  // }
+  user = findUserFromToken(token);
+
   // Search through the data to check if the quiz exists
   for (let i = 0; i < data.quizzes.length; i++) {
     if (data.quizzes[i].quizId === quizId) {
@@ -187,7 +189,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   // Check user owns the quiz
   for (let i = 0; i < data.quizzes.length; i++) {
     if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== authUserId) {
+      if (data.quizzes[i].authUserId !== user.authUserId) {
         return {
           error: 'User does not own the quiz',
         };
@@ -204,7 +206,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   }
 
   // Check user exists
-  if (!isUserExist) {
+  if (!user) {
     return {
       error: 'User Id does not exist',
     };

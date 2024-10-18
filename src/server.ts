@@ -10,6 +10,8 @@ import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminAuthLogin } from './auth';
 import { clear } from './other';
+import { adminQuizNameUpdate } from './quiz';
+import { findUserFromToken, findQuizFromUser } from './helper';
 
 // Set up web app
 const app = express();
@@ -62,6 +64,29 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   }
 
   res.status(200).json({ token: result.token });
+});
+
+app.put('/v1/admin/quiz/{quizid}/name', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.body.token;
+  const user = findUserFromToken(token);
+  const name = req.body.name;
+  const result = adminQuizNameUpdate(token, quizId, name);
+
+  if (token.length === 0 || !user) {
+    return res.status(401).json(result);
+  }
+
+  const result2 = findQuizFromUser(user.authUserId, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result);
+  }
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
 });
 
 app.delete('/v1/clear', (req: Request, res: Response) => {

@@ -106,3 +106,26 @@ export function findUserFromToken(token) {
   }
   return null;
 }
+
+export function findQuizFromUser(authUserId, quizId) {
+  const data = getData();
+
+  const user = data.users.find(user => user.authUserId === authUserId);
+  if (!user) {
+    return { error: 'Unable to find user Id ' };
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (!quiz) {
+    return { error: 'Quiz unable to be found' };
+  }
+
+  const userAndQuizMatch = data.quizzes.find(
+    quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
+
+  if (!userAndQuizMatch) {
+    return { error: 'The given user does not own the given quiz' };
+  }
+
+  return {};
+}
