@@ -12,51 +12,60 @@ import {
   isValidEmail,
   isValidName,
   isValidPassword,
-  createToken
+  createToken,
+  decodeToken,
+  findUserFromToken,
 } from './helper';
 import validator from 'validator';
 
-export function generateToken(): string {
-  return [...Array(32)]
-    .map(() => Math.random().toString(36)[2])
-    .join('');
-}
-
-export function decodeToken(token: string): any {
-  const decoded = decodeURIComponent(token);
-  return JSON.parse(decoded);
-}
-
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string) {
+  nameFirst: string, nameLast: string, token?: string) {
   const store = getData();
 
-  const emailError = isValidEmail(email);
-  if (emailError) {
-    return { error: emailError };
+  let decodedTokenData: any = null;
+
+  // If a token exist, decode and check user
+  if (token) {
+    decodedTokenData = decodeToken(token);
+    const userExist = findUserFromToken(decodedTokenData.sessionId);
+
+    if (userExist) {
+      return { error: 'You are already logged in as a different user. Please log out first.' };
+    }
   }
 
-  const firstNameError = isValidName(nameFirst, 'First');
-  if (firstNameError) {
-    return { error: firstNameError };
+  const wrongEmail = isValidEmail(email);
+  if (wrongEmail) {
+    return { error: wrongEmail };
   }
 
-  const lastNameError = isValidName(nameLast, 'Last');
-  if (lastNameError) {
-    return { error: lastNameError };
+  const wrongFirstName = isValidName(nameFirst, 'First');
+  if (wrongFirstName) {
+    return { error: wrongFirstName };
   }
 
-  const passwordError = isValidPassword(password);
-  if (passwordError) {
-    return { error: passwordError };
+  const wrongLastName = isValidName(nameLast, 'Last');
+  if (wrongLastName) {
+    return { error: wrongLastName };
   }
 
-  const existingUser = store.users.find((user: any) => user.email === email);
-  if (existingUser) {
+  const wrongPassword = isValidPassword(password);
+  if (wrongPassword) {
+    return { error: wrongPassword };
+  }
+  const userExist = store.users.find((user: any) => user.email === email);
+  if (userExist) {
     return { error: 'This email is already registered to another user. Please use another email.' };
   }
 
-  const token = generateToken();
+  // Generate new token object
+  const newToken = {
+    authUserId: store.users.length + 1, // Assign new user ID
+    sessionId: generateRandomSessionId() // Generate random session ID
+  };
+
+  const encodedToken = createToken(newToken);
+
   const newUser = {
     email: email,
     password: password,
@@ -64,26 +73,19 @@ export function adminAuthRegister(email: string, password: string,
     nameFirst: nameFirst,
     nameLast: nameLast,
     name: `${nameFirst} ${nameLast}`,
-    authUserId: store.users.length + 1,
+    authUserId: newToken.authUserId,
     timeCreated: Math.floor(Date.now() / 1000),
-    tokens: [token],
+    tokens: [newToken], // Store the token object before encoding
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
 
   store.users.push(newUser);
 
+  // Return the encoded token as a string
   return {
-    token: token
+    token: encodedToken
   };
-}
-
-export function findUserFromToken(token: string) {
-  const store = getData();
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
-
-  return store.users.find((user: any) => user.authUserId === authUserId);
 }
 
 /*

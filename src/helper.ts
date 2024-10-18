@@ -3,7 +3,7 @@
 import { getData } from './dataStore';
 import validator from 'validator';
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
   if (!validator.isEmail(email)) {
     return 'Invalid email format.';
@@ -11,7 +11,7 @@ export function isValidEmail(email: string): string {
   return '';
 }
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidName(name: string, type: string): string {
   if (name.length < 2 || name.length > 20) {
     return `${type} name must be between 2 and 20 characters.`;
@@ -27,7 +27,7 @@ export function isValidName(name: string, type: string): string {
   return '';
 }
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidPassword(password: string): string {
   if (password.length < 8) {
     return 'Password must be at least 8 characters long.';
@@ -41,6 +41,13 @@ export function isValidPassword(password: string): string {
   }
 
   return '';
+}
+
+// Helper function for adminAuthRegister
+export function generateToken(): string {
+  return [...Array(32)]
+    .map(() => Math.random().toString(36)[2])
+    .join('');
 }
 
 // helper function for quizcreate
