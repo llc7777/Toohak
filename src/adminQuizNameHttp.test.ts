@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import request from 'sync-request-curl';
 import config from './config.json';
 import { adminAuthRegister } from './auth';
 import { adminQuizCreate } from './quiz';
+import { decodeToken } from './helper';
 
 const port = config.port;
 const url = config.url;
@@ -15,16 +18,18 @@ const requestAdminQuizName = (quizId: number, body: { token: string, name: strin
 };
 
 describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
-  let user: object;
-  let quiz: object;
   
+  let user;
+  let quiz;
+
   beforeEach(() => {
     request('DELETE', SERVER_URL + 'v1/clear', { timeout: timeout });
     
-    user = adminAuthRegister('jake.renzella@gmail.com', 'password1', 'Jake', 'Renzella');
+    user = decodeToken(adminAuthRegister('jake.renzella@gmail.com', 'password1', 'Jake', 'Renzella'));
     quiz = adminQuizCreate(user.authUserId, 'VIM', 'A basic quiz on VIM commands');
 
   });
+
   describe('error cases', () => {
     test('401: empty token', () => {
       const response = requestAdminQuizName(quiz.quizId, { token: '', name: 'new name' });
