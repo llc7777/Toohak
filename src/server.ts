@@ -61,7 +61,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
-  res.json({ token: result.token });
+  res.status(200).json({ token: result.token });
 });
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
