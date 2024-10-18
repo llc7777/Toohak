@@ -1,15 +1,15 @@
-import request from 'sync-request-curl'
+import request from 'sync-request-curl';
 import config from './config.json';
 
 const port = config.port;
 const url = config.url;
-const SERVER_URL = `${url}:${port}`
+const SERVER_URL = `${url}:${port}`;
 const timeout = 5 * 1000;
 
 // function to send the adminUserDetails request
 const requestAdminUserDetails = (token: string) => {
   const res = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-    qs: {token},
+    qs: { token },
   });
   return {
     statusCode: res.statusCode,
@@ -64,7 +64,7 @@ describe('Test for correct return value', () => {
     const token = loginResponse.body.token;
 
     const userDetails = requestAdminUserDetails(token);
-      
+
     expect(userDetails.statusCode).toBe(200);
     expect(userDetails.body).toStrictEqual({
       user: {
@@ -88,7 +88,7 @@ describe('Test for correct return value', () => {
   ])('Should return user details with correct properties for each user', ({ email, password, nameFirst, nameLast }) => {
     // Register the admin user
     const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
-      
+
     expect(admin.statusCode).toBe(200);
 
     const loginResponse = requestAdminAuthLogin(email, password);
@@ -124,7 +124,7 @@ describe('Test for error handling', () => {
   ])('Should return error with invalid authUserId', ({ email, password, nameFirst, nameLast }) => {
     // Registers the admin user
     const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
-        
+
     expect(admin.statusCode).toBe(200);
 
     const loginResponse = requestAdminAuthLogin(email, password);
@@ -135,8 +135,8 @@ describe('Test for error handling', () => {
     const invalidAuthUserId = admin.body.authUserId + 1531;
     const userDetails = requestAdminUserDetails(token);
 
-    expect(userDetails.statusCode).toBe(200); 
-    expect(userDetails.body).toStrictEqual({ error: 'Invalid authUserId' }); 
+    expect(userDetails.statusCode).toBe(200);
+    expect(userDetails.body).toStrictEqual({ error: 'Invalid authUserId' });
   });
 
   test('Returns error with invalid token', () => {
@@ -149,6 +149,6 @@ describe('Test for error handling', () => {
     const userDetails = requestAdminUserDetails(invalidToken);
 
     expect(userDetails.statusCode).toBe(401);
-    expect(userDetails.body).toStrictEqual({ error: 'Unknown Type: string - error'});
-  })
+    expect(userDetails.body).toStrictEqual({ error: 'Unknown Type: string - error' });
+  });
 });

@@ -8,7 +8,12 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+<<<<<<< HEAD
 import { adminUserDetails } from './auth';
+=======
+import { adminAuthRegister, adminAuthLogin } from './auth';
+import { clear } from './other';
+>>>>>>> 9343e023ea545a9608a478e3d7b199956608aad2
 
 // Set up web app
 const app = express();
@@ -41,6 +46,7 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
+<<<<<<< HEAD
 app.get('/v1/admin/user/details', (req: Request, res: Response)=> {
   const token = req.query.token as string;
   const result = adminUserDetails(token);
@@ -51,6 +57,33 @@ app.get('/v1/admin/user/details', (req: Request, res: Response)=> {
   return res.json(result);
 });
 
+=======
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  const { email, password, nameFirst, nameLast } = req.body;
+  const result = adminAuthRegister(email, password, nameFirst, nameLast);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const result = adminAuthLogin(email, password);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.status(200).json({ token: result.token });
+});
+
+app.delete('/v1/clear', (req: Request, res: Response) => {
+  res.json(clear());
+});
+>>>>>>> 9343e023ea545a9608a478e3d7b199956608aad2
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
