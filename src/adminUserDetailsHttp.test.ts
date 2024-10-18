@@ -9,9 +9,7 @@ const SERVER_URL = `${url}:${port}`
 // function to send the adminUserDetails request
 const requestAdminUserDetails = (token: string) => {
   const res = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-    headers: {
-      Authorisation: `Bearer ${token}`,
-    },
+    qs: {token},
   });
   return {
     statusCode: res.statusCode,
@@ -138,7 +136,7 @@ describe('Test for error handling', () => {
     const userDetails = requestAdminUserDetails(token);
 
     expect(userDetails.statusCode).toBe(200); 
-    expect(userDetails.body).toStrictEqual({ error: 'Invalid authUserId' }); //to be checked
+    expect(userDetails.body).toStrictEqual({ error: 'Invalid authUserId' }); 
   });
 
   test('Returns error with invalid token', () => {
@@ -151,6 +149,6 @@ describe('Test for error handling', () => {
     const userDetails = requestAdminUserDetails(invalidToken);
 
     expect(userDetails.statusCode).toBe(401);
-    expect(userDetails.body).toStrictEqual({ error: 'Unknown Type: string - error'});  //to be checked
+    expect(userDetails.body).toStrictEqual({ error: 'Unknown Type: string - error'});
   })
 });
