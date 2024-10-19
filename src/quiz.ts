@@ -34,7 +34,6 @@ export function adminQuizList(authUserId) {
   };
 }
 
-
 /**
  *
  * @param {integer} authUserId Id of user
@@ -58,8 +57,8 @@ export function adminQuizCreate(encodedToken, name, description) {
 
   // verify user with the sessionId and authUserId
   const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(token => token.sessionId === sessionId
-      && token.authUserId === authUserId)
+    user.tokens && user.tokens.some(token => token.sessionId === sessionId &&
+      token.authUserId === authUserId)
   );
 
   if (!userExists) {
@@ -99,7 +98,6 @@ export function adminQuizCreate(encodedToken, name, description) {
 
   return { quizId: newQuizId };
 }
-
 
 /**
  *

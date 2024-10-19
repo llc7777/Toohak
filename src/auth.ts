@@ -224,8 +224,8 @@ export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) 
 
   // Search through the data to check if the user exists
   const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId
-      && token.sessionId === sessionId
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
+      token.sessionId === sessionId
     )
   );
   if (userIndex === -1) {

@@ -88,7 +88,7 @@ describe('Test for POST /v1/admin/quiz', () => {
   });
 
   test('should return error if Name is already used for another quiz', () => {
-    const quiz = request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: { token, name: 'quiz1', description: 'description1' }, timeout: TIMEOUT_MS
     });
 
@@ -96,7 +96,7 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz1', description: 'description2' }, timeout: TIMEOUT_MS
     });
 
-    const quiz2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: { token, name: 'quiz2', description: 'description3' }, timeout: TIMEOUT_MS
     });
 
@@ -136,11 +136,13 @@ describe('Test for POST /v1/admin/quiz', () => {
     const encodedInvalid = { token: createToken(invalidToken) };
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-      json: { token: encodedInvalid, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
+      json: {
+        token: encodedInvalid, name: 'quiz1', description: 'description'
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(JSON.parse(res.statusCode)).toStrictEqual(401);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
-
 });

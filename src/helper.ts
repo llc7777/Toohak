@@ -45,7 +45,7 @@ export function isValidPassword(password: string): string {
 
 // helper function for quizcreate
 export function validQuizName(name) {
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
   for (const char of name) {
     if (!validChars.includes(char)) {
       return false;

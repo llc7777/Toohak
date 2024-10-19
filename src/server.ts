@@ -91,7 +91,6 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
-
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
