@@ -11,7 +11,7 @@ beforeEach(() => {
 
 describe('DELETE /v1/admin/quiz/:quizId/', () => {
   test('returns error when trying to delete quiz with invalid token', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -33,7 +33,7 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
   });
 
   test('returns error when trying to delete quiz with empty token', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -48,12 +48,15 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
         description: 'Just a normal quiz',
       }
     });
-    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`);
+    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`, {qs: {
+      token: userToken},
+      timeout: TIMEOUT_MS
+    });
     expect(result).toStrictEqual({ error: expect.any(String) });
     expect(result.statusCode).toStrictEqual(401);
   });
   test('returns error when trying to delete a quiz that user does not own', () => {
-    const userToken1 = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken1 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -61,14 +64,14 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz' + {
+    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
       json: {
         token: userToken1,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const userToken2 = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken2 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'hayden.smith@gmail.com',
         password: 'password123',
@@ -77,13 +80,15 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
       }
     });
 
-    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/${userToken2}`);
-    expect(result).toStrictEqual({ error: expect.any(String) });
+    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`, {qs: {
+      token: userToken2},
+      timeout: TIMEOUT_MS
+    });    expect(result).toStrictEqual({ error: expect.any(String) });
     expect(result.statusCode).toStrictEqual(403);
   });
 
   test('returns error when trying to delete a quiz that does not exist', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -96,7 +101,7 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
   });
 
   test('correct return type for deleting a quiz', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -112,14 +117,16 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
       }
     });
     // Delete quiz and move to trash
-    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/${userToken}`);
-
+    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`, {qs: {
+      token: userToken},
+      timeout: TIMEOUT_MS
+    });
     expect(quiz.quizId).toStrictEqual(expect.any(Number));
     expect(result).toStrictEqual({});
   });
 
   test('correct status code when deleting a quiz', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -127,19 +134,21 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz' + {
+    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
       json: {
         token: userToken,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/${userToken}`);
-    expect(result.statusCode).toStrictEqual(200);
+    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`, {qs: {
+      token: userToken},
+      timeout: TIMEOUT_MS
+    });    expect(result.statusCode).toStrictEqual(200);
   });
 
   test('successfully deletes a quiz and moves it to trash', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register' + {
+    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -147,7 +156,7 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz' + {
+    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
       json: {
         token: userToken,
         name: 'Basic quiz',
@@ -161,8 +170,10 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
     expect(data.trash.length).toStrictEqual(0);
 
     // Delete quiz and move to trash
-    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/${userToken}`);
-
+    const result = request('DELETE', SERVER_URL + `v1/admin/quiz/${quiz.quizId}/`, {qs: {
+      token: userToken},
+      timeout: TIMEOUT_MS
+    });    expect(result.statusCode).toStrictEqual(200);
     expect(quiz.quizId).toStrictEqual(expect.any(Number));
     expect(result).toStrictEqual({});
     expect(data.quizzes.length).toStrictEqual(0);
