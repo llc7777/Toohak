@@ -19,9 +19,12 @@ beforeEach(() => {
 
   token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
-      email: 'Aerospace@gmail.com', password: 'Aeropass1',
-      nameFirst: 'Leo', nameLast: 'Kim'
-    }, timeout: TIMEOUT_MS
+      email: 'Aerospace@gmail.com',
+      password: 'Aeropass1',
+      nameFirst: 'Leo',
+      nameLast: 'Kim'
+    },
+    timeout: TIMEOUT_MS
   });
 
   token = JSON.parse(token.body.toString());
@@ -33,7 +36,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(200);
@@ -42,35 +46,40 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const newPasswordLogin = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass2'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(200);
-    expect(JSON.parse(newPasswordLogin.body.toString())).toStrictEqual({ token: expect.any(String) });
+    expect(JSON.parse(newPasswordLogin.body.toString())).toStrictEqual(
+      { token: expect.any(String) });
   });
 
   test('has updated successfully several times', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
-    const res2 = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     const newPasswordLogin = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass3'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(200);
-    expect(JSON.parse(newPasswordLogin.body.toString())).toStrictEqual({ token: expect.any(String) });
-
+    expect(JSON.parse(newPasswordLogin.body.toString())).toStrictEqual(
+      { token: expect.any(String) });
   });
 
   // Test for error cases
@@ -78,7 +87,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(400);
@@ -89,7 +99,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropass1'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(400);
@@ -100,13 +111,15 @@ describe('Test for PUT /v1/admin/user/password', () => {
     request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass2', newPassword: 'Aeropass1'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(400);
@@ -117,7 +130,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropas'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(400);
@@ -128,7 +142,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: 'Aeropass'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(400);
@@ -137,7 +152,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const res2 = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
         token, oldPassword: 'Aeropass1', newPassword: '12345678'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res2.statusCode).toStrictEqual(400);
@@ -148,7 +164,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const emptyToken = { token: '' };
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
-      json: { token: emptyToken, oldPassword: 'Aeropass1', newPassword: 'Aeropass2' }, timeout: TIMEOUT_MS
+      json: {
+        token: emptyToken, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(401);
@@ -160,11 +179,13 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const encodedInvalid = { token: createToken(invalidToken) };
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
-      json: { token: encodedInvalid, oldPassword: 'Aeropass1', newPassword: 'Aeropass2' }, timeout: TIMEOUT_MS
+      json: {
+        token: encodedInvalid, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+      },
+      timeout: TIMEOUT_MS
     });
 
     expect(res.statusCode).toStrictEqual(401);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
-
 });
