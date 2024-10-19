@@ -159,19 +159,32 @@ export function adminUserDetails(authUserId) {
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(
-  token: object,
-  email: string,
-  nameFirst: string,
-  nameLast: string
-) {
+export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast) {
   const data = getData();
 
-  // Check if the token is valid and retrieve the user
-  const user = findUserFromToken(token);
-  if (!user) {
-    return { error: 'Token is not valid' };
+  // Check if the token is empty
+  if (encodedToken.token === '') {
+    return { error: 'Token is empty' };
   }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
+  // Search through the data to check if the user exists
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
+      token.sessionId === sessionId
+    )
+  );
+  if (userIndex === -1) {
+    return {
+      error: 'Token is invalid',
+    };
+  }
+
+  const user = data.users[userIndex];
 
   // Check if the email is valid
   if (!validator.isEmail(email)) {
@@ -186,12 +199,14 @@ export function adminUserDetailsUpdate(
   }
 
   // Validating first name and last name
-  if (!isValidName(nameFirst)) {
-    return { error: 'First name contains invalid characters or is not within length limits.' };
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    return { error: firstNameError };
   }
 
-  if (!isValidName(nameLast)) {
-    return { error: 'Last name contains invalid characters or is not within length limits.' };
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    return { error: lastNameError };
   }
 
   // Update user properties
