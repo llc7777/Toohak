@@ -10,6 +10,8 @@ import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminAuthLogin } from './auth';
 import { clear } from './other';
+import { findUserFromToken } from './helper';
+import { adminQuizInfo } from './quiz';
 
 // Set up web app
 const app = express();
@@ -63,6 +65,20 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
   res.status(200).json({ token: result.token });
 });
+
+app.get('vq/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  const user = findUserFromToken(token);
+  if (token.length === 0 || !user) {
+    res.status(401).json( {error: "Unknown Type: string - error"});
+  }
+  const result = adminQuizInfo(token, quizid);
+  if ('error' in result) {
+    res.status(403).json( {error: "Unknown Type: string - error"});
+  }
+  res.status(200).json( { result } );
+})
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
