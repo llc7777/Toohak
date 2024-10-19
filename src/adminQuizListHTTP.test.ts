@@ -8,10 +8,13 @@ import { createToken } from './helper';
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
+// Error object
 const ERROR = { error: expect.any(String) };
 
+// user token
 let token = {};
 
+// clear the database before each test and register a user
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
