@@ -5,6 +5,7 @@ const data = {
 
   users: [],
   quizzes: [],
+  trash: [],
 };
 
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
