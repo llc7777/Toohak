@@ -8,19 +8,19 @@ import { validQuizName, isUserValid, nameUsed, decodeToken } from './helper';
  * @param {integer} authUserId
  * @returns {object}
  */
-export function adminQuizList(encodedToken) {
+export function adminQuizList(token) {
   const data = getData();
   const arr = [];
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
 
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(encodedToken.token);
+  const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
   const sessionId = tokenData.sessionId;
 

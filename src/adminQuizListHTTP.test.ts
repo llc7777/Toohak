@@ -28,7 +28,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString());
+  token = JSON.parse(token.body.toString()).token;
 });
 
 describe('Test for GET /v1/admin/quiz/list', () => {
@@ -112,7 +112,7 @@ describe('Test for GET /v1/admin/quiz/list', () => {
 
   // Test for error cases
   test('error for empty token', () => {
-    const emptyToken = { token: '' };
+    const emptyToken = '';
 
     const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
       json:
@@ -126,7 +126,7 @@ describe('Test for GET /v1/admin/quiz/list', () => {
 
   test('error for invalid token', () => {
     const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = { token: createToken(invalidToken) };
+    const encodedInvalid = createToken(invalidToken);
 
     const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
       json:
