@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
-import { adminQuizCreate, adminQuizList } from './quiz';
+import { adminQuizCreate, adminQuizList, adminQuizRemove } from './quiz';
 import { clear } from './other';
 
 // Set up web app
@@ -106,6 +106,21 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
   return res.json(result);
 });
+
+// adminQuizDelete DELETE request
+app.delete('v1/admin/quiz/:quiz', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizRemove(token, quizid);
+  console.log(result);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
+})
 
 // routes for other
 
