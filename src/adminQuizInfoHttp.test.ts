@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 describe('GET /v1/admin/quiz/:quizId', () => {
   test('returns error when trying to delete quiz with invalid token', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -17,14 +17,25 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    const userToken = JSON.parse(userTokenRes.body.toString());
+    console.log(userToken);
+    console.log(userToken.token);
+    console.log({
+      token: userToken,
+      name: 'Basic quiz',
+      description: 'Just a normal quiz',
+    })
+    const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const result = request('GET', SERVER_URL + `v1/admin/quiz/${quiz.quizId}`, {
+    //console.log(quizRes.statusCode);
+    console.log(quizRes.body.toString());
+    const quiz = JSON.parse(quizRes.body.toString());
+    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quiz.quizId}`, {
       qs: { token: userToken },
       timeout: TIMEOUT_MS
     });
@@ -32,7 +43,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     expect(result.statusCode).toStrictEqual(401);
   });
   test('returns error when trying to delete quiz with empty user token', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userToken = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -40,14 +51,15 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const result = request('GET', SERVER_URL + `v1/admin/quiz/${quiz.quizId}`, {
+    const quiz = JSON.parse(quizRes.body.toString());
+    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quiz.quizId}`, {
       qs: { token: '' },
       timeout: TIMEOUT_MS
     });
@@ -55,7 +67,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     expect(result.statusCode).toStrictEqual(401);
   });
   test('returns error when trying to get info of a quiz that does not exist', () => {
-    const userToken1 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userToken1 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -63,7 +75,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const userToken2 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userToken2 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'hayden.smith@gmail.com',
         password: 'password123',
@@ -71,14 +83,15 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Smith',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    let quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken1,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const result = request('GET', SERVER_URL + `v1/admin/quiz/${quiz.quizId}`, {
+    const quiz = JSON.parse(quizRes.body.toString());
+    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quiz.quizId}`, {
       qs: { token: userToken2 },
       timeout: TIMEOUT_MS
     });
@@ -86,7 +99,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     expect(result.statusCode).toStrictEqual(403);
   })
   test('successfully returns quiz info when a single quiz exists', () => {
-    const userToken = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userToken = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -94,13 +107,14 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
+    const quiz = JSON.parse(quizRes.body.toString());
     const result = request('GET', SERVER_URL + `v1/admin/quiz/${quiz.quizId}`, {
       qs: { token: userToken },
       timeout: TIMEOUT_MS
@@ -116,7 +130,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     })
   })
   test('successfully returns quiz info when a multiple quizzes exists', () => {
-    const userToken1 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const userToken1 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -124,14 +138,15 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz1 = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    const quizRes1 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken1,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
-    const userToken2 = request('POST', SERVER_URL + 'v1/admin/auth/register', {
+    const quiz1 = JSON.parse(quizRes1.body.toString());
+    const userToken2 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
         email: 'jake.renzella@gmail.com',
         password: 'password123',
@@ -139,15 +154,16 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const quiz2 = request('POST', SERVER_URL + 'v1/admin/quiz', {
+    const quizRes2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken2,
         name: 'Basic quiz',
         description: 'Just a normal quiz',
       }
     });
+    const quiz2 = JSON.parse(quizRes2.body.toString());
     expect(quiz2.quizId).toStrictEqual(expect.any(Number));
-    const result = request('GET', SERVER_URL + `v1/admin/quiz/${quiz1.quizId}`, {
+    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quiz1.quizId}`, {
       qs: { token: userToken1 },
       timeout: TIMEOUT_MS
     });

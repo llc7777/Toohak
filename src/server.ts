@@ -8,7 +8,8 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminAuthLogin } from './auth';
+import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
+import { adminQuizCreate } from './quiz';
 import { clear } from './other';
 import { findUserFromToken } from './helper';
 import { adminQuizInfo } from './quiz';
@@ -80,9 +81,36 @@ app.get('vq/admin/quiz/:quizId', (req: Request, res: Response) => {
   res.status(200).json( { result } );
 })
 
+// adiminUserPasswordUpdate PUT request
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, oldPassword, newPassword } = req.body;
+  const result = adminUserPasswordUpdate(token, oldPassword, newPassword);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// routes for quiz
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

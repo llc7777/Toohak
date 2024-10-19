@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+import { getData } from './dataStore';
+import { validQuizName, isUserValid, nameUsed, decodeToken } from './helper';
+
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {integer} authUserId
@@ -42,33 +45,50 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns
  */
-export function adminQuizCreate(authUserId, name, description) {
-  const { quizzes } = getData();
+export function adminQuizCreate(encodedToken, name, description) {
+  const data = getData();
 
-  if (!isUserValid(authUserId)) {
-    return { error: 'AuthUserId is not a valid user.' };
+  // Check if the token is empty
+  if (encodedToken.token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+  // decode the token and get the authUserId and sessionId
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
+  // verify user with the sessionId and authUserId
+  const userExists = data.users.some(user =>
+    user.tokens && user.tokens.some(token => token.sessionId === sessionId &&
+      token.authUserId === authUserId)
+  );
+
+  if (!userExists) {
+    return { error: 'Token is invalid' };
+  }
+
+  if (!validQuizName(name)) {
+    return {
+      error: 'Name contains invalid characters. Only alphanumeric' +
+        'characters and spaces are allowed.'
+    };
   }
 
   if (name.length < 3 || name.length > 30) {
     return { error: 'Name must be between 3 and 30 characters long.' };
   }
 
-  if (!validQuizName(name)) {
-    return {
-      error: 'Name contains invalid characters. Only alphanumeric' +
-             'characters, spaces, apostrophes, and hyphens are allowed.'
-    };
-  }
-
   if (nameUsed(authUserId, name)) {
-    return { error: 'Name is already used by the current logged-in user for another quiz.' };
+    return { error: 'Name is already used for another quiz.' };
   }
 
   if (description.length > 100) {
     return { error: 'Description is more than 100 characters in length.' };
   }
 
-  const newQuizId = quizzes.length + 1;
+  const newQuizId = data.quizzes.length + 1;
   const newQuiz = {
     quizId: newQuizId,
     authUserId,
@@ -78,7 +98,7 @@ export function adminQuizCreate(authUserId, name, description) {
     timeLastEdited: Math.floor(Date.now() / 1000),
   };
 
-  quizzes.push(newQuiz);
+  data.quizzes.push(newQuiz);
 
   return { quizId: newQuizId };
 }
