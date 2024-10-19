@@ -8,7 +8,8 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister } from './auth';
+import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
+import { adminQuizCreate, adminQuizList } from './quiz';
 import { clear } from './other';
 
 // Set up web app
@@ -42,6 +43,7 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
+// routes for auth
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
   const result = adminAuthRegister(email, password, nameFirst, nameLast);
@@ -53,9 +55,64 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
+app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const result = adminAuthLogin(email, password);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.status(200).json({ token: result.token });
+});
+
+// adiminUserPasswordUpdate PUT request
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, oldPassword, newPassword } = req.body;
+  const result = adminUserPasswordUpdate(token, oldPassword, newPassword);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// routes for quiz
+
+// adminQuizCreate POST request
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// adminQuizList GET request
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const result = adminQuizList(token);
+
+  if ('error' in result) {
+    res.status(401).json(result);
+    return;
+  }
+
+  return res.json(result);
+});
+
+// routes for other
+
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

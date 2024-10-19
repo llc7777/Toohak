@@ -3,7 +3,7 @@
 import { getData } from './dataStore';
 import validator from 'validator';
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
   if (!validator.isEmail(email)) {
     return 'Invalid email format.';
@@ -11,7 +11,7 @@ export function isValidEmail(email: string): string {
   return '';
 }
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidName(name: string, type: string): string {
   if (name.length < 2 || name.length > 20) {
     return `${type} name must be between 2 and 20 characters.`;
@@ -27,7 +27,7 @@ export function isValidName(name: string, type: string): string {
   return '';
 }
 
-// helper function for adminAuthRegister
+// Helper function for adminAuthRegister
 export function isValidPassword(password: string): string {
   if (password.length < 8) {
     return 'Password must be at least 8 characters long.';
@@ -45,11 +45,7 @@ export function isValidPassword(password: string): string {
 
 // helper function for quizcreate
 export function validQuizName(name) {
-  if (name.length < 2 || name.length > 20) {
-    return false;
-  }
-
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '-";
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
   for (const char of name) {
     if (!validChars.includes(char)) {
       return false;
@@ -61,14 +57,14 @@ export function validQuizName(name) {
 
 // Check if the provided user ID corresponds to a valid user
 export function isUserValid(authUserId) {
-  const { users } = getData();
-  return users.some(user => user.authUserId === authUserId);
+  const data = getData();
+  return data.users.some(user => user.authUserId === authUserId);
 }
 
 // Check if the specified name is already used by the given user ID in quizzes
 export function nameUsed(authUserId, name) {
-  const { quizzes } = getData();
-  return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
+  const data = getData();
+  return data.quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
 // Create a token from the given token object
@@ -82,20 +78,22 @@ export function decodeToken(token) {
   return JSON.parse(token);
 }
 
-// Generate a random session ID
+// Generate a session ID based on the current time and a random two-digit number
 export function generateRandomSessionId() {
-  return Math.floor(Math.random() * 1000000000);
+  // Generates a random number between 10 and 99
+  const randomTwoDigitNumber = Math.floor(Math.random() * 90 + 10);
+  return Date.now() + randomTwoDigitNumber;
 }
 
-// Find a user from the given session ID
-export function findUserFromToken(sessionId) {
+// Find a user from the given token
+export function findUserFromToken(token) {
   const data = getData();
-
   for (const user of data.users) {
-    if (user.tokens && user.tokens.some(token => token.sessionId === sessionId)) {
+    if (user.tokens.find(usersToken =>
+      usersToken.sessionId === token.sessionId &&
+      usersToken.authUserId === token.authUserId)) {
       return user;
     }
   }
-
   return null;
 }

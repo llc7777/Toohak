@@ -8,53 +8,64 @@ Return object: authUserId: 1
 // @ts-nocheck
 import { getData } from './dataStore';
 import {
+  generateRandomSessionId,
   isValidEmail,
   isValidName,
-  isValidPassword
+  isValidPassword,
+  createToken,
+  decodeToken,
+  findUserFromToken,
 } from './helper';
 import validator from 'validator';
 
-export function generateToken(): string {
-  return [...Array(32)]
-    .map(() => Math.random().toString(36)[2])
-    .join('');
-}
-
-export function decodeToken(token: string): any {
-  const decoded = decodeURIComponent(token);
-  return JSON.parse(decoded);
-}
-
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string) {
+  nameFirst: string, nameLast: string, token?: string) {
   const store = getData();
 
-  const emailError = isValidEmail(email);
-  if (emailError) {
-    return { error: emailError };
+  let decodedTokenData: any = null;
+
+  // If a token exist, decode and check user
+  if (token) {
+    decodedTokenData = decodeToken(token);
+    const userExist = findUserFromToken(decodedTokenData.sessionId);
+
+    if (userExist) {
+      return { error: 'You are already logged in as a different user. Please log out first.' };
+    }
   }
 
-  const firstNameError = isValidName(nameFirst, 'First');
-  if (firstNameError) {
-    return { error: firstNameError };
+  const wrongEmail = isValidEmail(email);
+  if (wrongEmail) {
+    return { error: wrongEmail };
   }
 
-  const lastNameError = isValidName(nameLast, 'Last');
-  if (lastNameError) {
-    return { error: lastNameError };
+  const wrongFirstName = isValidName(nameFirst, 'First');
+  if (wrongFirstName) {
+    return { error: wrongFirstName };
   }
 
-  const passwordError = isValidPassword(password);
-  if (passwordError) {
-    return { error: passwordError };
+  const wrongLastName = isValidName(nameLast, 'Last');
+  if (wrongLastName) {
+    return { error: wrongLastName };
   }
 
-  const existingUser = store.users.find((user: any) => user.email === email);
-  if (existingUser) {
+  const wrongPassword = isValidPassword(password);
+  if (wrongPassword) {
+    return { error: wrongPassword };
+  }
+  const userExist = store.users.find((user: any) => user.email === email);
+  if (userExist) {
     return { error: 'This email is already registered to another user. Please use another email.' };
   }
 
-  const token = generateToken();
+  // Generate new token object
+  const newToken = {
+    authUserId: store.users.length + 1, // Assign new user ID
+    sessionId: generateRandomSessionId() // Generate random session ID
+  };
+
+  const encodedToken = createToken(newToken);
+
   const newUser = {
     email: email,
     password: password,
@@ -62,26 +73,18 @@ export function adminAuthRegister(email: string, password: string,
     nameFirst: nameFirst,
     nameLast: nameLast,
     name: `${nameFirst} ${nameLast}`,
-    authUserId: store.users.length + 1,
     timeCreated: Math.floor(Date.now() / 1000),
-    tokens: [token],
+    tokens: [newToken], // Store the token object before encoding
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
 
   store.users.push(newUser);
 
+  // Return the encoded token as a string
   return {
-    token: token
+    token: encodedToken
   };
-}
-
-export function findUserFromToken(token: string) {
-  const store = getData();
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
-
-  return store.users.find((user: any) => user.authUserId === authUserId);
 }
 
 /*
@@ -89,7 +92,7 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email, password) {
+export function adminAuthLogin(email: string, password: string) {
   const data = getData();
 
   const index = data.users.findIndex((user) => user.email === email);
@@ -106,8 +109,18 @@ export function adminAuthLogin(email, password) {
   }
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
+
+  const sessionId = generateRandomSessionId();
+
+  const token = {
+    authUserId: data.users[index].authUserId,
+    sessionId
+  };
+
+  data.users[index].tokens.push(token);
+
   return {
-    authUserId: data.users[index].authUserId
+    token: createToken(token)
   };
 }
 
@@ -192,16 +205,32 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
+  // Check if the token is empty
+  if (encodedToken.token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user => user.authUserId === authUserId);
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
+      token.sessionId === sessionId
+    )
+  );
   if (userIndex === -1) {
     return {
-      error: 'User Id does not exist',
+      error: 'Token is invalid',
     };
   }
   // Search through the data to check if the old password is correct
@@ -240,11 +269,7 @@ export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
   }
 
   // Update password and return empty object for indication of no error
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      data.users[i].password = newPassword;
-      data.users[i].oldPasswords.push(newPassword);
-      return {};
-    }
-  }
+  data.users[userIndex].oldPasswords.push(newPassword);
+  data.users[userIndex].password = newPassword;
+  return {};
 }
