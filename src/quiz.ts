@@ -16,18 +16,34 @@ export function adminQuizList(authUserId) {
   const store = getData();
   const arr = [];
 
-  const userExists = store.users.find((user) => user.authUserId === authUserId);
-  if (!userExists) {
+  // Check if the token is empty
+  if (token === '') {
     return {
-      error: 'No user with the given authUserId exists',
+      error: 'Token is empty',
     };
   }
 
-  for (let i = 0; i < store.quizzes.length; i++) {
-    if (store.quizzes[i].authUserId === authUserId) {
+  // decode the token and get the authUserId and sessionId
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
+  // verify user with the sessionId and authUserId
+  const userExists = data.users.some(user =>
+    user.tokens && user.tokens.some(token => token.sessionId === sessionId)
+  );
+
+  if (!userExists) {
+    return {
+      error: 'Token is invalid',
+    };
+  }
+
+  for (let i = 0; i < data.quizzes.length; i++) {
+    if (data.quizzes[i].authUserId === authUserId) {
       const item = {
-        quizId: store.quizzes[i].quizId,
-        name: store.quizzes[i].name,
+        quizId: data.quizzes[i].quizId,
+        name: data.quizzes[i].name,
       };
       arr.push(item);
     }
@@ -45,17 +61,17 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns
  */
-export function adminQuizCreate(encodedToken, name, description) {
+export function adminQuizCreate(token, name, description) {
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(encodedToken.token);
+  const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
   const sessionId = tokenData.sessionId;
 
