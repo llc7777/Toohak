@@ -43,13 +43,6 @@ export function isValidPassword(password: string): string {
   return '';
 }
 
-// Helper function for adminAuthRegister
-export function generateToken(): string {
-  return [...Array(32)]
-    .map(() => Math.random().toString(36)[2])
-    .join('');
-}
-
 // helper function for quizcreate
 export function validQuizName(name) {
   if (name.length < 2 || name.length > 20) {
@@ -89,9 +82,11 @@ export function decodeToken(token) {
   return JSON.parse(token);
 }
 
-// Generate a random session ID
+// Generate a session ID based on the current time and a random two-digit number
 export function generateRandomSessionId() {
-  return Math.floor(Math.random() * 1000000000);
+  // Generates a random number between 10 and 99
+  const randomTwoDigitNumber = Math.floor(Math.random() * 90 + 10);
+  return Date.now() + randomTwoDigitNumber;
 }
 
 // Find a user from the given token

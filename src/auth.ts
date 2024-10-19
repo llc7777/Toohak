@@ -73,7 +73,6 @@ export function adminAuthRegister(email: string, password: string,
     nameFirst: nameFirst,
     nameLast: nameLast,
     name: `${nameFirst} ${nameLast}`,
-    authUserId: newToken.authUserId,
     timeCreated: Math.floor(Date.now() / 1000),
     tokens: [newToken], // Store the token object before encoding
     numSuccessfulLogins: 1,
@@ -206,16 +205,29 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
+  // Check if the token is empty
+  if (encodedToken.token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user => user.authUserId === authUserId);
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId)
+  );
   if (userIndex === -1) {
     return {
-      error: 'User Id does not exist',
+      error: 'Token is invalid',
     };
   }
   // Search through the data to check if the old password is correct
@@ -254,11 +266,7 @@ export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
   }
 
   // Update password and return empty object for indication of no error
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      data.users[i].password = newPassword;
-      data.users[i].oldPasswords.push(newPassword);
-      return {};
-    }
-  }
+  data.users[userIndex].oldPasswords.push(newPassword);
+  data.users[userIndex].password = newPassword;
+  return {};
 }
