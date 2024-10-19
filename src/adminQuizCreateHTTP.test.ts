@@ -25,7 +25,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString());
+  token = JSON.parse(token.body.toString()).token;
 });
 
 describe('Test for POST /v1/admin/quiz', () => {
@@ -121,7 +121,7 @@ describe('Test for POST /v1/admin/quiz', () => {
   });
 
   test('Test for empty token', () => {
-    const emptyToken = { token: '' };
+    const emptyToken = '';
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: { token: emptyToken, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
@@ -133,7 +133,7 @@ describe('Test for POST /v1/admin/quiz', () => {
 
   test('Test for invalid token', () => {
     const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = { token: createToken(invalidToken) };
+    const encodedInvalid = createToken(invalidToken);
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {

@@ -41,17 +41,17 @@ export function adminQuizList(authUserId) {
  * @param {string} description Description of new quiz
  * @returns
  */
-export function adminQuizCreate(encodedToken, name, description) {
+export function adminQuizCreate(token, name, description) {
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(encodedToken.token);
+  const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
   const sessionId = tokenData.sessionId;
 
