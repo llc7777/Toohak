@@ -18,7 +18,6 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       }
     });
     const userToken = JSON.parse(userTokenRes.body.toString()).token;
-    console.log(userToken);
     const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
