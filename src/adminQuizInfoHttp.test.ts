@@ -17,14 +17,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         nameLast: 'Renzella',
       }
     });
-    const userToken = JSON.parse(userTokenRes.body.toString());
+    const userToken = JSON.parse(userTokenRes.body.toString()).token;
     console.log(userToken);
-    console.log(userToken.token);
-    console.log({
-      token: userToken,
-      name: 'Basic quiz',
-      description: 'Just a normal quiz',
-    })
     const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
@@ -32,8 +26,6 @@ describe('GET /v1/admin/quiz/:quizId', () => {
         description: 'Just a normal quiz',
       }
     });
-    //console.log(quizRes.statusCode);
-    console.log(quizRes.body.toString());
     const quiz = JSON.parse(quizRes.body.toString());
     const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quiz.quizId}`, {
       qs: { token: userToken },

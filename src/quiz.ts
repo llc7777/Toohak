@@ -8,12 +8,8 @@ import { validQuizName, isUserValid, nameUsed, decodeToken } from './helper';
  * @param {integer} authUserId
  * @returns {object}
  */
-
-import { getData } from './dataStore';
-import { validQuizName, isUserValid, nameUsed, findUserFromToken } from './helper';
-
-export function adminQuizList(authUserId) {
-  const store = getData();
+export function adminQuizList(token) {
+  const data = getData();
   const arr = [];
 
   // Check if the token is empty
@@ -155,7 +151,7 @@ export function adminQuizRemove(authUserId, quizId) {
 
 /**
 Gets information for a given quiz given a quizId and authUserId
-@param {string} token of user
+@param {integer} authUser Id of user
 @param {integer} quizId of user
 @returns {object} - An object containing the following keys that show quiz info:
   - {integer} quizId:
@@ -170,7 +166,7 @@ Gets information for a given quiz given a quizId and authUserId
 export function adminQuizInfo(authUserId, quizId) {
   const data = getData();
 
-  const user = findUserFromToken(token);
+  const user = data.users.find(user => user.authUserId === authUserId);
   if (!user) {
     return { error: 'Unable to find user Id ' };
   }
@@ -181,7 +177,7 @@ export function adminQuizInfo(authUserId, quizId) {
   }
 
   const userAndQuizMatch = data.quizzes.find(
-    quiz => quiz.authUserId === user.authUserId && quiz.quizId === quizId);
+    quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
 
   if (!userAndQuizMatch) {
     return { error: 'The given user does not own the given quiz' };
