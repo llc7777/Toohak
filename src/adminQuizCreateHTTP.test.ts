@@ -1,0 +1,148 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
+import request from 'sync-request-curl';
+import { port, url } from './config.json';
+import { createToken } from './helper';
+
+const SERVER_URL = `${url}:${port}`;
+const TIMEOUT_MS = 5 * 1000;
+
+const ERROR = { error: expect.any(String) };
+
+let token = {};
+
+beforeEach(() => {
+  request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
+
+  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email: 'Aerospace@gmail.com',
+      password: 'Aeropass1',
+      nameFirst: 'Leo',
+      nameLast: 'Kim'
+    },
+    timeout: TIMEOUT_MS
+  });
+
+  token = JSON.parse(token.body.toString());
+});
+
+describe('Test for POST /v1/admin/quiz', () => {
+  // Test for successful cases
+  test('has the correct return and has it created the quiz', () => {
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
+  });
+
+  test('has created successfully with empty description', () => {
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: '' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
+  });
+
+  test('has created successfully several quizzes', () => {
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: 'description1' }, timeout: TIMEOUT_MS
+    });
+
+    const res2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz2', description: '' }, timeout: TIMEOUT_MS
+    });
+
+    const res3 = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz3', description: 'description3' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
+
+    expect(JSON.parse(res2.statusCode)).toStrictEqual(200);
+    expect(JSON.parse(res2.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
+
+    expect(JSON.parse(res3.statusCode)).toStrictEqual(200);
+    expect(JSON.parse(res3.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
+  });
+
+  // Test for error cases
+  test.each([
+    { name: 'quiz1!' },
+    { name: 'quiz1 @' },
+    { name: 'qu' },
+    { name: '@@@@' },
+    { name: 'W'.repeat(31) },
+  ])('should return error message on name = "%s" which is invalid name', ({ name }) => {
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name, description: 'description' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('should return error if Name is already used for another quiz', () => {
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: 'description1' }, timeout: TIMEOUT_MS
+    });
+
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: 'description2' }, timeout: TIMEOUT_MS
+    });
+
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz2', description: 'description3' }, timeout: TIMEOUT_MS
+    });
+
+    const res2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz2', description: 'description4' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+
+    expect(JSON.parse(res2.statusCode)).toStrictEqual(400);
+    expect(JSON.parse(res2.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('should return error if description is more than 100 characters', () => {
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token, name: 'quiz1', description: 'W'.repeat(101) }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for empty token', () => {
+    const emptyToken = { token: '' };
+
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: { token: emptyToken, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for invalid token', () => {
+    const invalidToken = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid = { token: createToken(invalidToken) };
+
+    const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json: {
+        token: encodedInvalid, name: 'quiz1', description: 'description'
+      },
+      timeout: TIMEOUT_MS
+    });
+
+    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+});
