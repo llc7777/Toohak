@@ -48,6 +48,7 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
+// routes for auth
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
   const result = adminAuthRegister(email, password, nameFirst, nameLast);
@@ -98,6 +99,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 });
 
 // routes for quiz
+
+// adminQuizCreate POST request
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
@@ -109,6 +112,21 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   }
   return res.status(200).json(result);
 });
+
+// adminQuizList GET request
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const result = adminQuizList(token);
+
+  if ('error' in result) {
+    res.status(401).json(result);
+    return;
+  }
+
+  return res.json(result);
+});
+
+// routes for other
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
