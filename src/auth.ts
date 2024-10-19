@@ -220,10 +220,13 @@ export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) 
   // Find the user from the token
   const tokenData = decodeToken(encodedToken.token);
   const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
 
   // Search through the data to check if the user exists
   const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId)
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId
+      && token.sessionId === sessionId
+    )
   );
   if (userIndex === -1) {
     return {
