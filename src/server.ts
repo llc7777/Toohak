@@ -8,10 +8,14 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
+import {
+  adminAuthRegister,
+  adminAuthLogin,
+  adminUserDetailsUpdate,
+  adminUserPasswordUpdate
+} from './auth';
 import { adminQuizCreate } from './quiz';
 import { clear } from './other';
-import { decodeToken } from './helper';
 
 // Set up web app
 const app = express();
@@ -65,14 +69,15 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
   res.status(200).json({ token: result.token });
 });
+
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast } = req.body;
 
-  const decodedToken = decodeToken(token);
+  const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
 
-  const result = adminUserDetailsUpdate(decodedToken, email, nameFirst, nameLast);
-
-  if ('error' in result) {
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
     return res.status(400).json(result);
   }
 
