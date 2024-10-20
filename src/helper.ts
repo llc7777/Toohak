@@ -43,20 +43,9 @@ export function isValidPassword(password: string): string {
   return '';
 }
 
-// Helper function for adminAuthRegister
-export function generateToken(): string {
-  return [...Array(32)]
-    .map(() => Math.random().toString(36)[2])
-    .join('');
-}
-
 // helper function for quizcreate
 export function validQuizName(name) {
-  if (name.length < 2 || name.length > 20) {
-    return false;
-  }
-
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '-";
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
   for (const char of name) {
     if (!validChars.includes(char)) {
       return false;
@@ -68,14 +57,14 @@ export function validQuizName(name) {
 
 // Check if the provided user ID corresponds to a valid user
 export function isUserValid(authUserId) {
-  const { users } = getData();
-  return users.some(user => user.authUserId === authUserId);
+  const data = getData();
+  return data.users.some(user => user.authUserId === authUserId);
 }
 
 // Check if the specified name is already used by the given user ID in quizzes
 export function nameUsed(authUserId, name) {
-  const { quizzes } = getData();
-  return quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
+  const data = getData();
+  return data.quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
 // Create a token from the given token object
@@ -89,9 +78,11 @@ export function decodeToken(token) {
   return JSON.parse(token);
 }
 
-// Generate a random session ID
+// Generate a session ID based on the current time and a random two-digit number
 export function generateRandomSessionId() {
-  return Math.floor(Math.random() * 1000000000);
+  // Generates a random number between 10 and 99
+  const randomTwoDigitNumber = Math.floor(Math.random() * 90 + 10);
+  return Date.now() + randomTwoDigitNumber;
 }
 
 // Find a user from the given token
@@ -105,4 +96,18 @@ export function findUserFromToken(token) {
     }
   }
   return null;
+}
+
+// Return true if the encodedToken does exist and belongs to user. Otherwise return false.
+export function encodedTokenExists(encodedToken) {
+  const data = getData();
+  for (const user of data.users) {
+    for (const token of user.tokens) {
+      const encoded = createToken(token);
+      if (encoded === encodedToken) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

@@ -1,5 +1,6 @@
 import request from 'sync-request-curl';
 import config from './config.json';
+import { decodeToken } from './helper';
 
 const port = config.port;
 const url = config.url;
@@ -18,7 +19,8 @@ const requestAdminUserDetails = (token: string) => {
 };
 
 // function to call user registration
-const requestAdminAuthRegister = (email: string, password: string, nameFirst: string, nameLast: string) => {
+const requestAdminAuthRegister = (email: string, password: string,
+  nameFirst: string, nameLast: string) => {
   const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
       email: email,
@@ -47,7 +49,7 @@ const requestAdminAuthLogin = (email: string, password: string) => {
 };
 
 beforeEach(() => {
-  request('DELETE', SERVER_URL + 'v1/clear', { timeout: timeout });
+  request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 });
 
 // Tests for correct return value
@@ -55,7 +57,10 @@ describe('Test for correct return value', () => {
   // Tests for correct return value and type
   test('Should return userDetail with 5 correct properties with valid token', () => {
     // Register admin user
-    const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au', 'password1', 'Hayden', 'Smith');
+    const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au',
+      'password1', 'Hayden', 'Smith');
+    console.log(decodeToken(admin.body.token));
+    const userId = decodeToken(admin.body.token).authUserId;
 
     expect(admin.statusCode).toBe(200);
     // To retrieve token
@@ -64,11 +69,13 @@ describe('Test for correct return value', () => {
     const token = loginResponse.body.token;
 
     const userDetails = requestAdminUserDetails(token);
+    console.log(userDetails);
+    console.log(userId);
 
     expect(userDetails.statusCode).toBe(200);
     expect(userDetails.body).toStrictEqual({
       user: {
-        userId: admin.body.authUserId,
+        userId: userId,
         name: 'Hayden Smith',
         email: 'hayden.smith@unsw.edu.au',
         numSuccessfulLogins: expect.any(Number),
@@ -85,62 +92,62 @@ describe('Test for correct return value', () => {
     { email: 'apple@gmail.com', password: 'passswordd1', nameFirst: 'Hayden', nameLast: 'Smith' },
     { email: 'banana@gmail.com', password: 'passsss1234', nameFirst: 'Joe', nameLast: 'Mama' },
     { email: 'coconut@gmail.com', password: 'mypasswords1', nameFirst: 'Trevsi', nameLast: 'Scot' },
-  ])('Should return user details with correct properties for each user', ({ email, password, nameFirst, nameLast }) => {
+  ])('Should return user details with correct properties for each user',
+    ({
+      email,
+      password,
+      nameFirst,
+      nameLast
+    }) => {
     // Register the admin user
-    const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
+      const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
+      const userId = decodeToken(admin.body.token).authUserId;
 
-    expect(admin.statusCode).toBe(200);
+      expect(admin.statusCode).toBe(200);
 
-    const loginResponse = requestAdminAuthLogin(email, password);
-    expect(loginResponse.statusCode).toBe(200);
-    const token = loginResponse.body.token;
+      const loginResponse = requestAdminAuthLogin(email, password);
+      expect(loginResponse.statusCode).toBe(200);
+      const token = loginResponse.body.token;
 
-    const fullName = `${nameFirst} ${nameLast}`;
-    const userDetails = requestAdminUserDetails(token);
+      const fullName = `${nameFirst} ${nameLast}`;
+      const userDetails = requestAdminUserDetails(token);
 
-    expect(userDetails.statusCode).toBe(200);
-    expect(userDetails.body).toStrictEqual({
-      user: {
-        userId: admin.body.authUserId,
-        name: fullName,
-        email: email,
-        numSuccessfulLogins: expect.any(Number),
-        numFailedPasswordsSinceLastLogin: expect.any(Number),
-      },
+      expect(userDetails.statusCode).toBe(200);
+      expect(userDetails.body).toStrictEqual({
+        user: {
+          userId: userId,
+          name: fullName,
+          email: email,
+          numSuccessfulLogins: expect.any(Number),
+          numFailedPasswordsSinceLastLogin: expect.any(Number),
+        },
+      });
+
+      // Check if numSuccessfulLogins is at least 1
+      expect(userDetails.body.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
     });
-
-    // Check if numSuccessfulLogins is at least 1
-    expect(userDetails.body.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
-  });
 });
 
 // Tests for error handling
 describe('Test for error handling', () => {
   // Tests for multiple invalid authUserIds
-  test.each([
-    { email: 'apple@gmail.com', password: 'passswordd1', nameFirst: 'Hayden', nameLast: 'Smith' },
-    { email: 'banana@gmail.com', password: 'pas123', nameFirst: 'Epic', nameLast: 'Sauce' },
-    { email: 'coconut@gmail.com', password: 'myypassword1', nameFirst: 'Meow', nameLast: 'Meow' },
-  ])('Should return error with invalid authUserId', ({ email, password, nameFirst, nameLast }) => {
-    // Registers the admin user
-    const admin = requestAdminAuthRegister(email, password, nameFirst, nameLast);
+  test('Retruns error for empty token', () => {
+    const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au',
+      'password1', 'Hayden', 'Smith');
 
     expect(admin.statusCode).toBe(200);
 
-    const loginResponse = requestAdminAuthLogin(email, password);
-    expect(loginResponse.statusCode).toBe(200);
-    const token = loginResponse.body.token;
+    const invalidToken = '';
 
-    // invalid userId
-    const invalidAuthUserId = admin.body.authUserId + 1531;
-    const userDetails = requestAdminUserDetails(token);
+    const userDetails = requestAdminUserDetails(invalidToken);
 
-    expect(userDetails.statusCode).toBe(200);
-    expect(userDetails.body).toStrictEqual({ error: 'Invalid authUserId' });
+    expect(userDetails.statusCode).toBe(401);
+    expect(userDetails.body).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Returns error with invalid token', () => {
-    const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au', 'password1', 'Hayden', 'Smith');
+    const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au',
+      'password1', 'Hayden', 'Smith');
 
     expect(admin.statusCode).toBe(200);
 
@@ -149,6 +156,6 @@ describe('Test for error handling', () => {
     const userDetails = requestAdminUserDetails(invalidToken);
 
     expect(userDetails.statusCode).toBe(401);
-    expect(userDetails.body).toStrictEqual({ error: 'Unknown Type: string - error' });
+    expect(userDetails.body).toStrictEqual({ error: expect.any(String) });
   });
 });
