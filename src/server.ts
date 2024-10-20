@@ -10,7 +10,8 @@ import path from 'path';
 import process from 'process';
 import {
   adminAuthRegister, adminAuthLogin,
-  adminUserPasswordUpdate, adminUserDetails
+  adminUserPasswordUpdate, adminUserDetails,
+  adminUserDetailsUpdate
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
@@ -50,16 +51,6 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
-app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const result = adminUserDetails(token);
-  if ('error' in result || token.length === 0) {
-    return res.status(401).json(result);
-  }
-  console.log(result);
-  return res.json(result);
-});
-
 // routes for auth
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
@@ -83,6 +74,16 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   res.status(200).json({ token: result.token });
 });
 
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminUserDetails(token);
+  if ('error' in result || token.length === 0) {
+    return res.status(401).json(result);
+  }
+  console.log(result);
+  return res.json(result);
+});
+
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast } = req.body;
 
@@ -94,7 +95,7 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
-  res.status(200).json({});
+  res.status(200).json(result);
 });
 
 // adiminUserPasswordUpdate PUT request
