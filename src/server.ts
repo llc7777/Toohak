@@ -8,8 +8,14 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
-import { adminQuizCreate, adminQuizList, adminQuizRemove, adminQuizInfo } from './quiz';
+import {
+  adminAuthRegister, adminAuthLogin,
+  adminUserPasswordUpdate, adminUserDetails
+} from './auth';
+import {
+  adminQuizCreate, adminQuizList,
+  adminQuizRemove, adminQuizInfo
+} from './quiz';
 import { clear } from './other';
 import { encodedTokenExists } from './helper';
 
@@ -41,6 +47,16 @@ app.get('/echo', (req: Request, res: Response) => {
     res.status(400);
   }
 
+  return res.json(result);
+});
+
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminUserDetails(token);
+  if ('error' in result || token.length === 0) {
+    return res.status(401).json(result);
+  }
+  console.log(result);
   return res.json(result);
 });
 

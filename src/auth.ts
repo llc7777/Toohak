@@ -15,6 +15,7 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
+  encodedTokenExists,
 } from './helper';
 import validator from 'validator';
 
@@ -127,12 +128,17 @@ export function adminAuthLogin(email: string, password: string) {
 /**
  * Given an admin user's authUserId, return details about the user.
   "name" is the first and last name concatenated with a single space between them.
-* @param {Integer} authUserId
+* @param {string} token
 * @returns {Object} user
 */
-export function adminUserDetails(authUserId) {
-  const data = getData();
-  const user = data.users.find(user => user.authUserId === authUserId);
+export function adminUserDetails(token) {
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+  const tokenDecoded = decodeToken(token);
+
+  const user = findUserFromToken(tokenDecoded);
+  console.log(user);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
@@ -141,7 +147,7 @@ export function adminUserDetails(authUserId) {
   return {
     user:
     {
-      userId: user.authUserId,
+      userId: tokenDecoded.authUserId,
       name: `${user.nameFirst} ${user.nameLast}`,
       email: user.email,
       numSuccessfulLogins: user.numSuccessfulLogins,
