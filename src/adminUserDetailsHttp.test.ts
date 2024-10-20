@@ -59,7 +59,6 @@ describe('Test for correct return value', () => {
     // Register admin user
     const admin = requestAdminAuthRegister('hayden.smith@unsw.edu.au',
       'password1', 'Hayden', 'Smith');
-    console.log(decodeToken(admin.body.token));
     const userId = decodeToken(admin.body.token).authUserId;
 
     expect(admin.statusCode).toBe(200);
@@ -69,8 +68,6 @@ describe('Test for correct return value', () => {
     const token = loginResponse.body.token;
 
     const userDetails = requestAdminUserDetails(token);
-    console.log(userDetails);
-    console.log(userId);
 
     expect(userDetails.statusCode).toBe(200);
     expect(userDetails.body).toStrictEqual({
