@@ -9,8 +9,9 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
-import { adminQuizCreate, adminQuizList, adminQuizRemove } from './quiz';
+import { adminQuizCreate, adminQuizList, adminQuizRemove, adminQuizInfo } from './quiz';
 import { clear } from './other';
+import { encodedTokenExists } from './helper';
 
 // Set up web app
 const app = express();
