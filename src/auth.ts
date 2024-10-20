@@ -67,6 +67,7 @@ export function adminAuthRegister(email: string, password: string,
   const encodedToken = createToken(newToken);
 
   const newUser = {
+    authUserId: store.users.length + 1,
     email: email,
     password: password,
     oldPasswords: [password],
@@ -78,7 +79,6 @@ export function adminAuthRegister(email: string, password: string,
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
-
   store.users.push(newUser);
 
   // Return the encoded token as a string
