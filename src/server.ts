@@ -12,7 +12,10 @@ import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails
 } from './auth';
-import { adminQuizCreate, adminQuizList, adminQuizInfo } from './quiz';
+import { 
+  adminQuizCreate, adminQuizList,
+  adminQuizRemove, adminQuizInfo
+} from './quiz';
 import { clear } from './other';
 import { encodedTokenExists } from './helper';
 
@@ -121,7 +124,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   return res.json(result);
 });
 
-// adminQuizDelete GET request
+// adminQuizInfo GET request
 app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
@@ -129,6 +132,21 @@ app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizInfo(token, quizid);
+  console.log(result);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizRemove(token, quizid);
   console.log(result);
   if ('error' in result) {
     res.status(403).json({ error: 'Unknown Type: string - error' });

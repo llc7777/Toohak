@@ -80,7 +80,6 @@ export function adminAuthRegister(email: string, password: string,
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
-
   store.users.push(newUser);
 
   // Return the encoded token as a string
