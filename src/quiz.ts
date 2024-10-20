@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { validQuizName, isUserValid, nameUsed, decodeToken, findUserFromToken } from './helper';
+import { validQuizName, nameUsed, decodeToken, findUserFromToken } from './helper';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -123,6 +123,7 @@ export function adminQuizCreate(token, name, description) {
  */
 export function adminQuizRemove(token, quizId) {
   const data = getData();
+  console.log(data.quizzes);
 
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
@@ -142,7 +143,7 @@ export function adminQuizRemove(token, quizId) {
   if (quiz.authUserId !== tokenObj.authUserId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
-  
+
   // Send quiz to trash before removing it
   data.trash.push(quiz);
 
