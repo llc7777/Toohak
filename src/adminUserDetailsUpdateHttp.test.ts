@@ -9,24 +9,73 @@ const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 let token = {};
+let token1 = {};
 
-beforeEach(() => {
-  request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
+describe('PUT /v1/admin/user/details', () => {
+  describe('Test without beforeEach', () => {
+    test('given email already belongs to another user', () => {
+      // Register first user
+      let res1 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+        json: {
+          email: 'first.user@gmail.com',
+          password: 'Password123',
+          nameFirst: 'First',
+          nameLast: 'User',
+        },
+        timeout: TIMEOUT_MS,
+      });
+      let token1 = JSON.parse(res1.body.toString());
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: 'jake.renzella@gmail.com',
-      password: 'Password123',
-      nameFirst: 'Jake',
-      nameLast: 'Renzella'
-    },
-    timeout: TIMEOUT_MS
+      // Register second user
+      let res2 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+        json: {
+          email: 'second.user@gmail.com',
+          password: 'Password123',
+          nameFirst: 'Second',
+          nameLast: 'User',
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      // Try to update the first user's details with the second user's email
+      const result = request('PUT', `${SERVER_URL}/v1/admin/user/details`, {
+        json: {
+          token: token1,  // First user's token
+          email: 'second.user@gmail.com',  // Second user's email
+          nameFirst: 'UpdatedFirst',
+          nameLast: 'UpdatedLast',
+        },
+        timeout: TIMEOUT_MS,
+      });
+      console.log('Status Code:', result.statusCode);
+      console.log('Response Body:', result.body.toString());
+      // Expect 400 error because email already belongs to another user
+      expect(result.statusCode).toStrictEqual(400);
+
+      // Ensure the response contains an error message
+      const response = JSON.parse(result.body.toString());
+      expect(response).toStrictEqual({ error: expect.any(String) });
+    });
   });
-
-  token = JSON.parse(token.body.toString());
 });
 
 describe('PUT /v1/admin/user/details', () => {
+  beforeEach(() => {
+    request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
+  
+    token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+      json: {
+        email: 'jake.renzella@gmail.com',
+        password: 'Password123',
+        nameFirst: 'Jake',
+        nameLast: 'Renzella'
+      },
+      timeout: TIMEOUT_MS
+    });
+  
+    token = JSON.parse(token.body.toString());
+  });
+
   describe('Tests for failure', () => {
     test('returns error for invalid token', () => {
       const invalidToken = { sessionId: 1, authUserId: 1531 };
@@ -88,34 +137,6 @@ describe('PUT /v1/admin/user/details', () => {
       const response = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
-
-    // test('given email already belongs to another user', () => {
-    //   const user2Response = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    //     json: {
-    //       email: 'second.user@gmail.com',
-    //       password: 'Password123',
-    //       nameFirst: 'Second',
-    //       nameLast: 'User',
-    //     },
-    //     timeout: TIMEOUT_MS,
-    //   });
-
-    //   const user2 = JSON.parse(user2Response.body.toString());
-    //   // Try to update the first user's details with the second user's email
-    //   const result = request('PUT', `${SERVER_URL}/v1/admin/user/details`, {
-    //     json: {
-    //       token: token.token,
-    //       email: 'second.user@gmail.com',
-    //       nameFirst: 'UpdatedFirst',
-    //       nameLast: 'UpdatedLast',
-    //     },
-    //     timeout: TIMEOUT_MS,
-    //   });
-    //   expect(result.statusCode).toStrictEqual(400);
-
-    //   const response = JSON.parse(result.body.toString());
-    //   expect(response).toStrictEqual({ error: expect.any(String) });
-    // });
 
     test.each([
       'Jake123',
@@ -252,7 +273,7 @@ describe('PUT /v1/admin/user/details', () => {
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
       const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        json: { token: token.token },
+        json: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -264,7 +285,7 @@ describe('PUT /v1/admin/user/details', () => {
     test('change last name from renzella to Renzella', () => {
       const res = request('PUT', `${SERVER_URL}/v1/admin/user/details`, {
         json: {
-          token: token.token,
+          token,
           email: 'jake.renzella@gmail.com',
           nameFirst: 'Jake',
           nameLast: 'Renzella',
@@ -276,7 +297,7 @@ describe('PUT /v1/admin/user/details', () => {
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
       const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        json: { token: token.token },
+        json: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -288,7 +309,7 @@ describe('PUT /v1/admin/user/details', () => {
     test('change email from jake.renzella@gmail.com to jake@gmail.com', () => {
       const res = request('PUT', SERVER_URL + '/v1/admin/user/details', {
         json: {
-          token: token.token,
+          token,
           email: 'jake.newemail@gmail.com',
           nameFirst: 'Jake',
           nameLast: 'Renzella',
@@ -300,7 +321,7 @@ describe('PUT /v1/admin/user/details', () => {
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
       const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        json: { token: token.token },
+        json: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -312,7 +333,7 @@ describe('PUT /v1/admin/user/details', () => {
     test('make no changes (changes are identical to current state)', () => {
       const result = request('PUT', `${SERVER_URL}/v1/admin/user/details`, {
         json: {
-          token: token.token,
+          token,
           email: 'jake.renzella@gmail.com',
           nameFirst: 'Jake',
           nameLast: 'Renzella',
@@ -328,7 +349,7 @@ describe('PUT /v1/admin/user/details', () => {
       const nameFirst = 'AlexandriannaBethany';
       const result = request('PUT', `${SERVER_URL}/v1/admin/user/details`, {
         json: {
-          token: token.token,
+          token,
           email: 'jake.renzella@gmail.com',
           nameFirst: nameFirst,
           nameLast: 'Renzella',
@@ -342,7 +363,7 @@ describe('PUT /v1/admin/user/details', () => {
       const updatedResponse = request(
         'GET', `${SERVER_URL}/v1/admin/user/details/${token.authUserId}`,
         {
-          json: { token: token.token },
+          json: { token },
           timeout: TIMEOUT_MS,
         });
 

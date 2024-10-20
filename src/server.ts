@@ -14,7 +14,7 @@ import {
   adminUserDetailsUpdate,
   adminUserPasswordUpdate
 } from './auth';
-import { adminQuizCreate } from './quiz';
+import { adminQuizCreate, adminQuizList } from './quiz';
 import { clear } from './other';
 
 // Set up web app
