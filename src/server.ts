@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
-import { adminQuizCreate } from './quiz';
+import { adminQuizCreate, adminQuizDescriptionUpdate } from './quiz';
 import { clear } from './other';
 
 // Set up web app
@@ -88,6 +88,20 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   } else if ('error' in result) {
     return res.status(400).json(result);
   }
+  return res.status(200).json(result);
+});
+
+// routes for quizdescription
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const { token, description } = req.body;
+  const quizId = parseInt(req.params.quizId, 10);
+
+  const result = adminQuizDescriptionUpdate({ token }, quizId, description);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
   return res.status(200).json(result);
 });
 

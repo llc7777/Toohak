@@ -257,57 +257,50 @@ Updates the description of the relevant quiz
 @param {string} description
 @returns empty object { }
 */
-export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-  let isUserExist = false;
-  let isQuizExist = false;
+
+export function adminQuizDescriptionUpdate(encodedToken, quizId, description) {
   const data = getData();
 
-  // Search through the data to check if the user exists
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      isUserExist = true;
-    }
-  }
-  // Search through the data to check if the quiz exists
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      isQuizExist = true;
-    }
-  }
-  // Check user owns the quiz
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== authUserId) {
-        return {
-          error: 'User does not own the quiz',
-        };
-      }
-    }
+  if (encodedToken.token === '') {
+    return {
+      error: 'Token is empty',
+    };
   }
 
-  // Check user exists
-  if (!isUserExist) {
-    return {
-      error: 'User Id does not exist',
-    };
-    // Check quiz exists
-  } else if (!isQuizExist) {
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
+  const userExists = data.users.some(user =>
+    user.tokens && user.tokens.some(token => token.sessionId === sessionId &&
+                                    token.authUserId === authUserId)
+  );
+
+  if (!userExists) {
+    return { error: 'Token is invalid' };
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (!quiz) {
     return {
       error: 'Quiz Id does not exist',
     };
-    // Check description is more than 100 characters.
-  } else if (description.length > 100) {
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return {
+      error: 'User does not own the quiz',
+    };
+  }
+
+  if (description.length > 100) {
     return {
       error: 'Description must be less than 100 characters long',
     };
-    // Update the description of the quiz and return empty object for indication of no error
-  } else {
-    for (let i = 0; i < data.quizzes.length; i++) {
-      if (data.quizzes[i].quizId === quizId) {
-        data.quizzes[i].description = description;
-        data.quizzes[i].timeLastEdited = Math.floor(Date.now() / 1000);
-        return {};
-      }
-    }
   }
+
+  quiz.description = description;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
 }
