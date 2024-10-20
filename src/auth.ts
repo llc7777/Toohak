@@ -169,28 +169,19 @@ export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast)
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (encodedToken === '') {
     return { error: 'Token is empty' };
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken.token);
-  const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
+  const tokenData = decodeToken(encodedToken);
 
-  // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
-      token.sessionId === sessionId
-    )
-  );
-  if (userIndex === -1) {
+  const user = findUserFromToken(tokenData);
+  if (!user) {
     return {
       error: 'Token is invalid',
     };
   }
-
-  const user = data.users[userIndex];
 
   // Check if the email is valid
   if (!validator.isEmail(email)) {
