@@ -132,7 +132,9 @@ export function adminAuthLogin(email: string, password: string) {
 * @returns {Object} user
 */
 export function adminUserDetails(token) {
-  const user = findUserFromToken(token);
+  const tokenDecoded = decodeToken(token);
+  
+  const user = findUserFromToken(tokenDecoded);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
