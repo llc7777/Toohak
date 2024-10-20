@@ -12,7 +12,7 @@ import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails
 } from './auth';
-import { 
+import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo
 } from './quiz';
