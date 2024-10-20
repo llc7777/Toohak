@@ -157,21 +157,30 @@ export function adminUserDetails(token) {
 }
 
 /**
- * Given an admin user's authUserId and a set of properties,
- * update the properties of this logged in admin user.
- * @param {number} authUserId
+ * Given an admin user's token and a set of properties,
+ * update the properties of this logged-in admin user.
+ * @param {object} token
  * @param {string} email
  * @param {string} nameFirst
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast) {
   const data = getData();
 
-  // Check if the authUserId is valid using isValidUser helper function
-  const user = data.users.find(user => user.authUserId === authUserId);
+  // Check if the token is empty
+  if (encodedToken === '') {
+    return { error: 'Token is empty' };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken);
+
+  const user = findUserFromToken(tokenData);
   if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+    return {
+      error: 'Token is invalid',
+    };
   }
 
   // Check if the email is valid
@@ -181,18 +190,20 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
   //  Check if the email is already in use by another user
   const emailInUse = data.users.find(
-    user => user.email === email && user.authUserId !== authUserId);
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
   if (emailInUse) {
     return { error: 'Email is currently used by another user. Please use another email.' };
   }
 
   // Validating first name and last name
-  if (!isValidName(nameFirst)) {
-    return { error: 'First name contains invalid characters or is not within length limits.' };
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    return { error: firstNameError };
   }
 
-  if (!isValidName(nameLast)) {
-    return { error: 'Last name contains invalid characters or is not within length limits.' };
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    return { error: lastNameError };
   }
 
   // Update user properties
