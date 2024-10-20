@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { validQuizName, isUserValid, nameUsed, decodeToken } from './helper';
+import { validQuizName, nameUsed, decodeToken, findUserFromToken } from './helper';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -117,15 +117,17 @@ export function adminQuizCreate(token, name, description) {
 
 /**
  *
- * @param {integer} authUserId Id of user
+ * @param {string} token of user
  * @param {integer} quizId Id of quiz
  * @returns
  */
-export function adminQuizRemove(authUserId, quizId) {
+export function adminQuizRemove(token, quizId) {
   const data = getData();
+  console.log(data.quizzes);
 
-  // Check if the authUserId is valid using isValidUser helper function
-  const user = isUserValid(authUserId);
+  const tokenObj = decodeToken(token);
+  const user = findUserFromToken(tokenObj);
+
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
@@ -138,9 +140,12 @@ export function adminQuizRemove(authUserId, quizId) {
 
   // Check if the quiz belongs to the user
   const quiz = data.quizzes[quizIndex];
-  if (quiz.authUserId !== authUserId) {
+  if (quiz.authUserId !== tokenObj.authUserId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
+
+  // Send quiz to trash before removing it
+  data.trash.push(quiz);
 
   // Remove the quiz
   data.quizzes.splice(quizIndex, 1);
@@ -151,7 +156,7 @@ export function adminQuizRemove(authUserId, quizId) {
 
 /**
 Gets information for a given quiz given a quizId and authUserId
-@param {integer} authUser Id of user
+@param {string} token Id of user
 @param {integer} quizId of user
 @returns {object} - An object containing the following keys that show quiz info:
   - {integer} quizId:
@@ -163,10 +168,11 @@ Gets information for a given quiz given a quizId and authUserId
 */
 // export function adminQuizInfo(authUserId, quizId) {
 
-export function adminQuizInfo(authUserId, quizId) {
+export function adminQuizInfo(token, quizId) {
   const data = getData();
 
-  const user = data.users.find(user => user.authUserId === authUserId);
+  const tokenObj = decodeToken(token);
+  const user = findUserFromToken(tokenObj);
   if (!user) {
     return { error: 'Unable to find user Id ' };
   }
@@ -177,7 +183,7 @@ export function adminQuizInfo(authUserId, quizId) {
   }
 
   const userAndQuizMatch = data.quizzes.find(
-    quiz => quiz.authUserId === authUserId && quiz.quizId === quizId);
+    quiz => quiz.authUserId === tokenObj.authUserId && quiz.quizId === quizId);
 
   if (!userAndQuizMatch) {
     return { error: 'The given user does not own the given quiz' };

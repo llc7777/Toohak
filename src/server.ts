@@ -9,13 +9,15 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import {
-  adminAuthRegister,
-  adminAuthLogin,
-  adminUserDetailsUpdate,
-  adminUserPasswordUpdate
+  adminAuthRegister, adminAuthLogin,
+  adminUserPasswordUpdate, adminUserDetails
 } from './auth';
-import { adminQuizCreate, adminQuizList } from './quiz';
+import {
+  adminQuizCreate, adminQuizList,
+  adminQuizRemove, adminQuizInfo
+} from './quiz';
 import { clear } from './other';
+import { encodedTokenExists } from './helper';
 
 // Set up web app
 const app = express();
@@ -45,6 +47,16 @@ app.get('/echo', (req: Request, res: Response) => {
     res.status(400);
   }
 
+  return res.json(result);
+});
+
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminUserDetails(token);
+  if ('error' in result || token.length === 0) {
+    return res.status(401).json(result);
+  }
+  console.log(result);
   return res.json(result);
 });
 
@@ -124,6 +136,36 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   }
 
   return res.json(result);
+});
+
+// adminQuizInfo GET request
+app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizInfo(token, quizid);
+  console.log(result);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizRemove(token, quizid);
+  console.log(result);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
 });
 
 // routes for other
