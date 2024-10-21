@@ -2,9 +2,6 @@
 // @ts-nocheck
 import request from 'sync-request-curl';
 import config from './config.json';
-import { adminAuthRegister } from './auth';
-import { adminQuizCreate } from './quiz';
-import { decodeToken } from './helper';
 
 const port = config.port;
 const url = config.url;
@@ -13,21 +10,33 @@ const timeout = 5 * 1000;
 
 const requestAdminQuizName = (quizId: number, body: { token: string, name: string }) => {
   return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/name`, {
-    json: { name: body.name },
+    json: { token: body.token, name: body.name },
   });
 };
 
 describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
-  
-  let user;
   let quiz;
+  let token;
 
   beforeEach(() => {
-    request('DELETE', SERVER_URL + 'v1/clear', { timeout: timeout });
-    
-    user = decodeToken(adminAuthRegister('jake.renzella@gmail.com', 'password1', 'Jake', 'Renzella'));
-    quiz = adminQuizCreate(user.authUserId, 'VIM', 'A basic quiz on VIM commands');
+    request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 
+    token = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aero@mail.com',
+        password: 'Aeropass1',
+        nameFirst: 'Jason',
+        nameLast: 'Chandra'
+      },
+      timeout: timeout
+    });
+    token = JSON.parse(token.body.toString()).token;
+
+    quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+      json: { token, name: 'quiz1', description: 'random description' },
+      timeout: timeout
+    });
+    quiz = JSON.parse(quiz.body.toString());
   });
 
   describe('error cases', () => {
@@ -37,54 +46,74 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
     });
 
     test('401: invalid token', () => {
-      const response = requestAdminQuizName(quiz.quizId, { token: 'notaToken', name: 'new name' });
+      const response = requestAdminQuizName(quiz.quizId, {
+        token: 'notaToken', name: 'new name'
+      });
       expect(response.statusCode).toBe(401);
     });
 
     test('403: valid token with incorrect owner', () => {
-      const incorrectUser = adminAuthRegister('incorrectuser@gmail.com', 'password1', 'Incorrect', 'User')
+      let incorrectUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        json: {
+          email: 'mew@mail.com',
+          password: 'Aeropass1',
+          nameFirst: 'Kate',
+          nameLast: 'Smith'
+        },
+        timeout: timeout
+      });
+      incorrectUser = JSON.parse(incorrectUser.body.toString());
       // to check how to retrieve token
-      const response = requestAdminQuizName(quiz.quizId, { token: incorrectUser.token, name: 'new name' });
+      const response = requestAdminQuizName(quiz.quizId, {
+        token: incorrectUser.token, name: 'new name'
+      });
       expect(response.statusCode).toBe(403);
     });
 
     test('400: quiz id nonexistent', () => {
-      const response = requestAdminQuizName(quiz.quizId, { token: user.token, name: 'new name' });
-      expect(response.statusCode).toBe(400);
+      const response = requestAdminQuizName(quiz.quizId + 1, { token: token, name: 'new name' });
+      expect(response.statusCode).toBe(403);
     });
 
     test.each([
-      'VIM!!!', 
+      'VIM!!!',
       'VIM*',
       'VIM~',
       'VIM@',
       'VIM#'
-    ]) ('400: invalid characters for new name', (invalidName) => {
-      const response = requestAdminQuizName(quiz.quizId, { token: user.token, name: invalidName });
+    ])('400: invalid characters for new name', (invalidName) => {
+      const response = requestAdminQuizName(quiz.quizId, { token: token, name: invalidName });
       expect(response.statusCode).toBe(400);
     });
 
-    test('400: new quiz name is too long >30 characters', ()=> {
-      const response = requestAdminQuizName(quiz.quizId, { token: user.token, name: 'a really really long name that exceeds thirty characters' });
+    test('400: new quiz name is too long >30 characters', () => {
+      const response = requestAdminQuizName(quiz.quizId, {
+        token: token, name: 'a really really long name that exceeds thirty characters'
+      });
       expect(response.statusCode).toBe(400);
     });
 
-    test('400: name is already used by loggin in user for another quiz', ()=> {
-      const anotherQuiz = adminQuizCreate(user.authUserId, 'new quiz', 'A new quiz');
-      const response = requestAdminQuizName(quiz.quizId, { token: user.token, name: 'new name' });
+    test('400: name is already used by loggin in user for another quiz', () => {
+      let quiz2 = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+        json: {
+          token,
+          name: 'quiz2',
+          description: 'random description'
+        },
+        timeout: timeout
+      });
+      quiz2 = JSON.parse(quiz2.body.toString());
+      const response = requestAdminQuizName(quiz2.quizId, { token: token, name: 'quiz1' });
       expect(response.statusCode).toBe(400);
     });
   });
 
   describe('successful case', () => {
-    test('200: successful name change', ()=> {
-      const response = requestAdminQuizName(quiz.quizId, { token: user.token, name: 'new name' });
+    test('200: successful name change', () => {
+      const response = requestAdminQuizName(quiz.quizId, { token: token, name: 'new name' });
+      const resultBody = JSON.parse(response.body.toString());
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({});
+      expect(resultBody).toEqual({});
     });
   });
 });
-
-
-
-

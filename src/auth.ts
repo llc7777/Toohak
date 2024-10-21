@@ -15,6 +15,7 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
+  encodedTokenExists,
 } from './helper';
 import validator from 'validator';
 
@@ -67,19 +68,18 @@ export function adminAuthRegister(email: string, password: string,
   const encodedToken = createToken(newToken);
 
   const newUser = {
+    authUserId: store.users.length + 1,
     email: email,
     password: password,
     oldPasswords: [password],
     nameFirst: nameFirst,
     nameLast: nameLast,
     name: `${nameFirst} ${nameLast}`,
-    authUserId: newToken.authUserId,
     timeCreated: Math.floor(Date.now() / 1000),
     tokens: [newToken], // Store the token object before encoding
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
-
   store.users.push(newUser);
 
   // Return the encoded token as a string
@@ -128,12 +128,17 @@ export function adminAuthLogin(email: string, password: string) {
 /**
  * Given an admin user's authUserId, return details about the user.
   "name" is the first and last name concatenated with a single space between them.
-* @param {Integer} authUserId
+* @param {string} token
 * @returns {Object} user
 */
-export function adminUserDetails(authUserId) {
-  const data = getData();
-  const user = data.users.find(user => user.authUserId === authUserId);
+export function adminUserDetails(token) {
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+  const tokenDecoded = decodeToken(token);
+
+  const user = findUserFromToken(tokenDecoded);
+  console.log(user);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
@@ -142,7 +147,7 @@ export function adminUserDetails(authUserId) {
   return {
     user:
     {
-      userId: user.authUserId,
+      userId: tokenDecoded.authUserId,
       name: `${user.nameFirst} ${user.nameLast}`,
       email: user.email,
       numSuccessfulLogins: user.numSuccessfulLogins,
@@ -152,21 +157,30 @@ export function adminUserDetails(authUserId) {
 }
 
 /**
- * Given an admin user's authUserId and a set of properties,
- * update the properties of this logged in admin user.
- * @param {number} authUserId
+ * Given an admin user's token and a set of properties,
+ * update the properties of this logged-in admin user.
+ * @param {object} token
  * @param {string} email
  * @param {string} nameFirst
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast) {
   const data = getData();
 
-  // Check if the authUserId is valid using isValidUser helper function
-  const user = data.users.find(user => user.authUserId === authUserId);
+  // Check if the token is empty
+  if (encodedToken === '') {
+    return { error: 'Token is empty' };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken);
+
+  const user = findUserFromToken(tokenData);
   if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+    return {
+      error: 'Token is invalid',
+    };
   }
 
   // Check if the email is valid
@@ -176,18 +190,20 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
   //  Check if the email is already in use by another user
   const emailInUse = data.users.find(
-    user => user.email === email && user.authUserId !== authUserId);
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
   if (emailInUse) {
     return { error: 'Email is currently used by another user. Please use another email.' };
   }
 
   // Validating first name and last name
-  if (!isValidName(nameFirst)) {
-    return { error: 'First name contains invalid characters or is not within length limits.' };
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    return { error: firstNameError };
   }
 
-  if (!isValidName(nameLast)) {
-    return { error: 'Last name contains invalid characters or is not within length limits.' };
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    return { error: lastNameError };
   }
 
   // Update user properties
@@ -206,16 +222,32 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
+  // Check if the token is empty
+  if (encodedToken.token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken.token);
+  const authUserId = tokenData.authUserId;
+  const sessionId = tokenData.sessionId;
+
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user => user.authUserId === authUserId);
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
+      token.sessionId === sessionId
+    )
+  );
   if (userIndex === -1) {
     return {
-      error: 'User Id does not exist',
+      error: 'Token is invalid',
     };
   }
   // Search through the data to check if the old password is correct
@@ -254,11 +286,7 @@ export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
   }
 
   // Update password and return empty object for indication of no error
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      data.users[i].password = newPassword;
-      data.users[i].oldPasswords.push(newPassword);
-      return {};
-    }
-  }
+  data.users[userIndex].oldPasswords.push(newPassword);
+  data.users[userIndex].password = newPassword;
+  return {};
 }
