@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+
+import { getData } from './dataStore';
+import { decodeToken, findUserFromToken } from './helper';
+
 /**
  * Reset the state of the application back to the start.
  * Parameters: no parameters
  * Return object: empty object
  */
-import { getData } from './dataStore';
-import { decodeToken, findUserFromToken } from './helper';
-
 export function clear() {
   const store = getData();
   store.users = [];
