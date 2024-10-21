@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { getData } from './dataStore';
-import { validQuizName, nameUsed, decodeToken, findUserFromToken } from './helper';
+import {
+  validQuizName,
+  nameUsed,
+  decodeToken,
+  findUserFromToken,
+  encodedTokenExists
+} from './helper';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -205,16 +211,28 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(authUserId, quizId, name) {
-  let isUserExist = false;
+export function adminQuizNameUpdate(token, quizId, name) {
+  let user = false;
   let isQuizExist = false;
   const data = getData();
-
+  if (!encodedTokenExists(token)) {
+    return {
+      error: 'Invalid token',
+    };
+  }
   // Search through the data to check if the user exists
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      isUserExist = true;
-    }
+  // for (let i = 0; i < data.users.length; i++) {
+  //   if (data.users[i].authUserId === authUserId) {
+  //     isUserExist = true;
+  //   }
+  // }
+  const tokenDecoded = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return {
+      error: 'User Id does not exist',
+    };
+    // Check quiz exists
   }
   // Search through the data to check if the quiz exists
   for (let i = 0; i < data.quizzes.length; i++) {
@@ -225,7 +243,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   // Check user owns the quiz
   for (let i = 0; i < data.quizzes.length; i++) {
     if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== authUserId) {
+      if (data.quizzes[i].authUserId !== user.authUserId) {
         return {
           error: 'User does not own the quiz',
         };
@@ -242,12 +260,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   }
 
   // Check user exists
-  if (!isUserExist) {
-    return {
-      error: 'User Id does not exist',
-    };
-    // Check quiz exists
-  } else if (!isQuizExist) {
+  if (!isQuizExist) {
     return {
       error: 'Quiz Id does not exist',
     };

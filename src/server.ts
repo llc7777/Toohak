@@ -15,7 +15,8 @@ import {
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
-  adminQuizRemove, adminQuizInfo
+  adminQuizRemove, adminQuizInfo,
+  adminQuizNameUpdate
 } from './quiz';
 import { clear } from './other';
 import { encodedTokenExists } from './helper';
@@ -74,13 +75,33 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   res.status(200).json({ token: result.token });
 });
 
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.body.token;
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const name = req.body.name;
+  const result = adminQuizNameUpdate(token, quizId, name);
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result);
+  }
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminUserDetails(token);
   if ('error' in result || token.length === 0) {
     return res.status(401).json(result);
   }
-  console.log(result);
+
   return res.json(result);
 });
 
@@ -147,7 +168,6 @@ app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizInfo(token, quizid);
-  console.log(result);
   if ('error' in result) {
     res.status(403).json({ error: 'Unknown Type: string - error' });
   }
@@ -162,7 +182,6 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizRemove(token, quizid);
-  console.log(result);
   if ('error' in result) {
     res.status(403).json({ error: 'Unknown Type: string - error' });
   }
