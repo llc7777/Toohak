@@ -11,14 +11,14 @@ import process from 'process';
 import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails,
-  adminUserDetailsUpdate
+  adminUserDetailsUpdate,
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate
 } from './quiz';
-import { clear } from './other';
+import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 
 // Set up web app
@@ -192,6 +192,23 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
+});
+
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizIds = req.query.quizIds as string;
+
+  const result = emptyTrash(token, JSON.parse(quizIds));
+  console.log(result);
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if (result.error === 'You do not own quiz ID') {
+    return res.status(403).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 
 // ====================================================================
