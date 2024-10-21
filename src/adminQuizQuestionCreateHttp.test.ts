@@ -104,9 +104,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
           ]
         } 
       });
-    })
       expect(response.statusCode).toBe(400);
-    });
+    })
 
     test('400: question has more than 6 answers', ()=> {
       const response = requestAdminQuestionCreate(quiz.quizId, { 
@@ -188,7 +187,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       });
       expect(response.statusCode).toBe(400);
     });
-    
+
     // TO DO COMPLETE THIS TEST
     test.todo('400: sum of question time limits in quiz are less than 1 or greater than 10');
     
@@ -378,4 +377,5 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       });
       expect(response.statusCode).toBe(403);
     });
-})
+  });
+});
