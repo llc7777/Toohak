@@ -16,7 +16,7 @@ import {
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
-  adminQuizNameUpdate,
+  adminQuizNameUpdate, adminQuizDescriptionUpdate,
   adminQuizTransfer,
 } from './quiz';
 import { clear, emptyTrash } from './other';
@@ -189,8 +189,30 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   res.status(200).json({ result });
 });
 
-// routes for other
+// PUT request for adminQuizDescription
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  const description = req.body.description;
 
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Invalid or missing token.' });
+  }
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2);
+  }
+
+  const result = adminQuizDescriptionUpdate(token, quizId, description);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+// routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
