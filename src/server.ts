@@ -16,7 +16,8 @@ import {
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
-  adminQuizNameUpdate
+  adminQuizNameUpdate,
+  adminQuizTransfer,
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -210,6 +211,29 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
 
   return res.status(200).json(result);
 });
+
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.body.token;
+  const email = req.body.userEmail;
+  console.log(token, email);
+
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json( { error: "Unknown Type: string - error" });
+  }
+  console.log("HEYYYYY");
+
+  const result = adminQuizTransfer(token, email, quizId);
+  if (result.error === 'No quiz exists with the given quizId' || result.error === 'This user does not own the quiz') {
+    res.status(403).json( { error: "Unknown Type: string - error"});
+  } else if ('error' in result) {
+    res.status(400).json( {error: "Unknown Type: string - error"});
+  }
+  res.status(200).json({});
+
+
+})
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
