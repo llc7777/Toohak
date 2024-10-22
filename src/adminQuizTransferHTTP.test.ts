@@ -8,6 +8,7 @@ const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 let userToken;
+let userToken2;
 let quizId;
 let emailToTransferTo;
 
@@ -48,26 +49,27 @@ beforeEach(() => {
 
 describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
 
-  test('returns an error when trying to transfer a' + 
+  test.only('returns an error when trying to transfer a' + 
     'to an email that does not correspond to any user', () => {
 
     const nonExistentEmail = 'idontexist@gmail.com';
 
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
         token: userToken,
         userEmail: nonExistentEmail,
       },
       timeout: TIMEOUT_MS
     })
+    console.log(result);
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: 'Unknown Type: string - error',
     })
     expect(result.statusCode).toStrictEqual(400);
   })
 
-  test('returns an error when trying to transer a quiz to the currently logged in user', () => {
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
+  test.only('returns an error when trying to transer a quiz to the currently logged in user', () => {
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
         token: userToken,
         userEmail: 'jake.renzella@gmail.com',
@@ -80,7 +82,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
     expect(result.statusCode).toStrictEqual(400);
   })
 
-  test('reutrns an error when trying to transfer quiz to another user who already' +
+  test.only('reutrns an error when trying to transfer quiz to another user who already' +
     ' owns a quiz with the given quiz name', () => {
 
     const quizRes2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
@@ -92,7 +94,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
     });
     quizId2 = JSON.parse(quizRes.body.toString()).quizId;
 
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
         token: userToken2,
         userEmail: emailToTransferTo,
