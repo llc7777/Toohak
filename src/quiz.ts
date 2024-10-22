@@ -10,6 +10,7 @@ import {
   userHasQuizWithSameName,
   findQuizFromQuizId,
   getQuizIndex,
+  findUserFromEmail,
 } from './helper';
 
 /**
@@ -132,7 +133,6 @@ export function adminQuizCreate(token, name, description) {
  */
 export function adminQuizRemove(token, quizId) {
   const data = getData();
-  console.log(data.quizzes);
 
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
@@ -355,39 +355,44 @@ Updates the description of the relevant quiz
 @returns empty object { }
 */
 export function adminQuizTransfer(token, userEmail, quizId) {
+  const data = getData();
 
   const tokenDecoded = decodeToken(token);
   const loggedInUser = findUserFromToken(tokenDecoded);
+  const userToTransferTo = findUserFromEmail(userEmail);
 
-  if (!loggedInUser) {
+  if (!userToTransferTo) {
     return {
-      error: "This is not a valid logged in user",
-    }
-  }
-  if (loggedInUser.email === userEmail) {
+      error: 'No user has the given email',
+    };
+  } else if (!loggedInUser) {
     return {
-      error: "The email is the same as the one of the current logged in user",
-    }
-  }
-  if (userHasQuizWithSameName(tokenDecoded.authUserId, quizId)) {
+      error: 'This is not a valid logged in user',
+    };
+  } else if (loggedInUser.email === userEmail) {
     return {
-      error: "This user already owns a quiz with the same name",
-    }
+      error: 'The email is the same as the one of the current logged in user',
+    };
   }
+
   const quizToTransfer = findQuizFromQuizId(quizId);
   if (!quizToTransfer) {
     return {
-      error: "No quiz exists with the given quizId",
-    }
-  }
-  if(quizToTransfer.quizId !== tokenDecoded.authUserId) {
+      error: 'No quiz exists with the given quizId',
+    };
+  } else if (quizToTransfer.authUserId !== tokenDecoded.authUserId) {
     return {
-      error: "This user does not own the quiz",
-    }
+      error: 'This user does not own the quiz',
+    };
   }
-  const quizIndex = getQuizIndex(quizId);
 
-  const data = getData();
-  data.quizzes[i].authUserId = tokenDecoded.authUserId;
+  if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
+    return {
+      error: 'This user already owns a quiz with the same name',
+    };
+  }
+
+  const quizIndex = getQuizIndex(quizId);
+  data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
 }
