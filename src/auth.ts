@@ -217,25 +217,25 @@ export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast)
 
 /**
  * Given details relating to a password change, update the password of a logged in user.
- * @param {integer} authUserId
+ * @param {string} token
  * @param {string} oldPassword
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken.token);
+  const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
   const sessionId = tokenData.sessionId;
 
