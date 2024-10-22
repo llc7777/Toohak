@@ -191,10 +191,7 @@ export function adminQuizInfo(token, quizId) {
     return { error: 'Quiz unable to be found' };
   }
 
-  const userAndQuizMatch = data.quizzes.find(
-    quiz => quiz.authUserId === tokenObj.authUserId && quiz.quizId === quizId);
-
-  if (!userAndQuizMatch) {
+  if (quiz.authUserId !== tokenObj.authUserId) {
     return { error: 'The given user does not own the given quiz' };
   }
 
