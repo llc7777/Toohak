@@ -28,12 +28,9 @@ export function adminQuizList(token) {
   // decode the token and get the authUserId and sessionId
   const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
 
   // verify user with the sessionId and authUserId
-  const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(token => token.sessionId === sessionId)
-  );
+  const userExists = findUserFromToken(tokenData);
 
   if (!userExists) {
     return {
@@ -75,13 +72,9 @@ export function adminQuizCreate(token, name, description) {
   // decode the token and get the authUserId and sessionId
   const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
 
   // verify user with the sessionId and authUserId
-  const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(token => token.sessionId === sessionId &&
-      token.authUserId === authUserId)
-  );
+  const userExists = findUserFromToken(tokenData);
 
   if (!userExists) {
     return { error: 'Token is invalid' };
