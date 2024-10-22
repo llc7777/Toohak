@@ -6,7 +6,10 @@ import {
   nameUsed,
   decodeToken,
   findUserFromToken,
-  encodedTokenExists
+  encodedTokenExists,
+  userHasQuizWithSameName,
+  findQuizFromQuizId,
+  getQuizIndex,
 } from './helper';
 
 /**
@@ -345,4 +348,49 @@ export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
       }
     }
   }
+}
+
+/**
+Updates the description of the relevant quiz
+@param {string} token of a logged in user
+@param {string} userEmail of a users email
+@param {integer} quizId of a quiz
+@returns empty object { }
+*/
+export function adminQuizTransfer(token, userEmail, quizId) {
+
+  const tokenDecoded = decodeToken(token);
+  const loggedInUser = findUserFromToken(user);
+
+  if (!loggedInUser) {
+    return {
+      error: "This is not a valid logged in user",
+    }
+  }
+  if (loggedInUser.email === email) {
+    return {
+      error: "The email is the same as the one of the current logged in user",
+    }
+  }
+  if (userHasQuizWithSameName(tokenDecoded.authUserId, quizId)) {
+    return {
+      error: "This user already owns a quiz with the same name",
+    }
+  }
+  const quizToTransfer = findQuizFromQuizId(quizId);
+  if (!quizToTransfer) {
+    return {
+      error: "No quiz exists with the given quizId",
+    }
+  }
+  if(quizToTransfer.quizId !== tokenDecoded.authUserId) {
+    return {
+      error: "This user does not own the quiz",
+    }
+  }
+  const quizIndex = getQuizIndex(quizId);
+
+  const data = getData();
+  data.quizzes[i].authUserId = tokenDecoded.authUserId;
+  return { };
 }
