@@ -16,6 +16,7 @@ import {
   decodeToken,
   findUserFromToken,
   encodedTokenExists,
+  findUserIndexFromToken,
 } from './helper';
 import validator from 'validator';
 
@@ -123,6 +124,34 @@ export function adminAuthLogin(email: string, password: string) {
   return {
     token: createToken(token)
   };
+}
+/**
+ * Logs out an admin user who has an active user session.
+ * 
+ * @param {string} token 
+ * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ */
+export function adminAuthLogout(token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+
+
+  const userIndex = findUserIndexFromToken(tokenData);
+
+  if (userIndex === -1) {
+    return { error: 'Token is invalid' };
+  }
+
+  data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
+    userToken => userToken.sessionId !== tokenData.sessionId
+      && userToken.authUserId === tokenData.authUserId);
+
+  return {};
 }
 
 /**
@@ -235,16 +264,11 @@ export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
+  const tokenData = decodeToken(encodedToken.token);
 
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
-      token.sessionId === sessionId
-    )
-  );
+  const userIndex = findUserIndexFromToken(tokenData);
+
   if (userIndex === -1) {
     return {
       error: 'Token is invalid',
