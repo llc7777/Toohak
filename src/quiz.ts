@@ -360,14 +360,14 @@ Updates the description of the relevant quiz
 export function adminQuizTransfer(token, userEmail, quizId) {
 
   const tokenDecoded = decodeToken(token);
-  const loggedInUser = findUserFromToken(user);
+  const loggedInUser = findUserFromToken(tokenDecoded);
 
   if (!loggedInUser) {
     return {
       error: "This is not a valid logged in user",
     }
   }
-  if (loggedInUser.email === email) {
+  if (loggedInUser.email === userEmail) {
     return {
       error: "The email is the same as the one of the current logged in user",
     }
