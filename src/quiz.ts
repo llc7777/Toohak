@@ -289,57 +289,40 @@ Updates the description of the relevant quiz
 @param {string} description
 @returns empty object { }
 */
-export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-  let isUserExist = false;
-  let isQuizExist = false;
+export function adminQuizDescriptionUpdate(token, quizId, description) {
   const data = getData();
 
-  // Search through the data to check if the user exists
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      isUserExist = true;
-    }
-  }
-  // Search through the data to check if the quiz exists
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      isQuizExist = true;
-    }
-  }
-  // Check user owns the quiz
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== authUserId) {
-        return {
-          error: 'User does not own the quiz',
-        };
-      }
-    }
+  if (!token) {
+    return { error: 'Token is empty' };
   }
 
-  // Check user exists
-  if (!isUserExist) {
-    return {
-      error: 'User Id does not exist',
-    };
-    // Check quiz exists
-  } else if (!isQuizExist) {
-    return {
-      error: 'Quiz Id does not exist',
-    };
-    // Check description is more than 100 characters.
-  } else if (description.length > 100) {
-    return {
-      error: 'Description must be less than 100 characters long',
-    };
-    // Update the description of the quiz and return empty object for indication of no error
-  } else {
-    for (let i = 0; i < data.quizzes.length; i++) {
-      if (data.quizzes[i].quizId === quizId) {
-        data.quizzes[i].description = description;
-        data.quizzes[i].timeLastEdited = Math.floor(Date.now() / 1000);
-        return {};
-      }
-    }
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  const userExists = data.users.some(user =>
+    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
+    t.authUserId === authUserId)
+  );
+
+  if (!userExists) {
+    return { error: 'AuthUserId is not a valid user.' };
   }
+
+  const quiz = data.quizzes.find(q => q.quizId === quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  }
+
+  if (description.length > 100) {
+    return { error: 'Description is more than 100 characters in length.' };
+  }
+
+  quiz.description = description;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
 }
