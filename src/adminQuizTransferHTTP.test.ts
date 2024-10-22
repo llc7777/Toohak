@@ -15,6 +15,7 @@ let emailToTransferTo;
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
+  // Create a user. This user is Jake Renzella
   const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'jake.renzella@gmail.com',
@@ -25,6 +26,7 @@ beforeEach(() => {
   });
   userToken = JSON.parse(userTokenRes.body.toString()).token;
 
+  // Create a quiz. This quiz is called 'Basic quiz'
   const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: {
       token: userToken,
@@ -34,7 +36,7 @@ beforeEach(() => {
   });
   quizId = JSON.parse(quizRes.body.toString()).quizId;
 
-  // Create a second user to transfer the quizzes to
+  // Create a second user to transfer the quizzes to. This user is Hayden Smith
   const userTokenRes2 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'hayden.smith@gmail.com',
@@ -44,14 +46,12 @@ beforeEach(() => {
     }
   });
   userToken2 = JSON.parse(userTokenRes2.body.toString()).token;
-  emailToTransferTo = 'hayden.smith@gmail.com'
+  emailToTransferTo = 'hayden.smith@gmail.com';
 });
 
 describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
-
-  test.only('returns an error when trying to transfer a' + 
+  test('returns an error when trying to transfer a quiz ' +
     'to an email that does not correspond to any user', () => {
-
     const nonExistentEmail = 'idontexist@gmail.com';
 
     const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
@@ -60,31 +60,73 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
         userEmail: nonExistentEmail,
       },
       timeout: TIMEOUT_MS
-    })
+    });
+    expect(JSON.parse(result.body.toString())).toStrictEqual({
+      error: 'Unknown Type: string - error',
+    });
+    expect(result.statusCode).toStrictEqual(400);
+  });
+
+  test('returns an error when trying to transfer a quiz when the logged in user' +
+    ' does not own the quiz', () => {
+    // Create a user Andrew Taylor. Note, that Andrew owns NO quizzes
+    const userTokenRes3 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+      json: {
+        email: 'andrew.taylor@gmail.com',
+        password: 'password123',
+        nameFirst: 'Andrew',
+        nameLast: 'Taylor',
+      }
+    });
+    userToken = JSON.parse(userTokenRes3.body.toString()).token;
+
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+      json: {
+        token: userToken2,
+        userEmail: 'andrew.taylor@gmail.com',
+      },
+      timeout: TIMEOUT_MS
+    });
+    expect(JSON.parse(result.body.toString())).toStrictEqual({
+      error: 'Unknown Type: string - error',
+    });
+    expect(result.statusCode).toStrictEqual(403);
+  }
+  );
+
+  test('returns an error when trying to transfer a quiz that does not exist', () => {
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId + 1}/transfer`, {
+      json: {
+        token: userToken,
+        userEmail: 'hayden.smith@gmail.com',
+      },
+      timeout: TIMEOUT_MS
+    });
     console.log(result);
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: 'Unknown Type: string - error',
-    })
-    expect(result.statusCode).toStrictEqual(400);
-  })
+    });
+    expect(result.statusCode).toStrictEqual(403);
+  }
+  );
 
-  test.only('returns an error when trying to transer a quiz to the currently logged in user', () => {
+  test('returns an error when trying to transer a quiz to the currently logged in user', () => {
     const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
         token: userToken,
         userEmail: 'jake.renzella@gmail.com',
       },
       timeout: TIMEOUT_MS
-    })
+    });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: 'Unknown Type: string - error',
-    })
+    });
     expect(result.statusCode).toStrictEqual(400);
-  })
+  });
 
-  test.only('reutrns an error when trying to transfer quiz to another user who already' +
+  test('reutrns an error when trying to transfer quiz to another user who already' +
     ' owns a quiz with the given quiz name', () => {
-
+    // Create a quiz that is owned by Hayden Smith
     const quizRes2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken2,
@@ -92,27 +134,28 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
         description: 'An even more normal quiz',
       }
     });
-    quizId2 = JSON.parse(quizRes.body.toString()).quizId;
+    const quizId2 = JSON.parse(quizRes2.body.toString()).quizId;
+    expect(quizId2).toStrictEqual(expect.any(Number));
 
     const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
-        token: userToken2,
+        token: userToken,
         userEmail: emailToTransferTo,
       },
       timeout: TIMEOUT_MS
-    })
+    });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: 'Unknown Type: string - error',
-    })
+    });
     expect(result.statusCode).toStrictEqual(400);
   });
 
   test('returns error when trying to transfer a quiz with invalid token', () => {
     const invalidUserToken = userToken + 'a';
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      json: { 
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+      json: {
         token: invalidUserToken,
-        userEmail:  emailToTransferTo
+        userEmail: emailToTransferTo
       },
       timeout: TIMEOUT_MS
     });
@@ -124,10 +167,10 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
   });
 
   test('returns error when trying to transfer a quiz with empty user token', () => {
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      json: { 
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+      json: {
         token: '',
-        userEmail:  emailToTransferTo
+        userEmail: emailToTransferTo
       },
       timeout: TIMEOUT_MS
     });
@@ -140,15 +183,15 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
 });
 
 describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
-
   test('successfully transfers a single quiz to a user', () => {
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      json: { 
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+      json: {
         token: userToken,
-        userEmail:  emailToTransferTo
+        userEmail: emailToTransferTo
       },
       timeout: TIMEOUT_MS
     });
+    console.log(result);
 
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
@@ -159,7 +202,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       },
       timeout: TIMEOUT_MS
     });
-    
+
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
         {
@@ -170,10 +213,10 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     });
   });
   test('successfully transfers a multiples quizzes to a user', () => {
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      json: { 
+    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+      json: {
         token: userToken,
-        userEmail:  emailToTransferTo
+        userEmail: emailToTransferTo
       },
       timeout: TIMEOUT_MS
     });
@@ -187,7 +230,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       },
       timeout: TIMEOUT_MS
     });
-    
+
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
         {
@@ -204,26 +247,32 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
         description: 'A very challenging quiz',
       }
     });
-    quizId2 = JSON.parse(quizRes.body.toString()).quizId;
+    const quizId2 = JSON.parse(quizRes2.body.toString()).quizId;
+    console.log('quiz2 id is:', quizId2);
 
-    const result2 = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId2}`, {
-      json: { 
+    const result2 = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId2}/transfer`, {
+      json: {
         token: userToken,
-        userEmail:  emailToTransferTo
+        userEmail: emailToTransferTo,
       },
       timeout: TIMEOUT_MS
     });
 
+    expect(result2.statusCode).toStrictEqual(200);
+    expect(JSON.parse(result2.body.toString())).toStrictEqual({ });
+
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
 
-    quizListRe = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
+    quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
       json: {
         token: userToken2
       },
       timeout: TIMEOUT_MS
     });
-    
+
+    console.log(JSON.parse(quizListRes.body.toString()));
+
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
         {
@@ -236,5 +285,5 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
         }
       ]
     });
-  })
-})
+  });
+});
