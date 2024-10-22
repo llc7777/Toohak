@@ -11,110 +11,121 @@ const TIMEOUT_MS = 5 * 1000;
 const ERROR = { error: expect.any(String) };
 
 let token = {};
-let quizId;
+const quizId = 1; 
 
 beforeEach(() => {
-  request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
+    request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
 
-  // Register user and create a quiz
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: 'leo.kim@gmail.com',
-      password: 'password1',
-      nameFirst: 'Hayden',
-      nameLast: 'Smith'
-    },
-    timeout: TIMEOUT_MS
-  });
+    token = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        json: {
+            email: 'Aerospace@gmail.com',
+            password: 'Aeropass1',
+            nameFirst: 'Leo',
+            nameLast: 'Kim'
+        },
+        timeout: TIMEOUT_MS
+    });
 
-  token = JSON.parse(res.body.toString());
+    token = JSON.parse(token.body.toString()).token;
 
-  const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: { token, name: 'Quiz 1', description: 'This is a quiz' },
-    timeout: TIMEOUT_MS
-  });
-
-  quizId = JSON.parse(quizRes.body.toString()).quizId;
+    request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+        json: { token, name: 'quiz1', description: 'Initial description' },
+        timeout: TIMEOUT_MS
+    });
 });
 
-describe('Test for PATCH /v1/admin/quiz/description', () => {
-  // Test for successful cases
-  test('should update the description successfully', () => {
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-      json: { token, description: 'This is a new description' },
-      timeout: TIMEOUT_MS
+describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
+    test('should update quiz description successfully', () => {
+        const newDescription = 'Updated description';
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            qs: {token},
+            json: {  quizId, description: newDescription },
+            timeout: TIMEOUT_MS
+        });
+
+        expect(res.statusCode).toStrictEqual(200);
+        expect(JSON.parse(res.body.toString())).toStrictEqual({});
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
-    expect(JSON.parse(res.body.toString())).toStrictEqual({});
-  });
+    test('should update quiz description successfully with empty description', () => {
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            qs: {token},
+            json: {  quizId, description: '' },
+            timeout: TIMEOUT_MS
+        });
 
-  test('should update to an empty description', () => {
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-      json: { token, description: '' },
-      timeout: TIMEOUT_MS
+        expect(res.statusCode).toStrictEqual(200);
+        expect(JSON.parse(res.body.toString())).toStrictEqual({});
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
-    expect(JSON.parse(res.body.toString())).toStrictEqual({});
-  });
+    test('should return error if quiz does not exist', () => {
+        const invalidQuizId = 999;
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${invalidQuizId}/description`, {
+            qs: {token},
+            json: { quizId: invalidQuizId, description: 'New description' },
+            timeout: TIMEOUT_MS
+        });
 
-  test('should update the description multiple times', () => {
-    const descriptions = ['First update', 'Second update', 'Third update'];
-
-    descriptions.forEach((desc) => {
-      const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-        json: { token, description: desc },
-        timeout: TIMEOUT_MS
-      });
-      expect(JSON.parse(res.statusCode)).toStrictEqual(200);
-      expect(JSON.parse(res.body.toString())).toStrictEqual({});
-    });
-  });
-
-  // Test for error cases
-  test('should return error for invalid quizId', () => {
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId + 1000}/description`, {
-      json: { token, description: 'New description' },
-      timeout: TIMEOUT_MS
+        expect(res.statusCode).toStrictEqual(400);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
-  });
+    test('should return error if user does not own the quiz', () => {
+        const newDescription = 'Updated description';
+        const newUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+            json: {
+                email: 'anotherUser@gmail.com',
+                password: 'AnotherPass1',
+                nameFirst: 'John',
+                nameLast: 'Doe'
+            },
+            timeout: TIMEOUT_MS
+        });
 
-  test('should return error for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 9999 };
-    const encodedInvalid = { token: createToken(invalidToken) };
+        const anotherToken = JSON.parse(newUser.body.toString()).token;
+        const updateResponse = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            qs: { token: anotherToken }, 
+            json: {  quizId, description: newDescription },
+            timeout: TIMEOUT_MS
+        });
+        expect(updateResponse.statusCode).toBe(403);
+        expect(JSON.parse(updateResponse.body.toString())).toEqual(ERROR);
+    });    
 
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-      json: { token: encodedInvalid, description: 'New description' },
-      timeout: TIMEOUT_MS
+    test('should return error if description is more than 100 characters', () => {
+        const longDescription = 'A'.repeat(101);
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            qs: {token},
+            json: { quizId, description: longDescription },
+            timeout: TIMEOUT_MS
+        });
+
+        expect(res.statusCode).toStrictEqual(400);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
-  });
+    test('should return error for empty token', () => {
+        const emptyToken = '';
 
-  test('should return error if description exceeds 100 characters', () => {
-    const longDescription = 'x'.repeat(101);
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-      json: { token, description: longDescription },
-      timeout: TIMEOUT_MS
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            json: { token: emptyToken, quizId, description: 'Some description' },
+            timeout: TIMEOUT_MS
+        });
+
+        expect(res.statusCode).toStrictEqual(401);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
-  });
+    test('should return error for invalid token', () => {
+        const invalidToken = { sessionId: 1, authUserId: 1531 };
+        const encodedInvalid = createToken(invalidToken);
 
-  test('should return error for empty token', () => {
-    const emptyToken = { token: '' };
-    const res = request('PATCH', SERVER_URL + `/v1/admin/quiz/${quizId}/description`, {
-      json: { token: emptyToken, description: 'New description' },
-      timeout: TIMEOUT_MS
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+            json: { token: encodedInvalid, quizId, description: 'Some description' },
+            timeout: TIMEOUT_MS
+        });
+
+        expect(res.statusCode).toStrictEqual(401);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
-
-    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
-  });
 });

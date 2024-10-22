@@ -97,3 +97,17 @@ export function findUserFromToken(token) {
   }
   return null;
 }
+
+// Return true if the encodedToken does exist and belongs to user. Otherwise return false.
+export function encodedTokenExists(encodedToken) {
+  const data = getData();
+  for (const user of data.users) {
+    for (const token of user.tokens) {
+      const encoded = createToken(token);
+      if (encoded === encodedToken) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

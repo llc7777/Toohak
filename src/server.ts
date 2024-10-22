@@ -8,9 +8,18 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminAuthLogin, adminUserPasswordUpdate } from './auth';
-import { adminQuizCreate, adminQuizDescriptionUpdate } from './quiz';
+import {
+  adminAuthRegister, adminAuthLogin,
+  adminUserPasswordUpdate, adminUserDetails,
+  adminUserDetailsUpdate
+} from './auth';
+import {
+  adminQuizCreate, adminQuizList,
+  adminQuizRemove, adminQuizInfo,
+  adminQuizNameUpdate, adminQuizDescriptionUpdate
+} from './quiz';
 import { clear } from './other';
+import { encodedTokenExists } from './helper';
 
 // Set up web app
 const app = express();
@@ -43,6 +52,7 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
+// routes for auth
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
   const result = adminAuthRegister(email, password, nameFirst, nameLast);
@@ -65,6 +75,50 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   res.status(200).json({ token: result.token });
 });
 
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.body.token;
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const name = req.body.name;
+  const result = adminQuizNameUpdate(token, quizId, name);
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result);
+  }
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminUserDetails(token);
+  if ('error' in result || token.length === 0) {
+    return res.status(401).json(result);
+  }
+
+  return res.json(result);
+});
+
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+
+  const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.status(200).json(result);
+});
+
 // adiminUserPasswordUpdate PUT request
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const { token, oldPassword, newPassword } = req.body;
@@ -79,6 +133,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 });
 
 // routes for quiz
+
+// adminQuizCreate POST request
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
@@ -91,20 +147,71 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
-// routes for quizdescription
+// adminQuizList GET request
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const result = adminQuizList(token);
+
+  if ('error' in result) {
+    res.status(401).json(result);
+    return;
+  }
+
+  return res.json(result);
+});
+
+// adminQuizInfo GET request
+app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizInfo(token, quizid);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizRemove(token, quizid);
+  if ('error' in result) {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({ result });
+});
+
+// PUT request for adminQuizDescription
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
-  const { token, description } = req.body;
-  const quizId = parseInt(req.params.quizId, 10);
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  const description = req.body.description;
 
-  const result = adminQuizDescriptionUpdate({ token }, quizId, description);
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Invalid or missing token.' });
+  }
 
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2);
+  }
+
+  const result = adminQuizDescriptionUpdate(token, quizId, description);
   if ('error' in result) {
     return res.status(400).json(result);
   }
-
-  return res.status(200).json(result);
+  
+  return res.status(200).json({});
 });
 
+// routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
