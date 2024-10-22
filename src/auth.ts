@@ -127,8 +127,8 @@ export function adminAuthLogin(email: string, password: string) {
 }
 /**
  * Logs out an admin user who has an active user session.
- * 
- * @param {string} token 
+ *
+ * @param {string} token
  * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
  */
 export function adminAuthLogout(token) {
@@ -140,7 +140,6 @@ export function adminAuthLogout(token) {
 
   const tokenData = decodeToken(token);
 
-
   const userIndex = findUserIndexFromToken(tokenData);
 
   if (userIndex === -1) {
@@ -148,8 +147,8 @@ export function adminAuthLogout(token) {
   }
 
   data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
-    userToken => userToken.sessionId !== tokenData.sessionId
-      && userToken.authUserId === tokenData.authUserId);
+    userToken => userToken.sessionId !== tokenData.sessionId &&
+      userToken.authUserId === tokenData.authUserId);
 
   return {};
 }
@@ -264,7 +263,7 @@ export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken.token);
+  const tokenData = decodeToken(token);
 
   // Search through the data to check if the user exists
   const userIndex = findUserIndexFromToken(tokenData);

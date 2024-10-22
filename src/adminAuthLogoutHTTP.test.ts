@@ -34,7 +34,6 @@ beforeEach(() => {
 describe('Test for POST /v1/admin/auth/logout', () => {
   // Test for successful cases
   test('has the correct return and has it logged out the user', () => {
-
     let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
@@ -64,14 +63,14 @@ describe('Test for POST /v1/admin/auth/logout', () => {
 
     expect(result2.statusCode).toStrictEqual(200);
     expect(JSON.parse(result2.body.toString())).toStrictEqual({ quizzes: [] });
-
   });
 
   test('has logged out the user several times', () => {
     let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     token2 = JSON.parse(token2.body.toString()).token;
@@ -79,7 +78,8 @@ describe('Test for POST /v1/admin/auth/logout', () => {
     let token3 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     token3 = JSON.parse(token3.body.toString()).token;
@@ -112,14 +112,14 @@ describe('Test for POST /v1/admin/auth/logout', () => {
 
     expect(result3.statusCode).toStrictEqual(200);
     expect(JSON.parse(result3.body.toString())).toStrictEqual({ quizzes: [] });
-
   });
 
   test('has logged out all user sessions', () => {
     let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
-      }, timeout: TIMEOUT_MS
+      },
+      timeout: TIMEOUT_MS
     });
 
     token2 = JSON.parse(token2.body.toString()).token;
