@@ -11,7 +11,7 @@ import {
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
- * @param {integer} authUserId
+ * @param {string} token of user
  * @returns {object}
  */
 export function adminQuizList(token) {
@@ -58,7 +58,7 @@ export function adminQuizList(token) {
 
 /**
  *
- * @param {integer} authUserId Id of user
+ * @param {string} token of user
  * @param {string} name Name of user
  * @param {string} description Description of new quiz
  * @returns
