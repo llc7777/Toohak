@@ -293,37 +293,36 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
   const data = getData();
 
   if (!token) {
-    return { error: 'Token is empty'}; 
+    return { error: 'Token is empty' };
   }
 
   const tokenData = decodeToken(token);
   const authUserId = tokenData.authUserId;
 
   const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId 
-    && t.authUserId === authUserId)
+    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
+    t.authUserId === authUserId)
   );
 
   if (!userExists) {
-    return { error: 'AuthUserId is not a valid user.' }; 
+    return { error: 'AuthUserId is not a valid user.' };
   }
 
   const quiz = data.quizzes.find(q => q.quizId === quizId);
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.'}; 
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
   }
 
   if (quiz.authUserId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.'}; 
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
 
   if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.'}; 
+    return { error: 'Description is more than 100 characters in length.' };
   }
 
   quiz.description = description;
-  quiz.timeLastEdited = Math.floor(Date.now() / 1000); 
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
-  return {}; 
+  return {};
 }
-
