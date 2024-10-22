@@ -112,6 +112,12 @@ export function encodedTokenExists(encodedToken) {
   return false;
 }
 
+// Returns a user that corresponds to the given email
+export function findUserFromEmail(email) {
+  const data = getData();
+  return data.users.find(user => user.email === email);
+}
+
 // Return true if the given authUserId already owns a quiz with the
 // same name as the quiz name of the given quiz
 export function userHasQuizWithSameName(authUserId, quizId) {
