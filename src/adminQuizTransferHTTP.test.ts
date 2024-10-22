@@ -224,6 +224,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
 
+    // List the quizzes that Hayden Smith owns after transferring to him
     let quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
       json: {
         token: userToken2
@@ -240,6 +241,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       ]
     });
 
+    // Create a second quiz
     const quizRes2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
         token: userToken,
@@ -248,8 +250,8 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       }
     });
     const quizId2 = JSON.parse(quizRes2.body.toString()).quizId;
-    console.log('quiz2 id is:', quizId2);
 
+    // Transfer the second quiz to Hayden Smith
     const result2 = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId2}/transfer`, {
       json: {
         token: userToken,
@@ -264,14 +266,13 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
 
+    // List all the quizzes that Hayden Smith now owns
     quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
       json: {
         token: userToken2
       },
       timeout: TIMEOUT_MS
     });
-
-    console.log(JSON.parse(quizListRes.body.toString()));
 
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
