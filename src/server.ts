@@ -198,16 +198,16 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Invalid or missing token.' });
   }
 
-  const result = adminQuizDescriptionUpdate(token, quizId, description);
-  if ('error' in result) {
-    return res.status(400).json(result);
-  }
-  
   const result2 = adminQuizInfo(token, quizId);
   if ('error' in result2) {
     return res.status(403).json(result2);
   }
-  
+
+  const result = adminQuizDescriptionUpdate(token, quizId, description);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
   return res.status(200).json({});
 });
 
