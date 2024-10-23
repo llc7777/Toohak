@@ -173,7 +173,6 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
 
       const userTokenRes2 = registerUser('different2@gmail.com', 'passss123', 'May', 'Lee');
       const userToken2 = userTokenRes2.token;
-
       const res = restoreQuiz(quizId, userToken2);
 
       expect(res.statusCode).toStrictEqual(403);
