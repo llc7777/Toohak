@@ -36,7 +36,7 @@ beforeEach(() => {
   const questionRes = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/question`, {
     json: {
       token: userToken,
-      question: 'What is 2+2?',
+      question: 's is 2+2?',
       type: 'single',
       options: ['1', '2', '3', '4'],
       correctAnswer: '4',
