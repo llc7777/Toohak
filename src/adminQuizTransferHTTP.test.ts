@@ -211,7 +211,6 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     });
   });
 
-
   test('successfully transfers a multiples quizzes to a user', () => {
     const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
@@ -231,7 +230,6 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       },
       timeout: TIMEOUT_MS
     });
-
 
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
