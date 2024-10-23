@@ -73,6 +73,11 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
         }
       ]
     });
+
+    request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
+      qs: { token, quizIds: JSON.stringify([quizId]) },
+      timeout: TIMEOUT_MS
+    });
   });
 
   test('should return array of quizzes if quizzes are removed', () => {
@@ -141,6 +146,11 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
           name: 'quiz3'
         }
       ]
+    });
+
+    request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
+      qs: { token, quizIds: JSON.stringify([quizId1, quizId2, quizId3]) },
+      timeout: TIMEOUT_MS
     });
   });
 
