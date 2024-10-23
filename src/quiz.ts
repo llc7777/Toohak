@@ -92,6 +92,7 @@ export function adminQuizCreate(encodedToken, name, description) {
     description,
     timeCreated: Math.floor(Date.now() / 1000),
     timeLastEdited: Math.floor(Date.now() / 1000),
+    questions: [],
   };
 
   data.quizzes.push(newQuiz);
