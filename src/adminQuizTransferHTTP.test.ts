@@ -102,7 +102,6 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       },
       timeout: TIMEOUT_MS
     });
-    console.log(result);
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: 'Unknown Type: string - error',
     });
@@ -191,13 +190,12 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       },
       timeout: TIMEOUT_MS
     });
-    console.log(result);
 
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
 
     const quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-      json: {
+      qs: {
         token: userToken2
       },
       timeout: TIMEOUT_MS
@@ -212,6 +210,8 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       ]
     });
   });
+
+
   test('successfully transfers a multiples quizzes to a user', () => {
     const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
       json: {
@@ -221,16 +221,17 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(result.body.toString())).toStrictEqual({ });
     expect(result.statusCode).toStrictEqual(200);
+    expect(JSON.parse(result.body.toString())).toStrictEqual({ });
 
     // List the quizzes that Hayden Smith owns after transferring to him
     let quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-      json: {
+      qs: {
         token: userToken2
       },
       timeout: TIMEOUT_MS
     });
+
 
     expect(JSON.parse(quizListRes.body.toString())).toStrictEqual({
       quizzes: [
@@ -268,7 +269,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
 
     // List all the quizzes that Hayden Smith now owns
     quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-      json: {
+      qs: {
         token: userToken2
       },
       timeout: TIMEOUT_MS

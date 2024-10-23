@@ -21,7 +21,7 @@ import {
 export function adminQuizList(token) {
   const data = getData();
   const arr = [];
-
+  console.log(token);
   // Check if the token is empty
   if (token === '') {
     return {

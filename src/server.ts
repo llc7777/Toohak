@@ -164,7 +164,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
 // adminQuizList GET request
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  const { token } = req.query;
+  const { token } = req.query
 
   const result = adminQuizList(token);
 
