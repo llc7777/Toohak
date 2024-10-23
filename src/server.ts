@@ -11,13 +11,14 @@ import process from 'process';
 import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails,
-  adminUserDetailsUpdate,
+  adminUserDetailsUpdate, adminAuthLogout,
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
-  adminQuizQuestionCreate
+  adminQuizQuestionCreate,
+  adminQuizTransfer,
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -73,7 +74,20 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
-  res.status(200).json({ token: result.token });
+  res.status(200).json(result);
+});
+
+// adminAuthLogout POST request
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  const result = adminAuthLogout(token);
+
+  if (result.error) {
+    return res.status(401).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
@@ -97,7 +111,8 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
+  const { token } = req.query;
+
   const result = adminUserDetails(token);
   if ('error' in result || token.length === 0) {
     return res.status(401).json(result);
@@ -150,7 +165,8 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
 // adminQuizList GET request
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  const { token } = req.body;
+  const { token } = req.query;
+
   const result = adminQuizList(token);
 
   if ('error' in result) {
@@ -218,22 +234,24 @@ app.delete('/v1/clear', (req: Request, res: Response) => {
 });
 
 // POST request for adminQuizQuestion
-app.put('/v1/admin/quiz/{quizid}/question', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId as string);
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   const { question, timeLimit, points, answerOptions } = req.body.questionBody;
-  
+
+  console.log("Quiz id is ", quizId);
   if (token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
-  const name = req.body.name;
-  const result = adminQuizQuestionCreate(quizId, token, question, timeLimit, points, answerOptions,);
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  const result = adminQuizInfo(token, quizId);
+  console.log(result);
+  if ('error' in result) {
     return res.status(403).json(result);
   }
-  if ('error' in result) {
+  const result2 = adminQuizQuestionCreate(quizId, token, question, timeLimit, points, answerOptions,);
+  console.log(result2);
+  if ('error' in result2) {
     return res.status(400).json(result);
   }
 
@@ -245,7 +263,6 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = req.query.quizIds as string;
 
   const result = emptyTrash(token, JSON.parse(quizIds));
-  console.log(result);
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
     return res.status(401).json(result);
   } else if (result.error === 'You do not own quiz ID') {
@@ -255,6 +272,24 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   }
 
   return res.status(200).json(result);
+});
+
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.body.token;
+  const email = req.body.userEmail;
+
+  if (!encodedTokenExists(token) || token.length === 0) {
+    res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizTransfer(token, email, quizId);
+  if (result.error === 'No quiz exists with the given quizId' ||
+    result.error === 'This user does not own the quiz') {
+    res.status(403).json({ error: 'Unknown Type: string - error' });
+  } else if ('error' in result) {
+    res.status(400).json({ error: 'Unknown Type: string - error' });
+  }
+  res.status(200).json({});
 });
 
 // ====================================================================

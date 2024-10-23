@@ -7,7 +7,6 @@ const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 const timeout = 5 * 1000;
-let token = {},
 
 const requestAdminQuestionCreate = (quizId: number, body: { 
   token: string,
@@ -23,6 +22,7 @@ const requestAdminQuestionCreate = (quizId: number, body: {
     ]
   }
 }) => {
+
   return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
     json: { 
       token: body.token, 
@@ -34,6 +34,9 @@ const requestAdminQuestionCreate = (quizId: number, body: {
       } },
   });
 };
+
+let quiz;
+let token;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
@@ -59,7 +62,8 @@ beforeEach(() => {
 
 describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
   // successful cases
-  test('200: working case with 1 question', ()=> {
+  test.only('200: working case with 1 question', ()=> {
+    console.log(quiz.quizId);
     const response = requestAdminQuestionCreate(quiz.quizId, { 
       token: token,
       questionBody: {
