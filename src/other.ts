@@ -1,0 +1,58 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
+import { getData } from './dataStore';
+import { decodeToken, findUserFromToken } from './helper';
+
+/**
+ * Reset the state of the application back to the start.
+ * Parameters: no parameters
+ * Return object: empty object
+ */
+export function clear() {
+  const store = getData();
+  store.users = [];
+  store.quizzes = [];
+  return {};
+}
+
+/**
+ * Function to empty the quiz trash
+ * @param {string} token - The authentication token of the user
+ * @param {string} quizIds - A JSON string representing an array of quiz IDs to delete
+ * @returns {Object}
+ */
+export function emptyTrash(encodedToken, quizIds) {
+  const data = getData();
+
+  if (encodedToken === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(encodedToken);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    return { error: 'Token is invalid' };
+  }
+
+  if (!Array.isArray(quizIds)) {
+    return { error: 'quizIds must be an array' };
+  }
+
+  for (const quizId of quizIds) {
+    const quizInTrash = data.trash.find(
+      quiz => quiz.quizId === quizId
+    );
+
+    if (!quizInTrash) {
+      return { error: 'One or more quiz IDs are not currently in the trash.' };
+    }
+
+    if (quizInTrash.authUserId !== user.authUserId) {
+      return { error: 'You do not own quiz ID' };
+    }
+  }
+  data.trash = data.trash.filter(quiz => !quizIds.includes(quiz.quizId));
+
+  return {};
+}

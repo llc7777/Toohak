@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 // YOU MAY MODIFY THIS OBJECT BELOW
-let data = {
+const data = {
 
-	users: [],
-	quizzes: [],
-}
+  users: [],
+  quizzes: [],
+  trash: [],
+};
 
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
