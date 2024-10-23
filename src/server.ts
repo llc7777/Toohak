@@ -17,7 +17,7 @@ import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
-  adminQuizTransfer,
+  adminQuizTransfer, adminQuizDelete
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -222,6 +222,30 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const result = adminQuizDescriptionUpdate(token, quizId, description);
   if ('error' in result) {
     return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+//DELETE Request for adminQuizDelete
+app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.query.token as string;
+
+  if (!token || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Invalid or missing token.' });
+  }
+
+  const result = adminQuizDelete(token, quizId, questionId);
+
+  if (result.error) {
+    if (result.error === 'Question Id does not refer to a valid question within this quiz') {
+      return res.status(400).json({ error: 'Invalid question ID.' });
+    } else if (result.error === 'You do not own this quiz' || result.error === 'Quiz not found') {
+      return res.status(403).json({ error: 'Unauthorized or quiz not found.' });
+    }
+    return res.status(400).json({ error: result.error }); 
   }
 
   return res.status(200).json({});

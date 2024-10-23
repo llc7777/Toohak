@@ -372,3 +372,44 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
 }
+
+/**
+ * Deletes a specific question from a quiz.
+ * @param {string} token - The token of the user.
+ * @param {integer} quizId - The ID of the quiz.
+ * @param {integer} questionId - The ID of the question to delete.
+ * @returns {object} - An object indicating the result of the operation.
+ */
+export function adminQuizDelete(token, quizId, questionId) {
+  const data = getData();
+
+  if (!token) {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  const userExists = findUserFromToken(tokenData);
+  if (!userExists) {
+    return { error: 'Token is invalid' };
+  }
+
+  const quiz = data.quizzes.find(q => q.quizId === quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Valid token is provided, but user is not an owner of this quiz.' };
+  }
+
+  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'Question ID does not refer to a valid question within this quiz.' };
+  }
+
+  quiz.questions.splice(questionIndex, 1);
+
+  return {};
+}
