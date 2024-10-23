@@ -361,7 +361,6 @@ export function adminQuizQuestionCreate(
     }
   }
 
-
   // Question body checks
   // Question string between 5 and 50 characters
   if (question.length < 5 || question.length > 50) {
@@ -430,4 +429,15 @@ export function adminQuizQuestionCreate(
       };
     } 
   };
+
+  const newQuestionId = quiz.questions.length + 1;
+  const newQuestion = {
+    questionId: newQuestionId,
+    question: question,
+    timeLimit: timeLimit,
+    points: points,
+    answerOptions: answerOptions
+  }
+  data.quizzes[quizIndex].questions.push(newQuestion);
+  return { questionId: newQuestionId };
 }
