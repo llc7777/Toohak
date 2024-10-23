@@ -163,8 +163,9 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       quizCreate(token, 'Test Quiz', 'Description for the second quiz');
       const res = restoreQuiz(validQuizId, token);
 
-      expect(res.statusCode).toStrictEqual(400);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
+      expect(res.statusCode).toStrictEqual(400);
+
     });
 
     test('user is not the owner of this quiz', () => {
