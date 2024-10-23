@@ -227,28 +227,28 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   return res.status(200).json({});
 });
 
-//DELETE Request for adminQuizDelete
+// DELETE Request for adminQuizDelete
 app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
   const questionId = parseInt(req.params.questionId as string);
   const token = req.query.token as string;
 
-  if (!token || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Invalid or missing token.' });
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2); 
   }
 
   const result = adminQuizDelete(token, quizId, questionId);
 
-  if (result.error) {
-    if (result.error === 'Question Id does not refer to a valid question within this quiz') {
-      return res.status(400).json({ error: 'Invalid question ID.' });
-    } else if (result.error === 'You do not own this quiz' || result.error === 'Quiz not found') {
-      return res.status(403).json({ error: 'Unauthorized or quiz not found.' });
-    }
-    return res.status(400).json({ error: result.error }); 
+  if ('error' in result) {
+    return res.status(400).json(result); 
   }
 
-  return res.status(200).json({});
+  return res.status(200).json({}); 
 });
 
 // routes for other
