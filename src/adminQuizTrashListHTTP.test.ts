@@ -11,7 +11,7 @@ const TIMEOUT_MS = 5 * 1000;
 // Error object
 const ERROR = { error: expect.any(String) };
 
-// user token
+// User token
 let token = {};
 
 // clear the database before each test and register a user
