@@ -25,6 +25,20 @@ let data = {
 				timeCreated: -1,
 				timeLastEdited: -1,
 				description: 'string',
+        questions: [
+          {
+            questionId: -1,
+            question: 'string',
+            timeLimit: -1,
+            points: -1,
+            answerOptions: [
+              {
+                answer: 'string',
+                correctAnswer: boolean,
+              }
+            ]
+          }
+        ]
 			}
 		],
     trash: [
