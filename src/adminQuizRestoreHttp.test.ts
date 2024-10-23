@@ -165,7 +165,6 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
 
       expect(res.body).toStrictEqual({ error: expect.any(String) });
       expect(res.statusCode).toStrictEqual(400);
-
     });
 
     test('user is not the owner of this quiz', () => {
