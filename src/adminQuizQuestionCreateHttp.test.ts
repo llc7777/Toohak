@@ -9,7 +9,7 @@ const SERVER_URL = `${url}:${port}`;
 const timeout = 5 * 1000;
 let token = {},
 
-const requestAdminQuestionCreate = (quizId: number, quizQuestionId: number, body: { 
+const requestAdminQuestionCreate = (quizId: number, body: { 
   token: string,
   questionBody: {
     question: string,
@@ -79,6 +79,52 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       } 
     });
     expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body.toString())).toStrictEqual({ questionId: expect.any(Number) });
+  });
+
+  test('200: sum of question time limits in quiz equal 3 minutes', ()=> {
+    const response = requestAdminQuestionCreate(quiz.quizId, { 
+      token: token,
+      questionBody: {
+        question: "What is the largest mammal in the world?",
+        timeLimit: 175,
+        points: 5,
+        answerOptions: [
+          {
+            answer: "Whale",
+            correct: true
+          },
+          {
+            answer: "Frog",
+            correct: false
+          }
+        ]
+      } 
+    });
+    const response2 = requestAdminQuestionCreate(quiz.quizId, { 
+      token: token,
+      questionBody: {
+        question: "How many sides on a square",
+        timeLimit: 5,
+        points: 5,
+        answerOptions: [
+          {
+            answer: "4",
+            correct: true
+          },
+          {
+            answer: "3",
+            correct: false
+          },
+          {
+            answer: "6",
+            correct: false
+          }
+        ]
+      } 
+    });
+    expect(response2.statusCode).toBe(200);
+    expect(JSON.parse(response.body.toString())).toStrictEqual({ questionId: expect.any(Number) });
   });
 
   describe('error cases', () => {
@@ -105,7 +151,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
-    })
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+    });
 
     test('400: question has more than 6 answers', ()=> {
       const response = requestAdminQuestionCreate(quiz.quizId, { 
@@ -147,6 +194,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
     test('400: question has less than 2 answers', ()=> {
       const response = requestAdminQuestionCreate(quiz.quizId, { 
@@ -164,6 +212,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('400: timelimit not positive number', ()=> {
@@ -186,11 +235,81 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
-    // TO DO COMPLETE THIS TEST
-    test.todo('400: sum of question time limits in quiz are less than 1 or greater than 10');
-    
+    test('400: sum of question time limits in quiz exceeds 3 minutes', ()=> {
+      const response = requestAdminQuestionCreate(quiz.quizId, { 
+        token: token,
+        questionBody: {
+          question: "What is the largest mammal in the world?",
+          timeLimit: 179,
+          points: 5,
+          answerOptions: [
+            {
+              answer: "Whale",
+              correct: true
+            },
+            {
+              answer: "Frog",
+              correct: false
+            }
+          ]
+        } 
+      });
+      const response2 = requestAdminQuestionCreate(quiz.quizId, { 
+        token: token,
+        questionBody: {
+          question: "How many sides on a square",
+          timeLimit: 5,
+          points: 5,
+          answerOptions: [
+            {
+              answer: "4",
+              correct: true
+            },
+            {
+              answer: "3",
+              correct: false
+            },
+            {
+              answer: "6",
+              correct: false
+            }
+          ]
+        } 
+      });
+      expect(response2.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test.each([
+      0,
+      11,
+      394
+    ])('400: Points awarded for the question are less than 1 or greater than 10)', (wrongTimeLimit)=> {
+      const response = requestAdminQuestionCreate(quiz.quizId, { 
+        token: token,
+        questionBody: {
+          question: "What is the largest mammal in the world?",
+          timeLimit: wrongTimeLimit,
+          points: 5,
+          answerOptions: [
+            {
+              answer: "Whale",
+              correct: true
+            },
+            {
+              answer: "Frog",
+              correct: false
+            }
+          ]
+        } 
+      });
+      expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+    });
+
     test('400: length of any answers is shorter than 1 character long', ()=> {
       const response = requestAdminQuestionCreate(quiz.quizId, { 
         token: token,
@@ -211,6 +330,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('400: length of any answers is longer than 30 characters', ()=> {
@@ -233,6 +353,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
     
     test('400: answer strings are duplicates of one another for the same question', ()=> {
@@ -255,6 +376,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('400: no correct answers', ()=> {
@@ -277,6 +399,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('401: empty token', () => {
@@ -299,6 +422,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(401);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('401: invalid token', () => {
@@ -321,6 +445,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(401);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('403: valid token with incorrect owner', () => {
@@ -354,6 +479,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(403);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('400: quiz id nonexistent', () => {
@@ -376,6 +502,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         } 
       });
       expect(response.statusCode).toBe(403);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
   });
 });

@@ -188,10 +188,7 @@ export function adminQuizInfo(token, quizId) {
     return { error: 'Quiz unable to be found' };
   }
 
-  const userAndQuizMatch = data.quizzes.find(
-    quiz => quiz.authUserId === tokenObj.authUserId && quiz.quizId === quizId);
-
-  if (!userAndQuizMatch) {
+  if (quiz.authUserId !== tokenObj.authUserId) {
     return { error: 'The given user does not own the given quiz' };
   }
 
@@ -292,57 +289,145 @@ Updates the description of the relevant quiz
 @param {string} description
 @returns empty object { }
 */
-export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-  let isUserExist = false;
-  let isQuizExist = false;
+export function adminQuizDescriptionUpdate(token, quizId, description) {
   const data = getData();
 
-  // Search through the data to check if the user exists
-  for (let i = 0; i < data.users.length; i++) {
-    if (data.users[i].authUserId === authUserId) {
-      isUserExist = true;
-    }
-  }
-  // Search through the data to check if the quiz exists
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      isQuizExist = true;
-    }
-  }
-  // Check user owns the quiz
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== authUserId) {
-        return {
-          error: 'User does not own the quiz',
-        };
-      }
-    }
+  if (!token) {
+    return { error: 'Token is empty' };
   }
 
-  // Check user exists
-  if (!isUserExist) {
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  const userExists = data.users.some(user =>
+    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
+    t.authUserId === authUserId)
+  );
+
+  if (!userExists) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  const quiz = data.quizzes.find(q => q.quizId === quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  }
+
+  if (description.length > 100) {
+    return { error: 'Description is more than 100 characters in length.' };
+  }
+
+  quiz.description = description;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
+}
+
+export function adminQuizQuestionCreate(
+  quizId,
+  token, 
+  question,
+  timeLimit,
+  points,
+  answerOptions,
+) {
+  const data = getData();
+
+  // Token, quizId, user checks 
+  let user = false;
+  let quiz = false;
+  if (!encodedTokenExists(token)) {
+    return {
+      error: 'Invalid token',
+    };
+  };
+
+  const tokenDecoded = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
+  if (!user) {
     return {
       error: 'User Id does not exist',
     };
-    // Check quiz exists
-  } else if (!isQuizExist) {
+  };
+
+  quiz = findQuizFromQuizId(quizId);
+  if (quiz.authUserId !== user.authUserId) {
     return {
-      error: 'Quiz Id does not exist',
-    };
-    // Check description is more than 100 characters.
-  } else if (description.length > 100) {
-    return {
-      error: 'Description must be less than 100 characters long',
-    };
-    // Update the description of the quiz and return empty object for indication of no error
-  } else {
-    for (let i = 0; i < data.quizzes.length; i++) {
-      if (data.quizzes[i].quizId === quizId) {
-        data.quizzes[i].description = description;
-        data.quizzes[i].timeLastEdited = Math.floor(Date.now() / 1000);
-        return {};
-      }
+      error: 'User does not own the quiz',
     }
   }
+
+
+  // Question body checks
+  // Question string between 5 and 50 characters
+  if (question.length < 5 || question.length > 50) {
+    return {
+      error: 'Question must be between 5 to 50 characters',
+    };
+  }; 
+  // Question has between 2 and 6 answers
+  if (answerOptions.length < 2 || answerOptions.length > 6 ) {
+    return {
+      error: 'Question must have between 2 to 6 answers',
+    };
+  };
+  // Question time limit is a positive number
+  if (timeLimit < 0) {
+    return {
+      error: 'Time limit must be a postive number',
+    };
+  };
+  // Sum of question time limits in quiz does not exceed 3 minutes
+  let totalTime = timeLimit;
+  for (const question of quiz.questions) {
+    totalTime += question.timeLimit
+  }
+  if (totalTime > 180) {
+    return {
+      error: 'Total time limit across quiz must not exceed 3 minutes',
+    };
+  }
+  
+  // Points awarded for the question are between 1 and 10
+  if (points < 1 || points > 10) {
+    return {
+      error: 'Points awarded must be between 1 and 10 points',
+    };
+  };
+  // The length of answers are between 1 and 30 characters long
+  for (const options of answerOptions) {
+    if (options.answer.length < 1 || options.answer.length > 30) {
+      return {
+        error: 'Answers must be between 1 and 30 characters long',
+      };
+    }
+  }
+
+  // Answers strings are not a duplicates of one another
+  for (let i = 0; i < answerOptions.length; i++) {
+    for (let j = i + 1; j < answerOptions.length; j++) {
+      if (answerOptions[i].answer === answerOptions[j].answer) {
+        return {
+          error: 'Answers must have no duplicates of one another',
+        };
+      }
+    }
+  } 
+  // There is at least 1 correct answer 
+  for (const options of answerOptions) {
+    const hasCorrectAnswer;
+    if (options.correct === true) {
+      hasCorrectAnswer = true
+    }
+
+    if(!hasCorrectAnswer) {
+      return {
+        error: 'There must be at least one correct answer',
+      };
+    } 
+  };
 }

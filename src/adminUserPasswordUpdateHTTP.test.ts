@@ -28,7 +28,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString());
+  token = JSON.parse(token.body.toString()).token;
 });
 
 describe('Test for PUT /v1/admin/user/password', () => {
@@ -162,7 +162,7 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for empty token', () => {
-    const emptyToken = { token: '' };
+    const emptyToken = '';
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
@@ -177,7 +177,7 @@ describe('Test for PUT /v1/admin/user/password', () => {
 
   test('error for invalid token', () => {
     const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = { token: createToken(invalidToken) };
+    const encodedInvalid = createToken(invalidToken);
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {

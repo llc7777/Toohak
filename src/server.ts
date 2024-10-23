@@ -11,14 +11,15 @@ import process from 'process';
 import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails,
-  adminUserDetailsUpdate
+  adminUserDetailsUpdate,
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
-  adminQuizNameUpdate
+  adminQuizNameUpdate, adminQuizDescriptionUpdate,
+  adminQuizQuestionCreate
 } from './quiz';
-import { clear } from './other';
+import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 
 // Set up web app
@@ -188,10 +189,72 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   res.status(200).json({ result });
 });
 
-// routes for other
+// PUT request for adminQuizDescription
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.query.token as string;
+  const description = req.body.description;
 
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Invalid or missing token.' });
+  }
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2);
+  }
+
+  const result = adminQuizDescriptionUpdate(token, quizId, description);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+// routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
+});
+
+// POST request for adminQuizQuestion
+app.put('/v1/admin/quiz/{quizid}/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.body.token;
+  const { question, timeLimit, points, answerOptions } = req.body.questionBody;
+  
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const name = req.body.name;
+  const result = adminQuizQuestionCreate(quizId, token, question, timeLimit, points, answerOptions,);
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result);
+  }
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizIds = req.query.quizIds as string;
+
+  const result = emptyTrash(token, JSON.parse(quizIds));
+  console.log(result);
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if (result.error === 'You do not own quiz ID') {
+    return res.status(403).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 
 // ====================================================================
