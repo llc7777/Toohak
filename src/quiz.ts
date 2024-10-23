@@ -372,3 +372,64 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
 }
+
+/**
+ * Updates the name and/or description of the relevant quiz.
+ * @param {string} token of a logged in user
+ * @param {integer} quizId of a quiz
+ * @param {string} name new name for the quiz.
+ * @param {string} description new description for the quiz.
+ * @returns {object} an empty object if successful, or an error object.
+ */
+export function adminQuizUpdate(token, quizId, name, description) {
+  const data = getData();
+
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+
+  const tokenDecoded = decodeToken(token);
+  const authUserId = tokenDecoded.authUserId;
+
+  const userExists = findUserFromToken(tokenDecoded);
+  if (!userExists) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  if (quizIndex === -1) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  const quiz = data.quizzes[quizIndex];
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'User does not own the quiz.' };
+  }
+
+  if (name) {
+    if (!validQuizName(name)) {
+      return {
+        error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.',
+      };
+    }
+    if (name.length < 3 || name.length > 30) {
+      return { error: 'Name must be between 3 and 30 characters long.' };
+    }
+    if (nameUsed(authUserId, name)) {
+      return { error: 'Name is already used for another quiz.' };
+    }
+    quiz.name = name;
+  }
+
+  if (description) {
+    if (description.length > 100) {
+      return { error: 'Description is more than 100 characters in length.' };
+    }
+    quiz.description = description;
+  }
+
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {}; 
+}
