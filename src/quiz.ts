@@ -12,7 +12,7 @@ import {
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {string} token of user
- * @returns {object}
+ * @returns {object} - An object containing a list of quizzes created by the user
  */
 export function adminQuizList(token) {
   const data = getData();
@@ -51,6 +51,47 @@ export function adminQuizList(token) {
   return {
     quizzes: arr,
   };
+}
+
+/**
+ * View the quizzes in trash
+ * @param {string} token of user
+ * @returns {object} - An object containing quizzes in trash
+ */
+export function adminQuizTrashList(token) {
+  const data = getData();
+  const arr = [];
+
+  // Check if the token is empty
+  if (token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  // verify user with the sessionId and authUserId
+  const userExists = findUserFromToken(tokenData);
+
+  if (!userExists) {
+    return {
+      error: 'Token is invalid',
+    };
+  }
+
+  for (let i = 0; i < data.trash.length; i++) {
+    if (data.trash[i].authUserId === authUserId) {
+      const item = {
+        quizId: data.trash[i].quizId,
+        name: data.trash[i].name,
+      };
+      arr.push(item);
+    }
+  }
+
+  return { quizzes: arr };
 }
 
 /**
@@ -122,7 +163,6 @@ export function adminQuizCreate(token, name, description) {
  */
 export function adminQuizRemove(token, quizId) {
   const data = getData();
-  console.log(data.quizzes);
 
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
@@ -294,7 +334,7 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
 
   const userExists = data.users.some(user =>
     user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
-    t.authUserId === authUserId)
+      t.authUserId === authUserId)
   );
 
   if (!userExists) {
