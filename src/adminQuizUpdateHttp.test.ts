@@ -37,17 +37,17 @@ beforeEach(() => {
     json: {
       token: userToken,
       questionBody: {
-        question: 'Who is the King of Wakanda?',
-        timeLimit: 5,
-        points: 3,
+        question: String,
+        timeLimit: Number,
+        points: Number,
         answerOptions: [
           {
-            answer: 'Jason Chandra',
-            correct: true,
+            answer: String,
+            correct: Boolean,
           },
           {
-            answer: 'Black Panther',
-            correct: false,
+            answer: String,
+            correct: Boolean,
           },
         ],
       },
@@ -77,9 +77,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
     });
 
     expect(result.statusCode).toStrictEqual(400);
-    expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
-    });
+    const resultBody = JSON.parse(result.body.toString());
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
   });
 
   test('returns error if question string length is invalid', () => {
@@ -87,7 +86,7 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
       json: {
         token: userToken,
         questionBody: {
-          question: 'Too short',
+          question: 'A?', 
           timeLimit: 5,
           points: 4,
           answerOptions: [
@@ -100,9 +99,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
     });
 
     expect(result.statusCode).toStrictEqual(400);
-    expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
-    });
+    const resultBody = JSON.parse(result.body.toString());
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
   });
 
   test('returns error if there are too few or too many answer options', () => {
@@ -113,7 +111,7 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
           question: 'What is my name?',
           timeLimit: 5,
           points: 2,
-          answerOptions: [
+          answerOptions: [ 
             { answer: 'Jason', correct: true },
           ], 
         },
@@ -122,9 +120,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
     });
 
     expect(result.statusCode).toStrictEqual(400);
-    expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
-    });
+    const resultBody = JSON.parse(result.body.toString());
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
   });
 
   test('returns error if time limit is invalid or points exceed limit', () => {
@@ -133,8 +130,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
         token: userToken,
         questionBody: {
           question: 'Who is the best football player?',
-          timeLimit: 0, 
-          points: 15,   
+          timeLimit: -5, 
+          points: 15, 
           answerOptions: [
             { answer: 'Jason Chandra', correct: true },
             { answer: 'Lionel Messi', correct: false },
@@ -145,9 +142,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
     });
 
     expect(result.statusCode).toStrictEqual(400);
-    expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
-    });
+    const resultBody = JSON.parse(result.body.toString());
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
   });
 
   test('returns error if token is invalid', () => {
@@ -170,9 +166,8 @@ describe('PUT /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
     });
 
     expect(result.statusCode).toStrictEqual(401);
-    expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
-    });
+    const resultBody = JSON.parse(result.body.toString());
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
   });
 });
 
