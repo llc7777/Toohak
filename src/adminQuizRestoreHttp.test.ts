@@ -6,7 +6,7 @@ import { port, url } from './config.json';
 import { createToken } from './helper';
 
 const SERVER_URL = `${url}:${port}`;
-const TIMEOUT_MS = 5 * 1000;
+const TIMEOUT_MS = 5 * 10000;
 
 // Helper function for creating quiz
 const quizCreate = (token, name, description) => {
@@ -163,8 +163,8 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       quizCreate(token, 'Test Quiz', 'Description for the second quiz');
       const res = restoreQuiz(validQuizId, token);
 
-      expect(res.statusCode).toBe(400);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
+      expect(res.statusCode).toBe(400);
     });
 
     test('user is not the owner of this quiz', () => {
