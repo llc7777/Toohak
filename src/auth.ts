@@ -16,6 +16,7 @@ import {
   decodeToken,
   findUserFromToken,
   encodedTokenExists,
+  findUserIndexFromToken,
 } from './helper';
 import validator from 'validator';
 
@@ -124,6 +125,33 @@ export function adminAuthLogin(email: string, password: string) {
     token: createToken(token)
   };
 }
+/**
+ * Logs out an admin user who has an active user session.
+ *
+ * @param {string} token
+ * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ */
+export function adminAuthLogout(token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+
+  const userIndex = findUserIndexFromToken(tokenData);
+
+  if (userIndex === -1) {
+    return { error: 'Token is invalid' };
+  }
+
+  data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
+    userToken => userToken.sessionId !== tokenData.sessionId &&
+      userToken.authUserId === tokenData.authUserId);
+
+  return {};
+}
 
 /**
  * Given an admin user's authUserId, return details about the user.
@@ -217,34 +245,29 @@ export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast)
 
 /**
  * Given details relating to a password change, update the password of a logged in user.
- * @param {integer} authUserId
+ * @param {string} token
  * @param {string} oldPassword
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken.token);
-  const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
+  const tokenData = decodeToken(token);
 
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
-      token.sessionId === sessionId
-    )
-  );
+  const userIndex = findUserIndexFromToken(tokenData);
+
   if (userIndex === -1) {
     return {
       error: 'Token is invalid',
