@@ -162,7 +162,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       // Create second quiz
       quizCreate(token, 'Test Quiz', 'Description for the second quiz');
       const res = restoreQuiz(validQuizId, token);
-      
+
       expect(res.statusCode).toStrictEqual(400);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
