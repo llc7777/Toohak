@@ -137,3 +137,16 @@ export function getQuizIndex(quizId) {
   const data = getData();
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
 }
+
+export function findUserIndexFromToken(token) {
+  const data = getData();
+
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(userToken =>
+      userToken.authUserId === token.authUserId &&
+      userToken.sessionId === token.sessionId
+    )
+  );
+
+  return userIndex;
+}
