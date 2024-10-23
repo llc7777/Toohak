@@ -111,3 +111,16 @@ export function encodedTokenExists(encodedToken) {
   }
   return false;
 }
+
+export function findUserIndexFromToken(token) {
+  const data = getData();
+
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(userToken =>
+      userToken.authUserId === token.authUserId &&
+      userToken.sessionId === token.sessionId
+    )
+  );
+
+  return userIndex;
+}

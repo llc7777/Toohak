@@ -11,7 +11,7 @@ import process from 'process';
 import {
   adminAuthRegister, adminAuthLogin,
   adminUserPasswordUpdate, adminUserDetails,
-  adminUserDetailsUpdate,
+  adminUserDetailsUpdate, adminAuthLogout,
 } from './auth';
 import {
   adminQuizCreate, adminQuizList,
@@ -75,6 +75,19 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   res.status(200).json({ token: result.token });
 });
 
+// adminAuthLogout POST request
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  const result = adminAuthLogout(token);
+
+  if (result.error) {
+    return res.status(401).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
   const token = req.body.token;
@@ -96,7 +109,8 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
+  const { token } = req.query;
+
   const result = adminUserDetails(token);
   if ('error' in result || token.length === 0) {
     return res.status(401).json(result);
@@ -149,7 +163,8 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
 // adminQuizList GET request
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  const { token } = req.body;
+  const { token } = req.query;
+
   const result = adminQuizList(token);
 
   if ('error' in result) {
