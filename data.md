@@ -25,8 +25,31 @@ let data = {
 				timeCreated: -1,
 				timeLastEdited: -1,
 				description: 'string',
+        questions: [
+          {
+            question: 'string',
+            timeLimit: -1,
+            points: -1,
+            answerOptions: [
+              {
+                answer: 'string',
+                correctAnswer: boolean,
+              }
+            ]
+          }
+        ]
 			}
 		],
+    trash: [
+			{
+				authUserId: -1,
+				quizId: -1,
+				name: 'string',
+				timeCreated: -1,
+				timeLastEdited: -1,
+				description: 'string',
+			}
+    ]
 };
 ```
 
@@ -36,3 +59,5 @@ The data object stores information for users and quizzes using two arrays:
 - Users Array: Stores user information including email, password, names, and timestamps for account creation and login activities.
 
 - Quizzes Array: Contains quiz information including ID, name, creation time, description. 
+
+- Trash Array: Contains quizzes that have been deleted.

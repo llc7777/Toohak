@@ -97,3 +97,56 @@ export function findUserFromToken(token) {
   }
   return null;
 }
+
+// Return true if the encodedToken does exist and belongs to user. Otherwise return false.
+export function encodedTokenExists(encodedToken) {
+  const data = getData();
+  for (const user of data.users) {
+    for (const token of user.tokens) {
+      const encoded = createToken(token);
+      if (encoded === encodedToken) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Returns a user that corresponds to the given email
+export function findUserFromEmail(email) {
+  const data = getData();
+  return data.users.find(user => user.email === email);
+}
+
+// Return true if the given authUserId already owns a quiz with the
+// same name as the quiz name of the given quiz
+export function userHasQuizWithSameName(authUserId, quizId) {
+  const data = getData();
+  const givenQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  return data.quizzes.find(quiz => quiz.name === givenQuiz.name && quiz.authUserId === authUserId);
+}
+
+// Returns the quiz object of a quiz from the given quizId.
+// If quiz not found, undefined is returned
+export function findQuizFromQuizId(quizId) {
+  const data = getData();
+  return data.quizzes.find(quiz => quiz.quizId === quizId);
+}
+
+export function getQuizIndex(quizId) {
+  const data = getData();
+  return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+}
+
+export function findUserIndexFromToken(token) {
+  const data = getData();
+
+  const userIndex = data.users.findIndex(user =>
+    user.tokens && user.tokens.some(userToken =>
+      userToken.authUserId === token.authUserId &&
+      userToken.sessionId === token.sessionId
+    )
+  );
+
+  return userIndex;
+}

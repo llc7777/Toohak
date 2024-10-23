@@ -8,10 +8,13 @@ import { createToken } from './helper';
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
+// Error object
 const ERROR = { error: expect.any(String) };
 
+// user token
 let token = {};
 
+// clear the database before each test and register a user
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
@@ -25,7 +28,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString());
+  token = JSON.parse(token.body.toString()).token;
 });
 
 describe('Test for POST /v1/admin/quiz', () => {
@@ -121,7 +124,7 @@ describe('Test for POST /v1/admin/quiz', () => {
   });
 
   test('Test for empty token', () => {
-    const emptyToken = { token: '' };
+    const emptyToken = '';
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: { token: emptyToken, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
@@ -133,7 +136,7 @@ describe('Test for POST /v1/admin/quiz', () => {
 
   test('Test for invalid token', () => {
     const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = { token: createToken(invalidToken) };
+    const encodedInvalid = createToken(invalidToken);
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {

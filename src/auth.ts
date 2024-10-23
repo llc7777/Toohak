@@ -15,6 +15,8 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
+  encodedTokenExists,
+  findUserIndexFromToken,
 } from './helper';
 import validator from 'validator';
 
@@ -67,6 +69,7 @@ export function adminAuthRegister(email: string, password: string,
   const encodedToken = createToken(newToken);
 
   const newUser = {
+    authUserId: store.users.length + 1,
     email: email,
     password: password,
     oldPasswords: [password],
@@ -78,7 +81,6 @@ export function adminAuthRegister(email: string, password: string,
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
-
   store.users.push(newUser);
 
   // Return the encoded token as a string
@@ -123,16 +125,48 @@ export function adminAuthLogin(email: string, password: string) {
     token: createToken(token)
   };
 }
+/**
+ * Logs out an admin user who has an active user session.
+ *
+ * @param {string} token
+ * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ */
+export function adminAuthLogout(token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+
+  const userIndex = findUserIndexFromToken(tokenData);
+
+  if (userIndex === -1) {
+    return { error: 'Token is invalid' };
+  }
+
+  data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
+    userToken => userToken.sessionId !== tokenData.sessionId &&
+      userToken.authUserId === tokenData.authUserId);
+
+  return {};
+}
 
 /**
  * Given an admin user's authUserId, return details about the user.
   "name" is the first and last name concatenated with a single space between them.
-* @param {Integer} authUserId
+* @param {string} token
 * @returns {Object} user
 */
-export function adminUserDetails(authUserId) {
-  const data = getData();
-  const user = data.users.find(user => user.authUserId === authUserId);
+export function adminUserDetails(token) {
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+  const tokenDecoded = decodeToken(token);
+
+  const user = findUserFromToken(tokenDecoded);
+  console.log(user);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
@@ -141,7 +175,7 @@ export function adminUserDetails(authUserId) {
   return {
     user:
     {
-      userId: user.authUserId,
+      userId: tokenDecoded.authUserId,
       name: `${user.nameFirst} ${user.nameLast}`,
       email: user.email,
       numSuccessfulLogins: user.numSuccessfulLogins,
@@ -151,21 +185,30 @@ export function adminUserDetails(authUserId) {
 }
 
 /**
- * Given an admin user's authUserId and a set of properties,
- * update the properties of this logged in admin user.
- * @param {number} authUserId
+ * Given an admin user's token and a set of properties,
+ * update the properties of this logged-in admin user.
+ * @param {object} token
  * @param {string} email
  * @param {string} nameFirst
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast) {
   const data = getData();
 
-  // Check if the authUserId is valid using isValidUser helper function
-  const user = data.users.find(user => user.authUserId === authUserId);
+  // Check if the token is empty
+  if (encodedToken === '') {
+    return { error: 'Token is empty' };
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(encodedToken);
+
+  const user = findUserFromToken(tokenData);
   if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+    return {
+      error: 'Token is invalid',
+    };
   }
 
   // Check if the email is valid
@@ -175,18 +218,20 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
   //  Check if the email is already in use by another user
   const emailInUse = data.users.find(
-    user => user.email === email && user.authUserId !== authUserId);
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
   if (emailInUse) {
     return { error: 'Email is currently used by another user. Please use another email.' };
   }
 
   // Validating first name and last name
-  if (!isValidName(nameFirst)) {
-    return { error: 'First name contains invalid characters or is not within length limits.' };
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    return { error: firstNameError };
   }
 
-  if (!isValidName(nameLast)) {
-    return { error: 'Last name contains invalid characters or is not within length limits.' };
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    return { error: lastNameError };
   }
 
   // Update user properties
@@ -200,34 +245,29 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
 /**
  * Given details relating to a password change, update the password of a logged in user.
- * @param {integer} authUserId
+ * @param {string} token
  * @param {string} oldPassword
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(encodedToken, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
   let checkOldPassword = false;
   let alreadyUsedThisPassword = false;
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken.token === '') {
+  if (token === '') {
     return {
       error: 'Token is empty',
     };
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken.token);
-  const authUserId = tokenData.authUserId;
-  const sessionId = tokenData.sessionId;
+  const tokenData = decodeToken(token);
 
   // Search through the data to check if the user exists
-  const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(token => token.authUserId === authUserId &&
-      token.sessionId === sessionId
-    )
-  );
+  const userIndex = findUserIndexFromToken(tokenData);
+
   if (userIndex === -1) {
     return {
       error: 'Token is invalid',
