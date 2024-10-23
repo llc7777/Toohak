@@ -73,7 +73,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
-  res.status(200).json({ token: result.token });
+  res.status(200).json(result);
 });
 
 // adminAuthLogout POST request
