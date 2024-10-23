@@ -16,7 +16,7 @@ import {
 import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
-  adminQuizNameUpdate
+  adminQuizNameUpdate, adminQuizRestore
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -186,6 +186,24 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     res.status(403).json({ error: 'Unknown Type: string - error' });
   }
   res.status(200).json({ result });
+});
+
+// adminQuizRestore POST request
+app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const { token } = req.body;
+
+  const result = adminQuizRestore(quizid, token);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if (result.error === 'You do not own quiz ID, or quiz does not exist') {
+    return res.status(403).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.status(200).json(result);
 });
 
 // routes for other
