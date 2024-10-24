@@ -213,16 +213,16 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
-// adminQuizInfo GET request
+// adminQuizInfo GET request. Gets info for a quiz
 app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
   if (!encodedTokenExists(token) || token.length === 0) {
-    res.status(401).json({ error: 'Unknown Type: string - error' });
+    res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizInfo(token, quizid);
   if ('error' in result) {
-    res.status(403).json({ error: 'Unknown Type: string - error' });
+    res.status(403).json({ error: result.error });
   }
   res.status(200).json({ result });
 });
