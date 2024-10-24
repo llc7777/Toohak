@@ -380,7 +380,7 @@ export function adminQuizTransfer(token, userEmail, quizId) {
  * @param {integer} questionId - The ID of the question to delete.
  * @returns {object} - An object indicating the result of the operation.
  */
-export function adminQuizDelete(token, quizId, questionId) {
+export function adminQuizQuestionDelete(token, quizId, questionId) {
   const data = getData();
 
   if (!token) {

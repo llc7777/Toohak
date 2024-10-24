@@ -17,7 +17,7 @@ import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
-  adminQuizTransfer, adminQuizDelete
+  adminQuizTransfer, adminQuizQuestionDelete
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -227,7 +227,7 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   return res.status(200).json({});
 });
 
-// DELETE Request for adminQuizDelete
+// DELETE Request for adminQuizQuestionDelete
 app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
   const questionId = parseInt(req.params.questionId as string);
@@ -242,7 +242,7 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
     return res.status(403).json(result2); 
   }
 
-  const result = adminQuizDelete(token, quizId, questionId);
+  const result = adminQuizQuestionDelete(token, quizId, questionId);
 
   if ('error' in result) {
     return res.status(400).json(result); 
