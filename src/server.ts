@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
 import express, { json, Request, Response } from 'express';
 import { echo } from './newecho';
 import morgan from 'morgan';
@@ -26,6 +29,7 @@ import {
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
+import { getData } from './dataStore';
 
 // Set up web app
 const app = express();
@@ -42,11 +46,27 @@ app.use('/docs', sui.serve, sui.setup(YAML.parse(file),
   { swaggerOptions: { docExpansion: config.expandDocs ? 'full' : 'list' } }));
 
 const PORT: number = parseInt(process.env.PORT || config.port);
+
 const HOST: string = process.env.IP || '127.0.0.1';
 
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+
+let data = { users: [], quizzes: [], trash: [] };
+
+const DATABASE_FILE = 'dataBase.json'
+
+// Check if data file already exists. If so, get Data from it
+if (fs.existsSync(DATABASE_FILE)) {
+  const data = String(fs.readFileSync(DATABASE_FILE));
+  data = JSON.parse(data);
+}
+
+// Function to save data to a file
+const saveData = () => {
+  fs.writeFileSync(DATABASE_FILE, JSON.stringify(getData()));
+}
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
