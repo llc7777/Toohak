@@ -739,6 +739,11 @@ export function adminQuizQuestionUpdate(
   data.quizzes[quizIndex].questions[questionIndex] = updatedQuestion;
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
+  for (const index in answerOptions) {
+    answerOptions[index].colour = getRandomColour();
+    answerOptions[index].answerId = index + 1;
+  }
+  
   return {};
 }
 
