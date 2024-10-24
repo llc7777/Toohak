@@ -1,6 +1,5 @@
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
-import { getQuizIndex } from './helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -163,7 +162,6 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(200);
     const parsedRes = JSON.parse(result.body.toString());
-    console.log(parsedRes);
     expect(parsedRes.result).toStrictEqual({
 
       quizId: quiz.quizId,
