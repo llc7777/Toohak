@@ -1,5 +1,6 @@
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
+import { getQuizIndex } from './helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -162,12 +163,16 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(200);
     const parsedRes = JSON.parse(result.body.toString());
+    console.log(parsedRes);
     expect(parsedRes.result).toStrictEqual({
+
       quizId: quiz.quizId,
       name: 'Basic quiz',
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: 'Just a normal quiz'
+      description: 'Just a normal quiz',
+      numOfQuestions: 0,
+      questions: [],
     });
   });
   test('successfully returns quiz info when a multiple quizzes exists', () => {
@@ -217,7 +222,9 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       name: 'Basic quiz',
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: 'Just a normal quiz'
+      description: 'Just a normal quiz',
+      numOfQuestions: 0,
+      questions: [],
     });
   });
 });
