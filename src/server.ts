@@ -22,7 +22,7 @@ import {
   adminQuizQuestionCreate,
   adminQuizTransfer,
   adminQuizMoveQuestion,
-  adminQuizQuestionDuplicate,
+  adminQuizQuestionDuplicate, adminQuizQuestionDelete
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -255,6 +255,30 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   }
 
   const result = adminQuizDescriptionUpdate(token, quizId, description);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
+// DELETE Request for adminQuizQuestionDelete
+app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.query.token as string;
+
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2);
+  }
+
+  const result = adminQuizQuestionDelete(token, quizId, questionId);
+
   if ('error' in result) {
     return res.status(400).json(result);
   }
