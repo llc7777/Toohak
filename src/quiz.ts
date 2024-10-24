@@ -193,6 +193,8 @@ export function adminQuizInfo(token, quizId) {
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numOfQuestions: quiz.questions.length,
+    questions: quiz.questions,
   };
 }
 
