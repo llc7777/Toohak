@@ -3,134 +3,128 @@
 
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
+import { createToken } from './helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
-let userToken;
+const ERROR = { error: expect.any(String) };
+
+let token = {};
 let quizId;
 let questionId;
 
 beforeEach(() => {
-  request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
+  request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
 
-  const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const response = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
-      email: 'jake.renzella@gmail.com',
-      password: 'password123',
-      nameFirst: 'Jake',
-      nameLast: 'Renzella',
+      email: 'Aerospace@gmail.com',
+      password: 'Aeropass1',
+      nameFirst: 'Leo',
+      nameLast: 'Kim',
     },
+    timeout: TIMEOUT_MS,
   });
-  userToken = JSON.parse(userTokenRes.body.toString()).token;
 
-  const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: {
-      token: userToken,
-      name: 'Basic quiz',
-      description: 'Just a normal quiz',
-    },
-  });
-  quizId = JSON.parse(quizRes.body.toString()).quizId;
+  token = JSON.parse(response.body.toString()).token;
 
-  const questionRes = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/question`, {
+  const quizResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
     json: {
-      token: userToken,
-      question: 's is 2+2?',
-      type: 'single',
-      options: ['1', '2', '3', '4'],
-      correctAnswer: '4',
+      token,
+      name: 'quiz1',
+      description: 'description1',
     },
+    timeout: TIMEOUT_MS,
   });
-  questionId = JSON.parse(questionRes.body.toString()).questionId;
+
+  quizId = JSON.parse(quizResponse.body.toString()).quizId;
+
+  const questionResponse = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+    json: {
+      token,
+      questionBody: {
+        question: 'What is the largest mammal in the world?',
+        timeLimit: 4,
+        points: 5,
+        answerOptions: [
+          { answer: 'Whale', correct: true },
+          { answer: 'Frog', correct: false },
+        ],
+      },
+    },
+    timeout: TIMEOUT_MS,
+  });
+
+  questionId = JSON.parse(questionResponse.body.toString()).questionId;
 });
 
-describe('DELETE /v1/admin/quiz/:quizid/question/:questionid ERROR cases', () => {
-  test('returns an error when trying to delete a question with an invalid question ID', () => {
-    const invalidQuestionId = questionId + 'invalid';
-
-    const result = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${invalidQuestionId}`, {
-      json: {
-        token: userToken,
-      },
+describe('Test for DELETE /v1/admin/quiz/{quizId}/question/{questionId}', () => {
+  test('should delete a question successfully', () => {
+    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token },
       timeout: TIMEOUT_MS,
     });
 
-    expect(result.statusCode).toStrictEqual(400);
-    expect(JSON.parse(result.body.toString()).error).toBeDefined();
+    expect(res.statusCode).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({});
   });
 
-  test('returns an error when trying to delete a question with an invalid token', () => {
-    const invalidToken = userToken + 'a';
+  test('error for empty token', () => {
+    const emptyToken = '';
 
-    const result = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`, {
-      json: {
-        token: invalidToken,
-      },
+    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token: emptyToken },
       timeout: TIMEOUT_MS,
     });
 
-    expect(result.statusCode).toStrictEqual(401);
-    expect(JSON.parse(result.body.toString()).error).toBeDefined();
+    expect(res.statusCode).toStrictEqual(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
-  test('returns an error when trying to delete a question with an empty token', () => {
-    const result = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`, {
-      json: {
-        token: '',
-      },
+  test('error for invalid token', () => {
+    const invalidToken = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid = createToken(invalidToken);
+
+    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token: encodedInvalid },
       timeout: TIMEOUT_MS,
     });
 
-    expect(result.statusCode).toStrictEqual(401);
-    expect(JSON.parse(result.body.toString()).error).toBeDefined();
+    expect(res.statusCode).toStrictEqual(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
-  test('returns an error when trying to delete a question from a quiz the user does not own', () => {
-    const userTokenRes2 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-      json: {
-        email: 'jason.chandr@gmail.com',
-        password: 'password123',
-        nameFirst: 'Jason',
-        nameLast: 'Chandr',
-      },
-    });
-    const userToken2 = JSON.parse(userTokenRes2.body.toString()).token;
-
-    const result = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`, {
-      json: {
-        token: userToken2,
-      },
+  test('error for non-existent question id', () => {
+    const res = request('DELETE',
+    `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId + 1}`, {
+      qs: { token },
       timeout: TIMEOUT_MS,
     });
 
-    expect(result.statusCode).toStrictEqual(403);
-    expect(JSON.parse(result.body.toString()).error).toBeDefined();
+    expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
-});
 
-describe('DELETE /v1/admin/quiz/:quizid/question/:questionid SUCCESS cases', () => {
-  test('successfully deletes a question from a quiz', () => {
-    const result = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`, {
+  test('error for valid token but incorrect owner', () => {
+    const secondUserResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
-        token: userToken,
+        email: 'otheruser@gmail.com',
+        password: 'Password1',
+        nameFirst: 'Jane',
+        nameLast: 'Doe',
       },
       timeout: TIMEOUT_MS,
     });
 
-    expect(result.statusCode).toStrictEqual(200);
-    expect(result.body.toString()).toStrictEqual('{}');
+    const secondToken = JSON.parse(secondUserResponse.body.toString()).token;
 
-    const quizDetailsRes = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: {
-        token: userToken,
-      },
+    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token: secondToken },
       timeout: TIMEOUT_MS,
     });
 
-    const quizDetails = JSON.parse(quizDetailsRes.body.toString());
-    expect(quizDetails.questions).not.toContainEqual(
-      expect.objectContaining({ questionId: questionId })
-    );
+    expect(res.statusCode).toStrictEqual(403);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 });

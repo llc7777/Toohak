@@ -17,7 +17,7 @@ export function isValidName(name: string, type: string): string {
     return `${type} name must be between 2 and 20 characters.`;
   }
 
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '-";
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ -\'';
   for (const char of name) {
     if (!validChars.includes(char)) {
       return `${type} name contains invalid characters.`;
@@ -131,6 +131,19 @@ export function userHasQuizWithSameName(authUserId, quizId) {
 export function findQuizFromQuizId(quizId) {
   const data = getData();
   return data.quizzes.find(quiz => quiz.quizId === quizId);
+}
+
+export function findQuestionFromQuestionId(questionId, quizId) {
+  const data = getData();
+  const quizIndex = getQuizIndex(quizId);
+  return data.quizzes[quizIndex].questions.find(question => question.questionId === questionId);
+}
+
+export function getQuestionIndexFromQuestionId(questionId, quizId) {
+  const data = getData();
+  const quizIndex = getQuizIndex(quizId);
+  return data.quizzes[quizIndex].questions.findIndex(
+    question => question.questionId === questionId);
 }
 
 export function getQuizIndex(quizId) {

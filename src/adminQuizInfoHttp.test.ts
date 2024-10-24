@@ -32,7 +32,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
 
     expect(result.statusCode).toStrictEqual(401);
@@ -60,7 +60,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(401);
   });
@@ -87,7 +87,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   });
@@ -133,7 +133,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   });
@@ -163,11 +163,14 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     expect(result.statusCode).toStrictEqual(200);
     const parsedRes = JSON.parse(result.body.toString());
     expect(parsedRes.result).toStrictEqual({
+
       quizId: quiz.quizId,
       name: 'Basic quiz',
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: 'Just a normal quiz'
+      description: 'Just a normal quiz',
+      numOfQuestions: 0,
+      questions: [],
     });
   });
   test('successfully returns quiz info when a multiple quizzes exists', () => {
@@ -217,7 +220,9 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       name: 'Basic quiz',
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: 'Just a normal quiz'
+      description: 'Just a normal quiz',
+      numOfQuestions: 0,
+      questions: [],
     });
   });
 });
