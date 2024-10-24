@@ -32,7 +32,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
 
     expect(result.statusCode).toStrictEqual(401);
@@ -60,7 +60,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(401);
   });
@@ -87,7 +87,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   });
@@ -133,7 +133,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   });
