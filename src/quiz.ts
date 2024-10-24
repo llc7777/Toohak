@@ -11,6 +11,7 @@ import {
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
+  getRandomColour,
 } from './helper';
 
 /**
@@ -439,6 +440,12 @@ export function adminQuizQuestionCreate(
     answerOptions: answerOptions
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+
+  for (const index in answerOptions) {
+    answerOptions[index].colour = getRandomColour();
+    answerOptions[index].answerId = index + 1;
+  }
+
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
 }

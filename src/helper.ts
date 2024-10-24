@@ -150,3 +150,9 @@ export function findUserIndexFromToken(token) {
 
   return userIndex;
 }
+
+export function getRandomColour() {
+  const colours = ['green', 'red', 'blue', 'brown', 'orange', 'yellow', 'pink', 'purple'];
+  const randomIndex = Math.floor(Math.random() * colours.length);
+  return colours[randomIndex];
+}

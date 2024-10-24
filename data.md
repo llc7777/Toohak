@@ -32,7 +32,9 @@ let data = {
             points: -1,
             answerOptions: [
               {
-                answer: 'string',
+                answerId: -1,
+				answer: 'string',
+				colour: 'string',
                 correctAnswer: boolean,
               }
             ]
