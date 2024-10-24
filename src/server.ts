@@ -291,16 +291,21 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   res.status(200).json({});
 });
 
-// admin quiz question duplicate 
-app.post('/v1/admin/quiz/{quizid}/question/{questionid}/duplicate', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId as string);
+// admin quiz question duplicate
+app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   if (token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
-  
-  const questionId = parseInt(req.params.questionId as string);
+
+  const questionId = parseInt(req.params.questionid as string);
+  console.log(quizId);
+  console.log(token);
+  console.log(questionId);
+
   const result2 = adminQuizInfo(token, quizId);
+  console.log(result2);
   if ('error' in result2) {
     return res.status(403).json(result2);
   }

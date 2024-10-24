@@ -519,7 +519,7 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
   }
   const quizIndex = getQuizIndex(quizId);
   // Search through the data to check if the question exists
-  const question = findQuestionFromQuestionId(questionId);
+  const question = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
     return {
       error: 'Question Id does not exist',
@@ -539,7 +539,8 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     timeLimit: quiz.timeLimit,
     points: quiz.points,
     answerOptions: quiz.answerOptions
-  }
+  };
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
-  return { questionId: newQuestionId };
+  return { duplicateQuestionId: newQuestionId };
 }
