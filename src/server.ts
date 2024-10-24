@@ -97,6 +97,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const result = adminAuthLogin(email, password);
 
   if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
   saveData();
@@ -110,9 +111,10 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const result = adminAuthLogout(token);
 
   if (result.error) {
+    saveData();
     return res.status(401).json(result);
   }
-
+  saveData();
   return res.status(200).json(result);
 });
 
@@ -120,6 +122,7 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
   const token = req.body.token;
   if (token.length === 0 || !encodedTokenExists(token)) {
+    saveData();
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const name = req.body.name;
@@ -127,12 +130,14 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 
   const result2 = adminQuizInfo(token, quizId);
   if ('error' in result2) {
+    saveData();
     return res.status(403).json(result);
   }
   if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   return res.status(200).json({});
 });
 
@@ -141,9 +146,10 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const result = adminUserDetails(token);
 
   if ('error' in result || token.length === 0) {
+    saveData();
     return res.status(401).json(result);
   }
-
+  saveData();
   return res.json(result);
 });
 
@@ -153,11 +159,13 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
 
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    saveData();
     return res.status(401).json(result);
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   res.status(200).json(result);
 });
 
@@ -167,10 +175,13 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const result = adminUserPasswordUpdate(token, oldPassword, newPassword);
 
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    saveData();
     return res.status(401).json(result);
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
+  saveData();
   return res.status(200).json(result);
 });
 
@@ -182,10 +193,13 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const result = adminQuizCreate(token, name, description);
 
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    saveData();
     return res.status(401).json(result);
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
+  saveData();
   return res.status(200).json(result);
 });
 
@@ -196,10 +210,11 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const result = adminQuizList(token);
 
   if ('error' in result) {
+    saveData();
     res.status(401).json(result);
     return;
   }
-
+  saveData();
   return res.json(result);
 });
 
@@ -209,9 +224,10 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const result = adminQuizTrashList(token);
 
   if ('error' in result) {
+    saveData();
     return res.status(401).json(result);
   }
-
+  saveData();
   return res.status(200).json(result);
 });
 
@@ -220,12 +236,15 @@ app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
   if (!encodedTokenExists(token) || token.length === 0) {
+    saveData();
     res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizInfo(token, quizid);
   if ('error' in result) {
+    saveData();
     res.status(403).json({ error: result.error });
   }
+  saveData();
   res.status(200).json({ result });
 });
 
@@ -234,12 +253,15 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
   if (!encodedTokenExists(token) || token.length === 0) {
+    saveData();
     res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizRemove(token, quizid);
   if ('error' in result) {
+    saveData();
     res.status(403).json({ error: 'Unknown Type: string - error' });
   }
+  saveData();
   res.status(200).json({ result });
 });
 
@@ -251,13 +273,16 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const result = adminQuizRestore(quizid, token);
 
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    saveData();
     return res.status(401).json(result);
   } else if (result.error === 'You do not own quiz ID, or quiz does not exist') {
+    saveData();
     return res.status(403).json(result);
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   res.status(200).json(result);
 });
 
@@ -268,25 +293,29 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const description = req.body.description;
 
   if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    saveData();
     return res.status(401).json({ error: 'Invalid or missing token.' });
   }
 
   const result2 = adminQuizInfo(token, quizId);
   if ('error' in result2) {
+    saveData();
     return res.status(403).json(result2);
   }
 
   const result = adminQuizDescriptionUpdate(token, quizId, description);
   if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   return res.status(200).json({});
 });
 
 // routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
+  saveData();
 });
 
 // POST request for adminQuizQuestion
@@ -296,19 +325,22 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { question, timeLimit, points, answerOptions } = req.body.questionBody;
 
   if (token.length === 0 || !encodedTokenExists(token)) {
+    saveData();
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
 
   const result = adminQuizInfo(token, quizId);
   if ('error' in result) {
+    saveData();
     return res.status(403).json(result);
   }
   const result2 = adminQuizQuestionCreate(quizId, token, question,
     timeLimit, points, answerOptions);
   if ('error' in result2) {
+    saveData();
     return res.status(400).json(result2);
   }
-
+  saveData();
   return res.status(200).json(result2);
 });
 
@@ -319,15 +351,19 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const newPosition = parseInt(req.body.newPosition);
 
   if (token.length === 0 || !encodedTokenExists(token)) {
+    saveData();
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
   if (result.error === 'The given quizId does not refer to any quiz' ||
     result.error === 'This user does not own the given quiz') {
+    saveData();
     return res.status(403).json({ error: result.error });
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json({ error: result.error });
   }
+  saveData();
   res.status(200).json({ });
 });
 
@@ -337,13 +373,16 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
 
   const result = emptyTrash(token, JSON.parse(quizIds));
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    saveData();
     return res.status(401).json(result);
   } else if (result.error === 'You do not own quiz ID') {
+    saveData();
     return res.status(403).json(result);
   } else if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   return res.status(200).json(result);
 });
 
@@ -353,15 +392,19 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const email = req.body.userEmail;
 
   if (!encodedTokenExists(token) || token.length === 0) {
+    saveData();
     res.status(401).json({ error: 'Unknown Type: string - error' });
   }
   const result = adminQuizTransfer(token, email, quizId);
   if (result.error === 'No quiz exists with the given quizId' ||
     result.error === 'This user does not own the quiz') {
+    saveData();
     res.status(403).json({ error: 'Unknown Type: string - error' });
   } else if ('error' in result) {
+    saveData();
     res.status(400).json({ error: 'Unknown Type: string - error' });
   }
+  saveData();
   res.status(200).json({});
 });
 
@@ -370,6 +413,7 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   if (token.length === 0 || !encodedTokenExists(token)) {
+    saveData();
     return res.status(401).json({ error: 'Invalid token' });
   }
 
@@ -377,13 +421,15 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
   const result2 = adminQuizInfo(token, quizId);
   if ('error' in result2) {
+    saveData();
     return res.status(403).json(result2);
   }
   const result = adminQuizQuestionDuplicate(quizId, questionId, token);
   if ('error' in result) {
+    saveData();
     return res.status(400).json(result);
   }
-
+  saveData();
   return res.status(200).json(result);
 });
 
