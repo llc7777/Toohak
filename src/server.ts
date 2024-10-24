@@ -458,7 +458,6 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
     result.error === 'This user does not own the quiz') {
     saveData();
     res.status(403).json({ error: result.error });
-
   } else if ('error' in result) {
     saveData();
     res.status(400).json({ error: result.error });
