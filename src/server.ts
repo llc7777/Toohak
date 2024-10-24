@@ -17,6 +17,7 @@ import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
+  adminQuizTrashList,
   adminQuizRestore,
   adminQuizQuestionCreate,
   adminQuizTransfer,
@@ -177,6 +178,18 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   }
 
   return res.json(result);
+});
+
+// adminQuizTrashList GET request
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  const { token } = req.query;
+  const result = adminQuizTrashList(token);
+
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 
 // adminQuizInfo GET request

@@ -17,7 +17,7 @@ export function isValidName(name: string, type: string): string {
     return `${type} name must be between 2 and 20 characters.`;
   }
 
-  const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '-";
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ';
   for (const char of name) {
     if (!validChars.includes(char)) {
       return `${type} name contains invalid characters.`;
