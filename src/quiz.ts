@@ -11,7 +11,8 @@ import {
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
-  findQuestionFromQuestionId
+  findQuestionFromQuestionId,
+  getQuestionIndexFromQuestionId,
 } from './helper';
 
 /**
@@ -22,7 +23,6 @@ import {
 export function adminQuizList(token) {
   const data = getData();
   const arr = [];
-  console.log(token);
   // Check if the token is empty
   if (token === '') {
     return {
@@ -497,8 +497,6 @@ export function adminQuizTransfer(token, userEmail, quizId) {
 }
 
 export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
-  const data = getData();
-
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
 
@@ -509,31 +507,30 @@ export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
-      error: "The given quizId does not refer to any quiz",
-    }
+      error: 'The given quizId does not refer to any quiz',
+    };
   }
   if (quiz.authUserId !== tokenObj.authUserId) {
     return {
-      error: "This user does not own the given quiz",
-    }
+      error: 'This user does not own the given quiz',
+    };
   }
   if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
     return {
-      error: "The new position is outside the bounds of the questions array",
-    }
+      error: 'The new position is outside the bounds of the questions array',
+    };
   }
-  const questionIndex = getQuestionIndex(quiz, questionId);
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
   if (questionIndex === -1) {
     return {
-      error: "No question exists within the quiz for the given questionId",
-    }
+      error: 'No question exists within the quiz for the given questionId',
+    };
   }
   if (questionIndex === newPosition) {
     return {
-      error: "The new position and the current question position are the same",
-    }
+      error: 'The new position and the current question position are the same',
+    };
   }
-  const quizIndex = getQuizIndex(quizId);
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   const tempQuestion = quiz.questions[questionIndex];
   quiz.questions[questionIndex] = quiz.questions[newPosition];
