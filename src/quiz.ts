@@ -643,18 +643,6 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
  *
  * @returns {Object} an empty object
  */
-/**
- * Updates a quiz question in the specified quiz.
- *
- * @param {string} quizId - The ID of the quiz containing the question.
- * @param {string} questionId - The ID of the question to be updated.
- * @param {string} token - The authentication token of the user.
- * @param {string} question - The updated question text.
- * @param {number} timeLimit - The updated time limit for answering the question.
- * @param {number} points - The points awarded for answering the question.
- * @param {Array} answerOptions - The array of answer options for the question.
- * @returns {Object} - Empty object.
- */
 export function adminQuizQuestionUpdate(
   quizId,
   questionId,
@@ -703,7 +691,8 @@ export function adminQuizQuestionUpdate(
     return { error: 'Time limit must be a positive number' };
   }
 
-  let totalTime = quiz.questions.reduce((total, q) => total + q.timeLimit, 0) - quiz.questions[questionIndex].timeLimit;
+  let totalTime = quiz.questions.reduce(
+    (total, q) => total + q.timeLimit, 0) - quiz.questions[questionIndex].timeLimit;
   totalTime += timeLimit;
   if (totalTime > 180) {
     return { error: 'Total time limit across quiz must not exceed 3 minutes' };
@@ -768,7 +757,6 @@ export function adminQuizRestore(quizId, token) {
     return { error: 'Token is invalid' };
   }
 
-  // Find the quiz in the trash by quizId
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
 
   if (quizIndex === -1) {
@@ -777,24 +765,60 @@ export function adminQuizRestore(quizId, token) {
 
   const quiz = data.trash[quizIndex];
 
-  // Check if the quiz name is already used by another active quiz
   const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
 
   if (activeQuiz) {
     return { error: 'Quiz name is already used by another active quiz.' };
   }
 
-  // Validate if the quiz belongs to the user
   if (quiz.authUserId !== user.authUserId) {
     return { error: 'You do not own quiz ID, or quiz does not exist' };
   }
 
-  // Move quiz from trash to active quizzes
   data.quizzes.push(quiz);
   data.trash.splice(quizIndex, 1);
 
-  // Update the timeLastEdited field
   quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
+
+  return {};
+}
+
+/**
+ * Deletes a question from a quiz
+ * @param {string} token - The token of the user
+ * @param {number} quizId - The ID of the quiz
+ * @param {number} questionId - The ID of the question to be deleted
+ * @returns {object} - An empty object if successful
+ */
+export function adminQuizQuestionDelete(token, quizId, questionId) {
+  if (!token) {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  const userExists = findUserFromToken(tokenData);
+  if (!userExists) {
+    return { error: 'Token is invalid' };
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  }
+
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  if (questionIndex === -1) {
+    return { error: 'Question ID does not refer to a valid question.' };
+  }
+
+  quiz.questions.splice(questionIndex, 1);
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   return {};
 }

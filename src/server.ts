@@ -23,7 +23,8 @@ import {
   adminQuizTransfer,
   adminQuizMoveQuestion,
   adminQuizQuestionDuplicate,
-  adminQuizQuestionUpdate
+  adminQuizQuestionUpdate,
+  adminQuizQuestionDelete
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -194,16 +195,16 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
-// adminQuizInfo GET request
+// adminQuizInfo GET request. Gets info for a quiz
 app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
   if (!encodedTokenExists(token) || token.length === 0) {
-    res.status(401).json({ error: 'Unknown Type: string - error' });
+    res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizInfo(token, quizid);
   if ('error' in result) {
-    res.status(403).json({ error: 'Unknown Type: string - error' });
+    res.status(403).json({ error: result.error });
   }
   res.status(200).json({ result });
 });
@@ -238,12 +239,18 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
     return res.status(403).json(result);
   }
 
-  const updateResult = adminQuizQuestionUpdate(quizId, questionId, token, question, timeLimit, points, answerOptions);
+  const updateResult = adminQuizQuestionUpdate(quizId,
+    questionId,
+    token,
+    question,
+    timeLimit,
+    points,
+    answerOptions);
   if ('error' in updateResult) {
     return res.status(400).json(updateResult);
   }
 
-  return res.status(200).json(updateResult); 
+  return res.status(200).json(updateResult);
 });
 
 // adminQuizRestore POST request
@@ -287,6 +294,30 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   return res.status(200).json({});
 });
 
+// DELETE Request for adminQuizQuestionDelete
+app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.query.token as string;
+
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  const result2 = adminQuizInfo(token, quizId);
+  if ('error' in result2) {
+    return res.status(403).json(result2);
+  }
+
+  const result = adminQuizQuestionDelete(token, quizId, questionId);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json({});
+});
+
 // routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
@@ -315,6 +346,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   return res.status(200).json(result2);
 });
 
+// PUT request that moves the position of question in a quiz
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid as string);
   const questionId = parseInt(req.params.questionid as string);
@@ -322,7 +354,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const newPosition = parseInt(req.body.newPosition);
 
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Unknown Type: string - error' });
+    return res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
   if (result.error === 'The given quizId does not refer to any quiz' ||
@@ -350,20 +382,21 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
+// POST request to transfer a quiz to another user
 app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   const email = req.body.userEmail;
 
   if (!encodedTokenExists(token) || token.length === 0) {
-    res.status(401).json({ error: 'Unknown Type: string - error' });
+    res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizTransfer(token, email, quizId);
   if (result.error === 'No quiz exists with the given quizId' ||
     result.error === 'This user does not own the quiz') {
-    res.status(403).json({ error: 'Unknown Type: string - error' });
+    res.status(403).json({ error: result.error });
   } else if ('error' in result) {
-    res.status(400).json({ error: 'Unknown Type: string - error' });
+    res.status(400).json({ error: result.error });
   }
   res.status(200).json({});
 });

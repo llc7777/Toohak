@@ -1,336 +1,277 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+
 import request from 'sync-request-curl';
-import config from './config.json';
+import { port, url } from './config.json';
 
-const port = config.port;
-const url = config.url;
 const SERVER_URL = `${url}:${port}`;
-const timeout = 5 * 1000;
+const TIMEOUT_MS = 5 * 1000;
+const ERROR = { error: expect.any(String) };
 
-const requestAdminQuestionUpdate = (quizId: number, questionId: number, body: {
-  token: string,
-  questionBody: {
-    question: string,
-    timeLimit: number,
-    points: number,
-    answerOptions: [
-      {
-        answer: string,
-        correct: boolean
-      }
-    ]
-  }
-}) => {
-  return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
-    json: {
-      token: body.token,
-      questionBody: {
-        question: body.questionBody.question,
-        timeLimit: body.questionBody.timeLimit,
-        points: body.questionBody.points,
-        answerOptions: body.questionBody.answerOptions
-      }
-    },
-  });
-};
-
-let quiz;
 let token;
+let quizId;
 let questionId;
 
 beforeEach(() => {
-  request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
+  request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const response = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
       nameFirst: 'Leo',
-      nameLast: 'Kim'
+      nameLast: 'Kim',
     },
-    timeout: timeout
+    timeout: TIMEOUT_MS,
   });
-  token = JSON.parse(token.body.toString()).token;
 
-  quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
-    json: { token, name: 'quiz1', description: 'random description' },
-    timeout: timeout
-  });
-  quiz = JSON.parse(quiz.body.toString());
+  token = JSON.parse(response.body.toString()).token;
 
-  const questionResponse = requestAdminQuestionCreate(quiz.quizId, {
-    token: token,
-    questionBody: {
-      question: 'What is the largest mammal in the world?',
-      timeLimit: 4,
-      points: 5,
-      answerOptions: [
-        {
-          answer: 'Whale',
-          correct: true
-        },
-        {
-          answer: 'Frog',
-          correct: false
-        }
-      ]
-    }
+  const quizResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+    json: {
+      token,
+      name: 'quiz1',
+      description: 'description1',
+    },
+    timeout: TIMEOUT_MS,
   });
+
+  quizId = JSON.parse(quizResponse.body.toString()).quizId;
+
+  const questionResponse = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+    json: {
+      token,
+      questionBody: {
+        question: 'What is the largest mammal in the world?',
+        timeLimit: 4,
+        points: 5,
+        answerOptions: [
+          { answer: 'Whale', correct: true },
+          { answer: 'Frog', correct: false },
+        ],
+      },
+    },
+    timeout: TIMEOUT_MS,
+  });
+
   questionId = JSON.parse(questionResponse.body.toString()).questionId;
 });
 
 describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
-  test('working case with updated question', () => {
-    const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-      token: token,
-      questionBody: {
-        question: 'What is the largest animal in the world?',
-        timeLimit: 5,
-        points: 6,
-        answerOptions: [
-          {
-            answer: 'Blue Whale',
-            correct: true
-          },
-          {
-            answer: 'Whale Shark',
-            correct: false
-          }
-        ]
-      }
+  test('should update the question successfully', () => {
+    const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      json: {
+        token,
+        questionBody: {
+          question: 'What is the largest animal in the world?',
+          timeLimit: 5,
+          points: 6,
+          answerOptions: [
+            { answer: 'Blue Whale', correct: true },
+            { answer: 'Whale Shark', correct: false },
+          ],
+        },
+      },
+      timeout: TIMEOUT_MS,
     });
-    expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body.toString())).toStrictEqual({ success: true });
+
+    expect(res.statusCode).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({});
   });
 
   describe('error cases', () => {
-    test('question string less than 5 or greater than 50', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'Who?',
-          timeLimit: 4,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            }
-          ]
-        }
+    test('question string less than 5 characters', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'Who?',
+            timeLimit: 4,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Frog', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
       });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('question string longer than 50 characters', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal that has ever existed in the ocean?',
-          timeLimit: 4,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            }
-          ]
-        }
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal that has ever existed in the ocean?',
+            timeLimit: 4,
+            points: 5,
+            answerOptions: [
+              { answer: 'Pig', correct: true },
+              { answer: 'Frog', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
       });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    test('question has less than 2 answers', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: 5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            }
-          ]
-        }
-      });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    });
-
-    test('question has more than 6 answers', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: 5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            },
-            {
-              answer: 'Cat',
-              correct: false
-            },
-            {
-              answer: 'Dog',
-              correct: false
-            },
-            {
-              answer: 'Mouse',
-              correct: false
-            },
-            {
-              answer: 'Spider',
-              correct: false
-            },
-            {
-              answer: 'Lizard',
-              correct: false
-            }
-          ]
-        }
-      });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    });
-
-    test('timelimit not positive number', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: -5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            }
-          ]
-        }
-      });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    });
-
-    test.each([
-      0,
-      11,
-      394
-    ])('Points awarded for the question are less than 1 or greater than 10',
-      (wrongNumPoints) => {
-        const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-          token: token,
+    test('less than 2 answer options', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
           questionBody: {
             question: 'What is the largest animal in the world?',
             timeLimit: 5,
-            points: wrongNumPoints,
+            points: 5,
+            answerOptions: [{ answer: 'Whale', correct: true }],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
+    test('more than 6 answer options', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
             answerOptions: [
-              {
-                answer: 'Whale',
-                correct: true
-              },
-              {
-                answer: 'Frog',
-                correct: false
-              }
-            ]
-          }
+              { answer: 'Whale', correct: true },
+              { answer: 'Frog', correct: false },
+              { answer: 'Cat', correct: false },
+              { answer: 'Dog', correct: false },
+              { answer: 'Mouse', correct: false },
+              { answer: 'Spider', correct: false },
+              { answer: 'Lizard', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
+    test('time limit not positive', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: -5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Frog', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
+    test.each([0, 11, 394])(
+      'points awarded must be between 1 and 10',
+      (invalidPoints) => {
+        const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+          json: {
+            token,
+            questionBody: {
+              question: 'What is the largest animal in the world?',
+              timeLimit: 5,
+              points: invalidPoints,
+              answerOptions: [
+                { answer: 'Whale', correct: true },
+                { answer: 'Frog', correct: false },
+              ],
+            },
+          },
+          timeout: TIMEOUT_MS,
         });
-        expect(response.statusCode).toBe(400);
-        expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+
+        expect(res.statusCode).toBe(400);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+      }
+    );
+
+    test('answer option length less than 1 character', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: '', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
       });
 
-    test('length of any answers is shorter than 1 character long', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: 5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: '',
-              correct: false
-            }
-          ]
-        }
-      });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    test('length of any answers is longer than 30 characters', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: 5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale and whale friends that swim together',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            }
-          ]
-        }
+    test('answer option length longer than 30 characters', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale and whale friends that swim together', correct: true },
+              { answer: 'Frog', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
       });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    test('answer strings are duplicates of one another for the same question', () => {
-      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, {
-        token: token,
-        questionBody: {
-          question: 'What is the largest animal in the world?',
-          timeLimit: 5,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Whale',
-              correct: false
-            }
-          ]
-        }
+    test('duplicate answer strings', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Whale', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
       });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
   });
-}); 
+});
