@@ -22,7 +22,9 @@ import {
   adminQuizQuestionCreate,
   adminQuizTransfer,
   adminQuizMoveQuestion,
-  adminQuizQuestionDuplicate, adminQuizQuestionDelete
+  adminQuizQuestionDuplicate,
+  adminQuizQuestionUpdate,
+  adminQuizQuestionDelete
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -219,6 +221,36 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     res.status(403).json({ error: 'Unknown Type: string - error' });
   }
   res.status(200).json({ result });
+});
+
+// PUT request for adminQuizQuestionUpdate
+app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.body.token as string;
+  const { question, answerOptions, timeLimit, points } = req.body.questionBody;
+
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  const result = adminQuizInfo(token, quizId);
+  if ('error' in result) {
+    return res.status(403).json(result);
+  }
+
+  const updateResult = adminQuizQuestionUpdate(quizId,
+    questionId,
+    token,
+    question,
+    timeLimit,
+    points,
+    answerOptions);
+  if ('error' in updateResult) {
+    return res.status(400).json(updateResult);
+  }
+
+  return res.status(200).json(updateResult);
 });
 
 // adminQuizRestore POST request

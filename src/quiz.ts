@@ -638,6 +638,116 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
 }
 
 /**
+ * Updates a question in a specified quiz with new details.
+ *
+ * @param {string} token - The authentication token of the user.
+ * @param {number} quizId - The ID of the quiz containing the question to update.
+ * @param {number} questionId - The ID of the question to update within the quiz.
+ * @param {string} question - The new question text.
+ * @param {string[]} answers - An array of answer options.
+ * @param {number} timeLimit - The time limit for answering the question.
+ * @param {number} points - The points awarded for the question.
+ *
+ * @returns {Object} an empty object
+ */
+export function adminQuizQuestionUpdate(
+  quizId,
+  questionId,
+  token,
+  question,
+  timeLimit,
+  points,
+  answerOptions
+) {
+  const data = getData();
+
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+
+  const tokenDecoded = decodeToken(token);
+  const user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return { error: 'User Id does not exist' };
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return { error: 'No such quiz exists' };
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'User does not own the quiz' };
+  }
+
+  const quizIndex = getQuizIndex(quizId);
+  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'No such question exists' };
+  }
+
+  if (question.length < 5 || question.length > 50) {
+    return { error: 'Question must be between 5 to 50 characters' };
+  }
+
+  if (answerOptions.length < 2 || answerOptions.length > 6) {
+    return { error: 'Question must have between 2 to 6 answers' };
+  }
+
+  if (timeLimit <= 0) {
+    return { error: 'Time limit must be a positive number' };
+  }
+
+  let totalTime = quiz.questions.reduce(
+    (total, q) => total + q.timeLimit, 0) - quiz.questions[questionIndex].timeLimit;
+  totalTime += timeLimit;
+  if (totalTime > 180) {
+    return { error: 'Total time limit across quiz must not exceed 3 minutes' };
+  }
+
+  if (points < 1 || points > 10) {
+    return { error: 'Points awarded must be between 1 and 10 points' };
+  }
+
+  for (const option of answerOptions) {
+    if (option.answer.length < 1 || option.answer.length > 30) {
+      return { error: 'Answers must be between 1 and 30 characters long' };
+    }
+  }
+
+  const answerSet = new Set();
+  for (const option of answerOptions) {
+    if (answerSet.has(option.answer)) {
+      return { error: 'Answers must have no duplicates of one another' };
+    }
+    answerSet.add(option.answer);
+  }
+
+  const hasCorrectAnswer = answerOptions.some(option => option.correct === true);
+  if (!hasCorrectAnswer) {
+    return { error: 'There must be at least one correct answer' };
+  }
+
+  const updatedQuestion = {
+    questionId,
+    question,
+    timeLimit,
+    points,
+    answerOptions,
+  };
+
+  data.quizzes[quizIndex].questions[questionIndex] = updatedQuestion;
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+
+  for (const index in answerOptions) {
+    answerOptions[index].colour = getRandomColour();
+    answerOptions[index].answerId = index + 1;
+  }
+
+  return {};
+}
+
+/**
  * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
  *
  * @param {string|number} quizId Id of quiz
@@ -659,7 +769,6 @@ export function adminQuizRestore(quizId, token) {
     return { error: 'Token is invalid' };
   }
 
-  // Find the quiz in the trash by quizId
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
 
   if (quizIndex === -1) {
@@ -668,23 +777,19 @@ export function adminQuizRestore(quizId, token) {
 
   const quiz = data.trash[quizIndex];
 
-  // Check if the quiz name is already used by another active quiz
   const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
 
   if (activeQuiz) {
     return { error: 'Quiz name is already used by another active quiz.' };
   }
 
-  // Validate if the quiz belongs to the user
   if (quiz.authUserId !== user.authUserId) {
     return { error: 'You do not own quiz ID, or quiz does not exist' };
   }
 
-  // Move quiz from trash to active quizzes
   data.quizzes.push(quiz);
   data.trash.splice(quizIndex, 1);
 
-  // Update the timeLastEdited field
   quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
 
   return {};
