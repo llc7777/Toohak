@@ -27,6 +27,7 @@ let data = {
 				description: 'string',
         questions: [
           {
+            questionId: -1,
             question: 'string',
             timeLimit: -1,
             points: -1,
