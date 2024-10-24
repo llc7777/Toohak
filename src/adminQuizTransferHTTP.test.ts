@@ -62,7 +62,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(400);
   });
@@ -88,7 +88,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   }
@@ -103,7 +103,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(403);
   }
@@ -118,7 +118,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(400);
   });
@@ -144,7 +144,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error',
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(400);
   });
@@ -160,7 +160,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
     });
 
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(401);
   });
@@ -175,7 +175,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
     });
 
     expect(JSON.parse(result.body.toString())).toStrictEqual({
-      error: 'Unknown Type: string - error'
+      error: expect.any(String),
     });
     expect(result.statusCode).toStrictEqual(401);
   });
