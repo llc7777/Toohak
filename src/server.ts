@@ -19,6 +19,7 @@ import {
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
   adminQuizQuestionCreate,
   adminQuizTransfer,
+  adminQuizMoveQuestion,
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
@@ -255,6 +256,28 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
   return res.status(200).json(result2);
 });
+
+app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const questionId = parseInt(req.params.questionid as string);
+  const token = req.body.token;
+  const newPosition = parseInt(req.body.token);
+
+  if (token.length === 0 || !encodedTokenExists(token)) {
+      return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+  const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
+  if (result.error === 'The given quizId does not refer to any quiz' ||
+    result.error === 'This user does not own the given quiz') {
+
+    return res.status(403).json({ error: result.error});
+  } else if ('error' in result) {
+    console.log(result);
+    return res.status(400).json({ error: result.error });
+  }
+  res.status(200).json( { } );
+      
+})
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token = req.query.token as string;
