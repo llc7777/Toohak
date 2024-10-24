@@ -248,20 +248,21 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   return res.status(200).json(result);
 });
 
+// POST request to transfer a quiz to another user
 app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   const email = req.body.userEmail;
 
   if (!encodedTokenExists(token) || token.length === 0) {
-    res.status(401).json({ error: 'Unknown Type: string - error' });
+    res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizTransfer(token, email, quizId);
   if (result.error === 'No quiz exists with the given quizId' ||
     result.error === 'This user does not own the quiz') {
-    res.status(403).json({ error: 'Unknown Type: string - error' });
+    res.status(403).json({ error: result.error });
   } else if ('error' in result) {
-    res.status(400).json({ error: 'Unknown Type: string - error' });
+    res.status(400).json({ error: result.error });
   }
   res.status(200).json({});
 });
