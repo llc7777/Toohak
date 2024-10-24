@@ -743,7 +743,7 @@ export function adminQuizQuestionUpdate(
     answerOptions[index].colour = getRandomColour();
     answerOptions[index].answerId = index + 1;
   }
-  
+
   return {};
 }
 
