@@ -381,6 +381,9 @@ export function adminQuizTransfer(token, userEmail, quizId) {
  * @returns {Object} empty object on success
  */
 export function adminQuizRestore(quizId, token) {
+  console.log('Input quizId:', quizId);
+  console.log('Input token:', token);
+
   const data = getData();
 
   if (token === '') {
@@ -388,7 +391,10 @@ export function adminQuizRestore(quizId, token) {
   }
 
   const tokenObj = decodeToken(token);
+  console.log('Decoded token:', tokenObj);
+
   const user = findUserFromToken(tokenObj);
+  console.log('Authenticated user:', user);
 
   if (!user) {
     return { error: 'Token is invalid' };
@@ -396,13 +402,19 @@ export function adminQuizRestore(quizId, token) {
 
   // Find the quiz in the trash by quizId
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+  console.log('Quiz index in trash:', quizIndex);
+
   if (quizIndex === -1) {
     return { error: 'Quiz ID does not refer to a quiz in the trash.' };
   }
 
   const quiz = data.trash[quizIndex];
+  console.log('Quiz found in trash:', quiz);
+
   // Check if the quiz name is already used by another active quiz
   const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+  console.log('Active quiz with the same name:', activeQuiz);
+
   if (activeQuiz) {
     return { error: 'Quiz name is already used by another active quiz.' };
   }
@@ -418,6 +430,9 @@ export function adminQuizRestore(quizId, token) {
 
   // Update the timeLastEdited field
   quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
+
+  console.log('Updated quizzes:', JSON.stringify(data.quizzes, null, 2));
+  console.log('Updated trash:', JSON.stringify(data.trash, null, 2));
 
   return {};
 }
