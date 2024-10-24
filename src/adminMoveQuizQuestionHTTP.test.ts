@@ -54,6 +54,10 @@ beforeEach(() => {
           {
             "answer": "four",
             "correct": true
+          },
+          {
+            "answer": "five",
+            "correct": false
           }
         ]
       }
@@ -80,10 +84,10 @@ beforeEach(() => {
   });
 })
 
-describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () => {
+describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () => {
 
   test('returns error when trying to move a question to its current position', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken,
@@ -99,7 +103,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question to position -1', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken,
@@ -115,7 +119,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question to position outside bounds of array', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken,
@@ -131,7 +135,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question with an invalid questionId', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId + 1}/move`, {
         json: {
           token: userToken,
@@ -147,7 +151,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question with an invalid token', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken + 'a',
@@ -163,7 +167,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question with an empty token', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: '',
@@ -180,7 +184,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
 
 
   test('returns error when trying to move a question that the user does not own', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken2,
@@ -196,7 +200,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
   })
 
   test('returns error when trying to move a question in a quiz that does not exist', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}/move`, {
         json: {
           token: userToken,
@@ -215,7 +219,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move ERROR cases', () 
 describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', () => {
 
   test('moves a question in a quiz with two questions', () => {
-    const resultRes = request('POST',
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken,
@@ -223,21 +227,22 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
         }
       }
     )
+    console.log('questionId', questionId);
 
     expect(resultRes.statusCode).toStrictEqual(200);
 
     const result = JSON.parse(resultRes.body.toString());
     expect(result).toStrictEqual( { } );
   })
-  test('time updated for a quiz changes when moving a question', () => {
+  test.only('time updated for a quiz changes when moving a question', () => {
 
     const infoBeforeMoving = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
       qs: { token: userToken },
       timeout: TIMEOUT_MS
     });
     const timeUpdatedBeforeMove = JSON.parse(infoBeforeMoving.body.toString()).timeLastEdited;
-
-    const resultRes = request('POST',
+    console.log(timeUpdatedBeforeMove);
+    const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
         json: {
           token: userToken,
