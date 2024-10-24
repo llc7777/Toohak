@@ -296,16 +296,12 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Unknown Type: string - error' });
+    return res.status(401).json({ error: 'Invalid token' });
   }
 
   const questionId = parseInt(req.params.questionid as string);
-  console.log(quizId);
-  console.log(token);
-  console.log(questionId);
 
   const result2 = adminQuizInfo(token, quizId);
-  console.log(result2);
   if ('error' in result2) {
     return res.status(403).json(result2);
   }
