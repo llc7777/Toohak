@@ -18,6 +18,8 @@ import {
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
   adminQuizTrashList,
+  adminQuizRestore,
+  adminQuizQuestionCreate,
   adminQuizTransfer,
 } from './quiz';
 import { clear, emptyTrash } from './other';
@@ -217,6 +219,24 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   res.status(200).json({ result });
 });
 
+// adminQuizRestore POST request
+app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const { token } = req.body;
+
+  const result = adminQuizRestore(quizid, token);
+
+  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    return res.status(401).json(result);
+  } else if (result.error === 'You do not own quiz ID, or quiz does not exist') {
+    return res.status(403).json(result);
+  } else if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.status(200).json(result);
+});
+
 // PUT request for adminQuizDescription
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
@@ -243,6 +263,29 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
 // routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
+});
+
+// POST request for adminQuizQuestion
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.body.token;
+  const { question, timeLimit, points, answerOptions } = req.body.questionBody;
+
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+
+  const result = adminQuizInfo(token, quizId);
+  if ('error' in result) {
+    return res.status(403).json(result);
+  }
+  const result2 = adminQuizQuestionCreate(quizId, token, question,
+    timeLimit, points, answerOptions);
+  if ('error' in result2) {
+    return res.status(400).json(result2);
+  }
+
+  return res.status(200).json(result2);
 });
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {

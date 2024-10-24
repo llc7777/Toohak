@@ -13,6 +13,7 @@ export function clear() {
   const store = getData();
   store.users = [];
   store.quizzes = [];
+  store.trash = [];
   return {};
 }
 

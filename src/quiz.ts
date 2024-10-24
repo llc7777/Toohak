@@ -213,15 +213,13 @@ Gets information for a given quiz given a quizId and authUserId
 // export function adminQuizInfo(authUserId, quizId) {
 
 export function adminQuizInfo(token, quizId) {
-  const data = getData();
-
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
   if (!user) {
     return { error: 'Unable to find user Id ' };
   }
 
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'Quiz unable to be found' };
   }
@@ -236,6 +234,8 @@ export function adminQuizInfo(token, quizId) {
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numOfQuestions: quiz.questions.length,
+    questions: quiz.questions,
   };
 }
 
@@ -365,6 +365,127 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
   return {};
 }
 
+export function adminQuizQuestionCreate(
+  quizId,
+  token,
+  question,
+  timeLimit,
+  points,
+  answerOptions
+) {
+  const data = getData();
+
+  // Token, quizId, user checks
+  let user = false;
+  let quiz = false;
+  if (!encodedTokenExists(token)) {
+    return {
+      error: 'Invalid token',
+    };
+  }
+
+  const tokenDecoded = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return {
+      error: 'User Id does not exist',
+    };
+  }
+
+  quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return {
+      error: 'No such quiz exists',
+    };
+  }
+  if (quiz.authUserId !== user.authUserId) {
+    return {
+      error: 'User does not own the quiz',
+    };
+  }
+  const quizIndex = getQuizIndex(quizId);
+  // Question body checks
+  // Question string between 5 and 50 characters
+  if (question.length < 5 || question.length > 50) {
+    return {
+      error: 'Question must be between 5 to 50 characters',
+    };
+  }
+  // Question has between 2 and 6 answers
+  if (answerOptions.length < 2 || answerOptions.length > 6) {
+    return {
+      error: 'Question must have between 2 to 6 answers',
+    };
+  }
+  // Question time limit is a positive number
+  if (timeLimit < 0) {
+    return {
+      error: 'Time limit must be a postive number',
+    };
+  }
+  // Sum of question time limits in quiz does not exceed 3 minutes
+  let totalTime = timeLimit;
+  for (const question of quiz.questions) {
+    totalTime += question.timeLimit;
+  }
+  if (totalTime > 180) {
+    return {
+      error: 'Total time limit across quiz must not exceed 3 minutes',
+    };
+  }
+
+  // Points awarded for the question are between 1 and 10
+  if (points < 1 || points > 10) {
+    return {
+      error: 'Points awarded must be between 1 and 10 points',
+    };
+  }
+  // The length of answers are between 1 and 30 characters long
+  for (const options of answerOptions) {
+    if (options.answer.length < 1 || options.answer.length > 30) {
+      return {
+        error: 'Answers must be between 1 and 30 characters long',
+      };
+    }
+  }
+
+  // Answers strings are not a duplicates of one another
+  for (let i = 0; i < answerOptions.length; i++) {
+    for (let j = i + 1; j < answerOptions.length; j++) {
+      if (answerOptions[i].answer === answerOptions[j].answer) {
+        return {
+          error: 'Answers must have no duplicates of one another',
+        };
+      }
+    }
+  }
+  // There is at least 1 correct answer
+  let hasCorrectAnswer = false;
+  for (const options of answerOptions) {
+    if (options.correct === true) {
+      hasCorrectAnswer = true;
+    }
+  }
+
+  if (!hasCorrectAnswer) {
+    return {
+      error: 'There must be at least one correct answer',
+    };
+  }
+
+  const newQuestionId = quiz.questions.length + 1;
+  const newQuestion = {
+    questionId: newQuestionId,
+    question: question,
+    timeLimit: timeLimit,
+    points: points,
+    answerOptions: answerOptions
+  };
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].questions.push(newQuestion);
+  return { questionId: newQuestionId };
+}
+
 /**
 Updates the description of the relevant quiz
 @param {string} token of a logged in user
@@ -413,4 +534,57 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
+}
+
+/**
+ * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
+ *
+ * @param {string|number} quizId Id of quiz
+ * @param {string} token
+ * @returns {Object} empty object on success
+ */
+export function adminQuizRestore(quizId, token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenObj = decodeToken(token);
+
+  const user = findUserFromToken(tokenObj);
+
+  if (!user) {
+    return { error: 'Token is invalid' };
+  }
+
+  // Find the quiz in the trash by quizId
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    return { error: 'Quiz ID does not refer to a quiz in the trash.' };
+  }
+
+  const quiz = data.trash[quizIndex];
+
+  // Check if the quiz name is already used by another active quiz
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    return { error: 'Quiz name is already used by another active quiz.' };
+  }
+
+  // Validate if the quiz belongs to the user
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'You do not own quiz ID, or quiz does not exist' };
+  }
+
+  // Move quiz from trash to active quizzes
+  data.quizzes.push(quiz);
+  data.trash.splice(quizIndex, 1);
+
+  // Update the timeLastEdited field
+  quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
+
+  return {};
 }
