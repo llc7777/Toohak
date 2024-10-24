@@ -17,16 +17,13 @@ import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
-<<<<<<< HEAD
-  adminQuizTransfer, adminQuizUpdate
-=======
   adminQuizTrashList,
   adminQuizRestore,
   adminQuizQuestionCreate,
   adminQuizTransfer,
   adminQuizMoveQuestion,
   adminQuizQuestionDuplicate,
->>>>>>> 33dc3227e97dbb1d027d373ae70b66383d2a5361
+  adminQuizUpdate
 } from './quiz';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
