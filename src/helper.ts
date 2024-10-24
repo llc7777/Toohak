@@ -139,6 +139,13 @@ export function findQuestionFromQuestionId(questionId, quizId) {
   return data.quizzes[quizIndex].questions.find(question => question.questionId === questionId);
 }
 
+export function getQuestionIndexFromQuestionId(questionId, quizId) {
+  const data = getData();
+  const quizIndex = getQuizIndex(quizId);
+  return data.quizzes[quizIndex].questions.findIndex(
+    question => question.questionId === questionId);
+}
+
 export function getQuizIndex(quizId) {
   const data = getData();
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
