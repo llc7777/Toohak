@@ -133,6 +133,12 @@ export function findQuizFromQuizId(quizId) {
   return data.quizzes.find(quiz => quiz.quizId === quizId);
 }
 
+export function findQuestionFromQuestionId(questionId, quizId) {
+  const data = getData();
+  const quizIndex = getQuizIndex(quizId);
+  return data.quizzes[quizIndex].questions.find(question => question.questionId === questionId);
+}
+
 export function getQuizIndex(quizId) {
   const data = getData();
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);

@@ -11,6 +11,7 @@ import {
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
+  findQuestionFromQuestionId
 } from './helper';
 
 /**
@@ -534,6 +535,57 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
+}
+
+export function adminQuizQuestionDuplicate(quizId, questionId, token) {
+  let user = false;
+  const data = getData();
+  // Checks token and user is valid
+  if (!encodedTokenExists(token)) {
+    return {
+      error: 'Invalid token',
+    };
+  }
+  const tokenDecoded = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return {
+      error: 'User Id does not exist',
+    };
+  }
+  // Search through the data to check if the quiz exists
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return {
+      error: 'Quiz Id does not exist',
+    };
+  }
+  const quizIndex = getQuizIndex(quizId);
+  // Search through the data to check if the question exists
+  const question = findQuestionFromQuestionId(questionId, quizId);
+  if (!question) {
+    return {
+      error: 'Question Id does not exist',
+    };
+  }
+
+  // Check user owns the quiz
+  if (quiz.authUserId !== user.authUserId) {
+    return {
+      error: 'User does not own the quiz',
+    };
+  }
+
+  const newQuestionId = quiz.questions.length + 1;
+  const duplicateQuestion = {
+    question: quiz.question,
+    timeLimit: quiz.timeLimit,
+    points: quiz.points,
+    answerOptions: quiz.answerOptions
+  };
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].questions.push(duplicateQuestion);
+  return { duplicateQuestionId: newQuestionId };
 }
 
 /**
