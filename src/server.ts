@@ -17,6 +17,7 @@ import {
   adminQuizCreate, adminQuizList,
   adminQuizRemove, adminQuizInfo,
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
+  adminQuizQuestionCreate,
   adminQuizTransfer,
 } from './quiz';
 import { clear, emptyTrash } from './other';
@@ -230,6 +231,29 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
 // routes for other
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
+});
+
+// POST request for adminQuizQuestion
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.body.token;
+  const { question, timeLimit, points, answerOptions } = req.body.questionBody;
+
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Unknown Type: string - error' });
+  }
+
+  const result = adminQuizInfo(token, quizId);
+  if ('error' in result) {
+    return res.status(403).json(result);
+  }
+  const result2 = adminQuizQuestionCreate(quizId, token, question,
+    timeLimit, points, answerOptions);
+  if ('error' in result2) {
+    return res.status(400).json(result2);
+  }
+
+  return res.status(200).json(result2);
 });
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
