@@ -172,8 +172,6 @@ Gets information for a given quiz given a quizId and authUserId
 // export function adminQuizInfo(authUserId, quizId) {
 
 export function adminQuizInfo(token, quizId) {
-  const data = getData();
-
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
   if (!user) {
@@ -326,22 +324,22 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
 
 export function adminQuizQuestionCreate(
   quizId,
-  token, 
+  token,
   question,
   timeLimit,
   points,
-  answerOptions,
+  answerOptions
 ) {
   const data = getData();
 
-  // Token, quizId, user checks 
+  // Token, quizId, user checks
   let user = false;
   let quiz = false;
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
-  };
+  }
 
   const tokenDecoded = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
@@ -349,18 +347,18 @@ export function adminQuizQuestionCreate(
     return {
       error: 'User Id does not exist',
     };
-  };
+  }
 
   quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'No such quiz exists',
-    }
+    };
   }
   if (quiz.authUserId !== user.authUserId) {
     return {
       error: 'User does not own the quiz',
-    }
+    };
   }
   const quizIndex = getQuizIndex(quizId);
   // Question body checks
@@ -369,36 +367,36 @@ export function adminQuizQuestionCreate(
     return {
       error: 'Question must be between 5 to 50 characters',
     };
-  }; 
+  }
   // Question has between 2 and 6 answers
-  if (answerOptions.length < 2 || answerOptions.length > 6 ) {
+  if (answerOptions.length < 2 || answerOptions.length > 6) {
     return {
       error: 'Question must have between 2 to 6 answers',
     };
-  };
+  }
   // Question time limit is a positive number
   if (timeLimit < 0) {
     return {
       error: 'Time limit must be a postive number',
     };
-  };
+  }
   // Sum of question time limits in quiz does not exceed 3 minutes
   let totalTime = timeLimit;
   for (const question of quiz.questions) {
-    totalTime += question.timeLimit
+    totalTime += question.timeLimit;
   }
   if (totalTime > 180) {
     return {
       error: 'Total time limit across quiz must not exceed 3 minutes',
     };
   }
-  
+
   // Points awarded for the question are between 1 and 10
   if (points < 1 || points > 10) {
     return {
       error: 'Points awarded must be between 1 and 10 points',
     };
-  };
+  }
   // The length of answers are between 1 and 30 characters long
   for (const options of answerOptions) {
     if (options.answer.length < 1 || options.answer.length > 30) {
@@ -417,20 +415,20 @@ export function adminQuizQuestionCreate(
         };
       }
     }
-  } 
-  // There is at least 1 correct answer 
+  }
+  // There is at least 1 correct answer
   let hasCorrectAnswer = false;
   for (const options of answerOptions) {
     if (options.correct === true) {
-      hasCorrectAnswer = true
+      hasCorrectAnswer = true;
     }
   }
 
-  if(!hasCorrectAnswer) {
+  if (!hasCorrectAnswer) {
     return {
-       error: 'There must be at least one correct answer',
+      error: 'There must be at least one correct answer',
     };
-  } 
+  }
 
   const newQuestionId = quiz.questions.length + 1;
   const newQuestion = {
@@ -439,10 +437,11 @@ export function adminQuizQuestionCreate(
     timeLimit: timeLimit,
     points: points,
     answerOptions: answerOptions
-  }
+  };
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
-};
+}
 
 /**
 Updates the description of the relevant quiz
