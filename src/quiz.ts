@@ -194,6 +194,8 @@ export function adminQuizInfo(token, quizId) {
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numOfQuestions: quiz.questions.length,
+    questions: quiz.questions,
   };
 }
 
@@ -543,4 +545,57 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
   return { duplicateQuestionId: newQuestionId };
+}
+
+/**
+ * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
+ *
+ * @param {string|number} quizId Id of quiz
+ * @param {string} token
+ * @returns {Object} empty object on success
+ */
+export function adminQuizRestore(quizId, token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenObj = decodeToken(token);
+
+  const user = findUserFromToken(tokenObj);
+
+  if (!user) {
+    return { error: 'Token is invalid' };
+  }
+
+  // Find the quiz in the trash by quizId
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    return { error: 'Quiz ID does not refer to a quiz in the trash.' };
+  }
+
+  const quiz = data.trash[quizIndex];
+
+  // Check if the quiz name is already used by another active quiz
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    return { error: 'Quiz name is already used by another active quiz.' };
+  }
+
+  // Validate if the quiz belongs to the user
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'You do not own quiz ID, or quiz does not exist' };
+  }
+
+  // Move quiz from trash to active quizzes
+  data.quizzes.push(quiz);
+  data.trash.splice(quizIndex, 1);
+
+  // Update the timeLastEdited field
+  quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
+
+  return {};
 }
