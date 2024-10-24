@@ -290,6 +290,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   return res.status(200).json(result2);
 });
 
+// PUT request that moves the position of question in a quiz
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid as string);
   const questionId = parseInt(req.params.questionid as string);
@@ -297,7 +298,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const newPosition = parseInt(req.body.newPosition);
 
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Unknown Type: string - error' });
+    return res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
   if (result.error === 'The given quizId does not refer to any quiz' ||
