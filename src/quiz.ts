@@ -537,67 +537,6 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   return { };
 }
 
-<<<<<<< HEAD
-/**
- * Updates the name and/or description of the relevant quiz.
- * @param {string} token of a logged in user
- * @param {integer} quizId of a quiz
- * @param {string} name new name for the quiz.
- * @param {string} description new description for the quiz.
- * @returns {object} an empty object if successful, or an error object.
- */
-export function adminQuizUpdate(token, quizId, name, description) {
-  const data = getData();
-
-  if (!encodedTokenExists(token)) {
-    return { error: 'Invalid token' };
-  }
-
-  const tokenDecoded = decodeToken(token);
-  const authUserId = tokenDecoded.authUserId;
-
-  const userExists = findUserFromToken(tokenDecoded);
-  if (!userExists) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
-  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
-  }
-
-  const quiz = data.quizzes[quizIndex];
-
-  if (quiz.authUserId !== authUserId) {
-    return { error: 'User does not own the quiz.' };
-  }
-
-  if (name) {
-    if (!validQuizName(name)) {
-      return {
-        error: 'Name contains invalid characters. Only alphanumeric characters and spaces are allowed.',
-      };
-    }
-    if (name.length < 3 || name.length > 30) {
-      return { error: 'Name must be between 3 and 30 characters long.' };
-    }
-    if (nameUsed(authUserId, name)) {
-      return { error: 'Name is already used for another quiz.' };
-    }
-    quiz.name = name;
-  }
-
-  if (description) {
-    if (description.length > 100) {
-      return { error: 'Description is more than 100 characters in length.' };
-    }
-    quiz.description = description;
-  }
-
-  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
-
-  return {}; 
-=======
 export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
   const tokenObj = decodeToken(token);
   const user = findUserFromToken(tokenObj);
@@ -692,6 +631,122 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
 }
 
 /**
+ * Updates a question in a specified quiz with new details.
+ *
+ * @param {string} token - The authentication token of the user.
+ * @param {number} quizId - The ID of the quiz containing the question to update.
+ * @param {number} questionId - The ID of the question to update within the quiz.
+ * @param {string} question - The new question text.
+ * @param {string[]} answers - An array of answer options.
+ * @param {number} timeLimit - The time limit for answering the question.
+ * @param {number} points - The points awarded for the question.
+ *
+ * @returns {Object} an empty object
+ */
+/**
+ * Updates a quiz question in the specified quiz.
+ *
+ * @param {string} quizId - The ID of the quiz containing the question.
+ * @param {string} questionId - The ID of the question to be updated.
+ * @param {string} token - The authentication token of the user.
+ * @param {string} question - The updated question text.
+ * @param {number} timeLimit - The updated time limit for answering the question.
+ * @param {number} points - The points awarded for answering the question.
+ * @param {Array} answerOptions - The array of answer options for the question.
+ * @returns {Object} - Empty object.
+ */
+export function adminQuizQuestionUpdate(
+  quizId,
+  questionId,
+  token,
+  question,
+  timeLimit,
+  points,
+  answerOptions
+) {
+  const data = getData();
+
+  if (!encodedTokenExists(token)) {
+    return { error: 'Invalid token' };
+  }
+
+  const tokenDecoded = decodeToken(token);
+  const user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return { error: 'User Id does not exist' };
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return { error: 'No such quiz exists' };
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'User does not own the quiz' };
+  }
+
+  const quizIndex = getQuizIndex(quizId);
+  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'No such question exists' };
+  }
+
+  if (question.length < 5 || question.length > 50) {
+    return { error: 'Question must be between 5 to 50 characters' };
+  }
+
+  if (answerOptions.length < 2 || answerOptions.length > 6) {
+    return { error: 'Question must have between 2 to 6 answers' };
+  }
+
+  if (timeLimit <= 0) {
+    return { error: 'Time limit must be a positive number' };
+  }
+
+  let totalTime = quiz.questions.reduce((total, q) => total + q.timeLimit, 0) - quiz.questions[questionIndex].timeLimit;
+  totalTime += timeLimit;
+  if (totalTime > 180) {
+    return { error: 'Total time limit across quiz must not exceed 3 minutes' };
+  }
+
+  if (points < 1 || points > 10) {
+    return { error: 'Points awarded must be between 1 and 10 points' };
+  }
+
+  for (const option of answerOptions) {
+    if (option.answer.length < 1 || option.answer.length > 30) {
+      return { error: 'Answers must be between 1 and 30 characters long' };
+    }
+  }
+
+  const answerSet = new Set();
+  for (const option of answerOptions) {
+    if (answerSet.has(option.answer)) {
+      return { error: 'Answers must have no duplicates of one another' };
+    }
+    answerSet.add(option.answer);
+  }
+
+  const hasCorrectAnswer = answerOptions.some(option => option.correct === true);
+  if (!hasCorrectAnswer) {
+    return { error: 'There must be at least one correct answer' };
+  }
+
+  const updatedQuestion = {
+    questionId,
+    question,
+    timeLimit,
+    points,
+    answerOptions,
+  };
+
+  data.quizzes[quizIndex].questions[questionIndex] = updatedQuestion;
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
+}
+
+/**
  * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
  *
  * @param {string|number} quizId Id of quiz
@@ -742,5 +797,4 @@ export function adminQuizRestore(quizId, token) {
   quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
 
   return {};
->>>>>>> 33dc3227e97dbb1d027d373ae70b66383d2a5361
 }
