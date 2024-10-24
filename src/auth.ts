@@ -160,7 +160,6 @@ export function adminAuthLogout(token) {
 * @returns {Object} user
 */
 export function adminUserDetails(token) {
-  console.log("TOKEN DECODED IS: ", decodeToken(token));
   if (!encodedTokenExists(token)) {
     return { error: 'Invalid token' };
   }

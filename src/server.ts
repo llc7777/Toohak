@@ -28,7 +28,7 @@ import {
   adminQuizQuestionDuplicate,
 } from './quiz';
 import { clear, emptyTrash } from './other';
-import { decodeToken, encodedTokenExists } from './helper';
+import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 
 // Set up web app
@@ -53,23 +53,21 @@ const HOST: string = process.env.IP || '127.0.0.1';
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
 
-let data = { users: [], quizzes: [], trash: [] };
-
-const DATABASE_FILE = 'dataBase.json'
+const DATABASE_FILE = 'dataBase.json';
 
 // Check if data file already exists. If so, get Data from it
 if (fs.existsSync(DATABASE_FILE)) {
-  const fileData = String(fs.readFileSync(DATABASE_FILE));
-  data = JSON.parse(fileData);
+  let fileData = String(fs.readFileSync(DATABASE_FILE));
+  fileData = JSON.parse(fileData);
   // Update the data in dataStore.ts to reflect the data in database file
-  let localData = getData();
-  Object.assign(localData, data)
+  const localData = getData();
+  Object.assign(localData, fileData);
 }
 
 // Function to save data to a file
 const saveData = () => {
   fs.writeFileSync(DATABASE_FILE, JSON.stringify(getData()));
-}
+};
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
@@ -95,7 +93,6 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log(getData());
 
   const result = adminAuthLogin(email, password);
 
@@ -141,14 +138,8 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token;
-
-  console.log("ENCODED TOKEN IS: ", token);
-
   const result = adminUserDetails(token);
-  console.log("RESULT IS ", result);
-  for (const user of getData().users) {
-    console.log(user.name, user.tokens);
-  }
+
   if ('error' in result || token.length === 0) {
     return res.status(401).json(result);
   }
@@ -205,7 +196,6 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const result = adminQuizList(token);
 
   if ('error' in result) {
-    console.log(result);
     res.status(401).json(result);
     return;
   }
