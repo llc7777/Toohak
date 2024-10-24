@@ -12,17 +12,18 @@ import {
   getQuizIndex,
   findUserFromEmail,
   getRandomColour,
+  findQuestionFromQuestionId,
+  getQuestionIndexFromQuestionId,
 } from './helper';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
  * @param {string} token of user
- * @returns {object}
+ * @returns {object} - An object containing a list of quizzes created by the user
  */
 export function adminQuizList(token) {
   const data = getData();
   const arr = [];
-  console.log(token);
   // Check if the token is empty
   if (token === '') {
     return {
@@ -56,6 +57,47 @@ export function adminQuizList(token) {
   return {
     quizzes: arr,
   };
+}
+
+/**
+ * View the quizzes in trash
+ * @param {string} token of user
+ * @returns {object} - An object containing quizzes in trash
+ */
+export function adminQuizTrashList(token) {
+  const data = getData();
+  const arr = [];
+
+  // Check if the token is empty
+  if (token === '') {
+    return {
+      error: 'Token is empty',
+    };
+  }
+
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  // verify user with the sessionId and authUserId
+  const userExists = findUserFromToken(tokenData);
+
+  if (!userExists) {
+    return {
+      error: 'Token is invalid',
+    };
+  }
+
+  for (let i = 0; i < data.trash.length; i++) {
+    if (data.trash[i].authUserId === authUserId) {
+      const item = {
+        quizId: data.trash[i].quizId,
+        name: data.trash[i].name,
+      };
+      arr.push(item);
+    }
+  }
+
+  return { quizzes: arr };
 }
 
 /**
@@ -194,6 +236,8 @@ export function adminQuizInfo(token, quizId) {
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numOfQuestions: quiz.questions.length,
+    questions: quiz.questions,
   };
 }
 
@@ -297,7 +341,7 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
 
   const userExists = data.users.some(user =>
     user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
-    t.authUserId === authUserId)
+      t.authUserId === authUserId)
   );
 
   if (!userExists) {
@@ -498,4 +542,190 @@ export function adminQuizTransfer(token, userEmail, quizId) {
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
   return { };
+}
+
+export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
+  const tokenObj = decodeToken(token);
+  const user = findUserFromToken(tokenObj);
+
+  if (!user) {
+    return { error: 'AuthUserId is not a valid user.' };
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return {
+      error: 'The given quizId does not refer to any quiz',
+    };
+  }
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    return {
+      error: 'This user does not own the given quiz',
+    };
+  }
+  if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
+    return {
+      error: 'The new position is outside the bounds of the questions array',
+    };
+  }
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  if (questionIndex === -1) {
+    return {
+      error: 'No question exists within the quiz for the given questionId',
+    };
+  }
+  if (questionIndex === newPosition) {
+    return {
+      error: 'The new position and the current question position are the same',
+    };
+  }
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+  const tempQuestion = quiz.questions[questionIndex];
+  quiz.questions[questionIndex] = quiz.questions[newPosition];
+  quiz.questions[newPosition] = tempQuestion;
+
+  return { };
+}
+export function adminQuizQuestionDuplicate(quizId, questionId, token) {
+  let user = false;
+  const data = getData();
+  // Checks token and user is valid
+  if (!encodedTokenExists(token)) {
+    return {
+      error: 'Invalid token',
+    };
+  }
+  const tokenDecoded = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
+  if (!user) {
+    return {
+      error: 'User Id does not exist',
+    };
+  }
+  // Search through the data to check if the quiz exists
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return {
+      error: 'Quiz Id does not exist',
+    };
+  }
+  const quizIndex = getQuizIndex(quizId);
+  // Search through the data to check if the question exists
+  const question = findQuestionFromQuestionId(questionId, quizId);
+  if (!question) {
+    return {
+      error: 'Question Id does not exist',
+    };
+  }
+
+  // Check user owns the quiz
+  if (quiz.authUserId !== user.authUserId) {
+    return {
+      error: 'User does not own the quiz',
+    };
+  }
+
+  const newQuestionId = quiz.questions.length + 1;
+  const duplicateQuestion = {
+    question: quiz.question,
+    timeLimit: quiz.timeLimit,
+    points: quiz.points,
+    answerOptions: quiz.answerOptions
+  };
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].questions.push(duplicateQuestion);
+  return { duplicateQuestionId: newQuestionId };
+}
+
+/**
+ * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
+ *
+ * @param {string|number} quizId Id of quiz
+ * @param {string} token
+ * @returns {Object} empty object on success
+ */
+export function adminQuizRestore(quizId, token) {
+  const data = getData();
+
+  if (token === '') {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenObj = decodeToken(token);
+
+  const user = findUserFromToken(tokenObj);
+
+  if (!user) {
+    return { error: 'Token is invalid' };
+  }
+
+  // Find the quiz in the trash by quizId
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    return { error: 'Quiz ID does not refer to a quiz in the trash.' };
+  }
+
+  const quiz = data.trash[quizIndex];
+
+  // Check if the quiz name is already used by another active quiz
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    return { error: 'Quiz name is already used by another active quiz.' };
+  }
+
+  // Validate if the quiz belongs to the user
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'You do not own quiz ID, or quiz does not exist' };
+  }
+
+  // Move quiz from trash to active quizzes
+  data.quizzes.push(quiz);
+  data.trash.splice(quizIndex, 1);
+
+  // Update the timeLastEdited field
+  quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
+
+  return {};
+}
+
+/**
+ * Deletes a question from a quiz
+ * @param {string} token - The token of the user
+ * @param {number} quizId - The ID of the quiz
+ * @param {number} questionId - The ID of the question to be deleted
+ * @returns {object} - An empty object if successful
+ */
+export function adminQuizQuestionDelete(token, quizId, questionId) {
+  if (!token) {
+    return { error: 'Token is empty' };
+  }
+
+  const tokenData = decodeToken(token);
+  const authUserId = tokenData.authUserId;
+
+  const userExists = findUserFromToken(tokenData);
+  if (!userExists) {
+    return { error: 'Token is invalid' };
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.' };
+  }
+
+  if (quiz.authUserId !== authUserId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  }
+
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  if (questionIndex === -1) {
+    return { error: 'Question ID does not refer to a valid question.' };
+  }
+
+  quiz.questions.splice(questionIndex, 1);
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
 }
