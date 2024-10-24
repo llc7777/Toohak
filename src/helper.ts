@@ -104,6 +104,7 @@ export function encodedTokenExists(encodedToken) {
   for (const user of data.users) {
     for (const token of user.tokens) {
       const encoded = createToken(token);
+      console.log("SEARCHING FOR ENCODING", encoded);
       if (encoded === encodedToken) {
         return true;
       }
