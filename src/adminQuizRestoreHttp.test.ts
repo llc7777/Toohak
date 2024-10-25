@@ -44,7 +44,7 @@ const quizInfo = (token, quizId) => {
     qs: { token },
     timeout: TIMEOUT_MS
   });
-  return JSON.parse(result.body.toString()).result.timeLastEdited;
+  return JSON.parse(result.body.toString()).timeLastEdited;
 };
 
 let token = {};

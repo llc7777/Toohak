@@ -247,7 +247,7 @@ app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     return res.status(403).json({ error: result.error });
   }
   saveData();
-  return res.status(200).json({ result });
+  return res.status(200).json(result);
 });
 
 // adminQuizDelete DELETE request
