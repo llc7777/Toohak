@@ -38,8 +38,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
   test('should update quiz description successfully', () => {
     const newDescription = 'Updated description';
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      qs: { token },
-      json: { quizId, description: newDescription },
+      json: { token, description: newDescription },
       timeout: TIMEOUT_MS
     });
 
@@ -49,8 +48,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
 
   test('should update quiz description successfully with empty description', () => {
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      qs: { token },
-      json: { quizId, description: '' },
+      json: { token, description: '' },
       timeout: TIMEOUT_MS
     });
 
@@ -61,8 +59,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
   test('should return error if quiz does not exist', () => {
     const invalidQuizId = 999;
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${invalidQuizId}/description`, {
-      qs: { token },
-      json: { quizId: invalidQuizId, description: 'New description' },
+      json: { token, description: 'New description' },
       timeout: TIMEOUT_MS
     });
 
@@ -84,8 +81,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
 
     const anotherToken = JSON.parse(newUser.body.toString()).token;
     const updateResponse = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      qs: { token: anotherToken },
-      json: { quizId, description: newDescription },
+      json: { token: anotherToken, description: newDescription },
       timeout: TIMEOUT_MS
     });
     expect(updateResponse.statusCode).toBe(403);
@@ -95,8 +91,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
   test('should return error if description is more than 100 characters', () => {
     const longDescription = 'A'.repeat(101);
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      qs: { token },
-      json: { quizId, description: longDescription },
+      json: { token, description: longDescription },
       timeout: TIMEOUT_MS
     });
 
@@ -108,7 +103,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
     const emptyToken = '';
 
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      json: { token: emptyToken, quizId, description: 'Some description' },
+      json: { token: emptyToken, description: 'Some description' },
       timeout: TIMEOUT_MS
     });
 
@@ -121,7 +116,7 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
     const encodedInvalid = createToken(invalidToken);
 
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      json: { token: encodedInvalid, quizId, description: 'Some description' },
+      json: { token: encodedInvalid, description: 'Some description' },
       timeout: TIMEOUT_MS
     });
 
