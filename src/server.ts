@@ -256,15 +256,15 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const token = req.query.token as string;
   if (!encodedTokenExists(token) || token.length === 0) {
     saveData();
-    res.status(401).json({ error: 'Unknown Type: string - error' });
+    return res.status(401).json({ error: 'Token is empty or invalid' });
   }
   const result = adminQuizRemove(token, quizid);
   if ('error' in result) {
     saveData();
-    res.status(403).json({ error: 'Unknown Type: string - error' });
+    return res.status(403).json({ error: result.error });
   }
   saveData();
-  res.status(200).json({ result });
+  return res.status(200).json({ result });
 });
 
 // PUT request for adminQuizQuestionUpdate
