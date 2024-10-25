@@ -260,7 +260,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   }
   const result = adminQuizRemove(token, quizid);
   if ('error' in result) {
-    savaData();
+    saveData();
     return res.status(403).json({ error: result.error });
   }
   saveData();
