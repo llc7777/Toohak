@@ -274,7 +274,7 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const token = req.body.token as string;
   const { question, answerOptions, timeLimit, points } = req.body.questionBody;
 
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+  if (token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
@@ -321,10 +321,10 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
 // PUT request for adminQuizDescription
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
-  const token = req.query.token as string;
+  const token = req.body.token as string;
   const description = req.body.description;
 
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+  if (token.length === 0 || !encodedTokenExists(token)) {
     saveData();
     return res.status(401).json({ error: 'Invalid or missing token.' });
   }
@@ -350,7 +350,7 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
   const questionId = parseInt(req.params.questionId as string);
   const token = req.query.token as string;
 
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+  if (token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
