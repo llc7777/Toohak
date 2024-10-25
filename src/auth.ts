@@ -166,7 +166,6 @@ export function adminUserDetails(token) {
   const tokenDecoded = decodeToken(token);
 
   const user = findUserFromToken(tokenDecoded);
-  console.log(user);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
