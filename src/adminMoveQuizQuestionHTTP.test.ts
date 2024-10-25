@@ -232,8 +232,8 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
     const quizInfoBefore = JSON.parse(quizInfoBeforeRes.body.toString());
 
     // Check the question id before the moving the questions
-    expect(quizInfoBefore.result.questions[0].questionId).toStrictEqual(1);
-    expect(quizInfoBefore.result.questions[1].questionId).toStrictEqual(2);
+    expect(quizInfoBefore.questions[0].questionId).toStrictEqual(1);
+    expect(quizInfoBefore.questions[1].questionId).toStrictEqual(2);
 
     // Move the first question to the end of the questions array
     const resultRes = request('PUT',
@@ -258,8 +258,8 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
     const quizInfoAfter = JSON.parse(quizInfoAfterRes.body.toString());
 
     // Check that the questions are actually changed now
-    expect(quizInfoAfter.result.questions[0].questionId).toStrictEqual(2);
-    expect(quizInfoAfter.result.questions[1].questionId).toStrictEqual(1);
+    expect(quizInfoAfter.questions[0].questionId).toStrictEqual(2);
+    expect(quizInfoAfter.questions[1].questionId).toStrictEqual(1);
   });
   test('time updated for a quiz changes when moving a question', () => {
     const infoBeforeMoving = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
@@ -269,7 +269,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
 
     // Get the time updated before moving
     const timeUpdatedBeforeMove =
-      JSON.parse(infoBeforeMoving.body.toString()).result.timeLastEdited;
+      JSON.parse(infoBeforeMoving.body.toString()).timeLastEdited;
 
     const resultRes = request('PUT',
       `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}/move`, {
@@ -284,7 +284,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
       timeout: TIMEOUT_MS
     });
     // Get the time updated after moving
-    const timeUpdatedAfterMove = JSON.parse(infoAfterMoving.body.toString()).result.timeLastEdited;
+    const timeUpdatedAfterMove = JSON.parse(infoAfterMoving.body.toString()).timeLastEdited;
 
     expect(timeUpdatedBeforeMove).toBeGreaterThanOrEqual(timeUpdatedAfterMove);
 

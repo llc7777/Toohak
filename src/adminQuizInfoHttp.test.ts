@@ -162,7 +162,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(200);
     const parsedRes = JSON.parse(result.body.toString());
-    expect(parsedRes.result).toStrictEqual({
+    expect(parsedRes).toStrictEqual({
 
       quizId: quiz.quizId,
       name: 'Basic quiz',
@@ -215,7 +215,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(200);
     const parsedRes = JSON.parse(result.body.toString());
-    expect(parsedRes.result).toStrictEqual({
+    expect(parsedRes).toStrictEqual({
       quizId: quiz1.quizId,
       name: 'Basic quiz',
       timeCreated: expect.any(Number),
