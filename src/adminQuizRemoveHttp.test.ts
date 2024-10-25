@@ -154,7 +154,7 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
       qs: { token: userToken },
       timeout: TIMEOUT_MS
     });
-    const resultBody = JSON.parse(resultRes.body.toString()).result;
+    const resultBody = JSON.parse(resultRes.body.toString());
     expect(quiz.quizId).toStrictEqual(expect.any(Number));
     expect(resultRes.statusCode).toStrictEqual(200);
     expect(resultBody).toStrictEqual({});
@@ -221,6 +221,6 @@ describe('DELETE /v1/admin/quiz/:quizId/', () => {
     expect(JSON.parse(quizzes.body.toString())).toStrictEqual({ quizzes: [] });
     expect(result.statusCode).toStrictEqual(200);
     expect(quiz.quizId).toStrictEqual(expect.any(Number));
-    expect((JSON.parse(result.body.toString())).result).toStrictEqual({});
+    expect((JSON.parse(result.body.toString()))).toStrictEqual({});
   });
 });
