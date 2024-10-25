@@ -264,7 +264,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     return res.status(403).json({ error: result.error });
   }
   saveData();
-  return res.status(200).json({ result });
+  return res.status(200).json({ });
 });
 
 // PUT request for adminQuizQuestionUpdate
