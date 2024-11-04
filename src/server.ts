@@ -432,7 +432,8 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
     saveData();
     return res.status(401).json(result);
-  } else if (result.error === 'You do not own quiz ID') {
+  } else if (result.error === 'You do not own quiz ID' ||
+    result.error === 'One or more quiz IDs are not currently in the trash.') {
     saveData();
     return res.status(403).json(result);
   } else if ('error' in result) {
