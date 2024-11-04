@@ -769,6 +769,11 @@ export function adminQuizRestore(quizId, token) {
     return { error: 'Token is invalid' };
   }
 
+  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quizInQuizzes) {
+    return {error: 'This is an active quiz not in the trash'};
+  }
+
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
 
   if (quizIndex === -1) {
