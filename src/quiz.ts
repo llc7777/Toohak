@@ -741,7 +741,7 @@ export function adminQuizQuestionUpdate(
 
   for (const index in answerOptions) {
     answerOptions[index].colour = getRandomColour();
-    answerOptions[index].answerId = index + 1;
+    answerOptions[index].answerId = parseInt(index) + 1;
   }
 
   return {};
