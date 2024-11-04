@@ -634,7 +634,7 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
-  return { duplicateQuestionId: newQuestionId };
+  return { duplicatedQuestionId: newQuestionId };
 }
 
 /**
