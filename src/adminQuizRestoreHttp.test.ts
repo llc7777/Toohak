@@ -154,7 +154,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       const invalidQuizId = validQuizId + '1';
       const res = restoreQuiz(invalidQuizId, token);
 
-      expect(res.statusCode).toStrictEqual(400);
+      expect(res.statusCode).toStrictEqual(403);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -173,6 +173,11 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
 
       const userTokenRes2 = registerUser('different2@gmail.com', 'passss123', 'May', 'Lee');
       const userToken2 = userTokenRes2.token;
+
+      request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
+        qs: { token },
+        timeout: TIMEOUT_MS
+      });
       const res = restoreQuiz(quizId, userToken2);
 
       expect(res.statusCode).toStrictEqual(403);

@@ -78,7 +78,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
 
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body.toString())).toStrictEqual({
-      duplicateQuestionId: expect.any(Number)
+      duplicatedQuestionId: expect.any(Number)
     });
   });
 

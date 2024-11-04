@@ -420,7 +420,7 @@ export function adminQuizQuestionCreate(
     };
   }
   // Question time limit is a positive number
-  if (timeLimit < 0) {
+  if (timeLimit <= 0) {
     return {
       error: 'Time limit must be a postive number',
     };
@@ -634,7 +634,7 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
-  return { duplicateQuestionId: newQuestionId };
+  return { duplicatedQuestionId: newQuestionId };
 }
 
 /**
@@ -741,7 +741,7 @@ export function adminQuizQuestionUpdate(
 
   for (const index in answerOptions) {
     answerOptions[index].colour = getRandomColour();
-    answerOptions[index].answerId = index + 1;
+    answerOptions[index].answerId = parseInt(index) + 1;
   }
 
   return {};
@@ -767,6 +767,11 @@ export function adminQuizRestore(quizId, token) {
 
   if (!user) {
     return { error: 'Token is invalid' };
+  }
+
+  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quizInQuizzes) {
+    return { error: 'This is an active quiz not in the trash' };
   }
 
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
