@@ -24,7 +24,7 @@ export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
   const store = getData();
 
-  let decodedTokenData: any = null;
+  let decodedTokenData = null;
 
   // If a token exist, decode and check user
   if (token) {
@@ -55,7 +55,7 @@ export function adminAuthRegister(email: string, password: string,
   if (wrongPassword) {
     return { error: wrongPassword };
   }
-  const userExist = store.users.find((user: any) => user.email === email);
+  const userExist = store.users.find((user) => user.email === email);
   if (userExist) {
     return { error: 'This email is already registered to another user. Please use another email.' };
   }

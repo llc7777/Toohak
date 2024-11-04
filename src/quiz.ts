@@ -771,7 +771,7 @@ export function adminQuizRestore(quizId, token) {
 
   const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quizInQuizzes) {
-    return {error: 'This is an active quiz not in the trash'};
+    return { error: 'This is an active quiz not in the trash' };
   }
 
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);

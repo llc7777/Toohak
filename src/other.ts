@@ -41,6 +41,12 @@ export function emptyTrash(encodedToken, quizIds) {
   }
 
   for (const quizId of quizIds) {
+    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+      return { error: 'This quiz is not in the trash.' };
+    }
+  }
+
+  for (const quizId of quizIds) {
     const quizInTrash = data.trash.find(
       quiz => quiz.quizId === quizId
     );
