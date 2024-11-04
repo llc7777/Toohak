@@ -420,7 +420,7 @@ export function adminQuizQuestionCreate(
     };
   }
   // Question time limit is a positive number
-  if (timeLimit < 0) {
+  if (timeLimit <= 0) {
     return {
       error: 'Time limit must be a postive number',
     };
