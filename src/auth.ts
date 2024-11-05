@@ -186,13 +186,18 @@ export function adminUserDetails(token) {
 /**
  * Given an admin user's token and a set of properties,
  * update the properties of this logged-in admin user.
- * @param {object} token
+ * @param {string} token
  * @param {string} email
  * @param {string} nameFirst
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(token, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast:string
+): AdminUserDetailsUpdateResponse {
   const data = getData();
 
   // Check if the token is empty
