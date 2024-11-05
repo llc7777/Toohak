@@ -192,16 +192,16 @@ export function adminUserDetails(token) {
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
-export function adminUserDetailsUpdate(encodedToken, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(token, email, nameFirst, nameLast) {
   const data = getData();
 
   // Check if the token is empty
-  if (encodedToken === '') {
+  if (token === '') {
     return { error: 'Token is empty' };
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(encodedToken);
+  const tokenData = decodeToken(token);
 
   const user = findUserFromToken(tokenData);
   if (!user) {
