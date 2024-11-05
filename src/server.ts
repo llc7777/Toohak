@@ -22,13 +22,15 @@ import {
   adminQuizNameUpdate, adminQuizDescriptionUpdate,
   adminQuizTrashList,
   adminQuizRestore,
-  adminQuizQuestionCreate,
   adminQuizTransfer,
+} from './quiz';
+import {
+  adminQuizQuestionCreate,
   adminQuizMoveQuestion,
   adminQuizQuestionDuplicate,
   adminQuizQuestionUpdate,
   adminQuizQuestionDelete
-} from './quiz';
+} from './question';
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
