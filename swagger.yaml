@@ -2358,7 +2358,7 @@ paths:
         400:
           description: |
             If any of the following are true:
-            - Name contains invalid characters. Valid characters are alphanumeric
+            - Name contains invalid characters. Valid characters are alphanumeric and spaces.
             - Name of user entered is not unique (compared to other users who have already joined)
             - Session Id does not refer to a valid session
             - Session is not in LOBBY state

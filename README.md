@@ -11,6 +11,9 @@
 * 17/09: Specify 12 merge requests rather than 11 for iteration 0, since there are 12 function stubs.
 * 18/09: Changed weighting of iterations 1, 2 and 3.
 * 24/09: Minor wording change, section 3.1.
+* 05/11: Changes to automarking formula and marking criteria to include `tsc` as part of automarking, specify the inclusion of secure passwords and user session IDs, altered automarking formula to emphasise coverage and include typescript checks, section 5.13.
+* 05/11: Minor wording change, section 5.5 (Elicitation).
+* 05/11: Minor wording change to /player/join route in swagger documentation.
 
 ## 🫡 0. Aims:
 
@@ -1385,7 +1388,7 @@ We have opted not to provide you with a sample structure - because we're not int
 
 Find 2-3 people to interview as target users. Target users are people who currently use a tool like Toohak, or intend to and are not current 1531 students. Record their name and email address. You must not interview members of your project group.
 
-Develop a series of questions (at least 4) to ask these target users to understand what *problems* they might have with quiz tools that are currently unsolved by Toohak. Give these questions to your target users and record their answers.
+Develop a series of questions (at least 4) to ask these target users to understand what *problems* (not solutions) they might have with quiz tools that are currently unsolved by Toohak. Give these questions to your target users and record their answers.
 
 Once you have done this, think about how you would solve the target users' problem(s) and write down a brief description of a proposed solution.
 
@@ -1662,13 +1665,14 @@ The remaining time will be Q&A led by a tutor. That tutor may not necessarily be
   </tr>
   <tr>
     <td>Automarking (Testing & Implementation)</td>
-    <td>60%</td>
+    <td>65%</td>
     <td>
     <ul>
       <li>Correct implementation of specified functions.</li>
       <li>Correctly written tests based on the specification requirements.</li>
       <li>Code coverage.</li>
       <li>Correctly linted code.</li>
+      <li>Correctly type-checked code.</li>
     </ul>
      Whilst we look at your group's work as a whole, if we feel that materially unequal contributions occurred between group members we will assess your individual contribution against this criteria.
      Note: <b>Up to 10% of the automarking will be done on iteration 2 routes that we still expect to be functional / backwards compatible.</b>
@@ -1720,19 +1724,12 @@ The remaining time will be Q&A led by a tutor. That tutor may not necessarily be
     </td>
   </tr>
   <tr>
-    <td>Feature demonstrations</td>
+    <td>Features</td>
     <td>10%</td>
     <td><ul>
       <li>Backend works with the supplied frontend.</li>
       <li>Successful deployment of your project to a public web server.</li>
-    </ul>
-  </td>
-  </tr>
-  <tr>
-    <td>Typescript</td>
-    <td>5%</td>
-    <td><ul>
-      <li>All 5% of marks are gained by ensuring your code is Typescript compliant by passing both <code>npm run tsc</code> as well as passing the linter rule <code>{ "@typescript-eslint/no-explicit-any": "error" }</code></li>
+      <li>Correct implementation of section 5.8. Safer User Sessions and Secure Passwords</li>
     </ul>
   </td>
   </tr>
@@ -1740,14 +1737,15 @@ The remaining time will be Q&A led by a tutor. That tutor may not necessarily be
 
 The formula used for automarking in this iteration is:
 
-`Mark = 95*(t * i * min(c + 1, 100)^3) + 5*e`
-(Mark equals 95% of `t` multiplied by `i` multiplied by the lower of `c + 1` or `100`, to the power of three, plus 5% of `e`).
+`Mark = 90*(g * i^2 * min(c + 1, 100)^4) + 5*e + 5*t`
+(Mark equals 90% of `g` multiplied by `i` squared multiplied by the lower of `c + 1` or `100`, to the power of four, plus 5% of `e`, plus 5% of `t`).
 
 Where:
- * `t` is the mark you receive for your tests running against your code (100% = your implementation passes all of your tests).
+ * `g` is the mark you receive for your tests running against your code (100% = your implementation passes all of your tests).
  * `i` is the mark you receive for our course tests (hidden) running against your code (100% = your implementation passes all of our tests).
  * `c` is the statement coverage score achieved by running coverage on your entire codebase. A single mark is added to this to account for anything impossible to test in a blackbox manner, and is capped at 100.
- * `e` is the score between 0-1 achieved by running <code>eslint</code> against your code and the provided configuration. You may find a mark of 0 if you have used eslint disable comments in your code.
+ * `e` is the score between 0-100 achieved by running <code>eslint</code> against your code and the provided configuration. You may find a mark of 0 if you have used eslint disable comments in your code.
+ * `t` is the score between 0-10 achieved by running <code>tsc</code> against your code and the provided configuration.
 
 ### 🦆 5.14. Dryrun
 
