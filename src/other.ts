@@ -41,7 +41,7 @@ export function emptyTrash(token: Token, quizIds: number): object | ErrorRespons
     return { error: 'quizIds must be an array' };
   }
 
-  if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+  if (data.quizzes.find(quiz => quiz.quizIds === quizIds)) {
     return { error: 'This quiz is not in the trash.' };
   }
 
