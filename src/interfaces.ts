@@ -60,3 +60,10 @@ export interface Data {
 export interface ErrorResponse {
   error: string;
 }
+
+export interface AdminUserDetailsUpdateRequest {
+  token: string;
+  email: string;
+  nameFirst: string;
+  nameLast: string;
+}
