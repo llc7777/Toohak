@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
+import { Token } from 'yaml/dist/parse/cst';
 import { getData } from './dataStore';
 import { decodeToken, findUserFromToken } from './helper';
+import { ErrorResponse, Token } from './interfaces';
 
 /**
  * Reset the state of the application back to the start.
@@ -19,18 +21,18 @@ export function clear() {
 
 /**
  * Function to empty the quiz trash
- * @param {string} token - The authentication token of the user
+ * @param {object} token - The authentication token of the user
  * @param {string} quizIds - A JSON string representing an array of quiz IDs to delete
  * @returns {Object}
  */
-export function emptyTrash(encodedToken, quizIds) {
+export function emptyTrash(token: Token, quizIds: string): object | ErrorResponse {
   const data = getData();
 
-  if (encodedToken === '') {
+  if (token === '') {
     return { error: 'Token is empty' };
   }
 
-  const tokenData = decodeToken(encodedToken);
+  const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
   if (!user) {
     return { error: 'Token is invalid' };
@@ -40,10 +42,8 @@ export function emptyTrash(encodedToken, quizIds) {
     return { error: 'quizIds must be an array' };
   }
 
-  for (const quizId of quizIds) {
-    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
-      return { error: 'This quiz is not in the trash.' };
-    }
+  if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+    return { error: 'This quiz is not in the trash.' };
   }
 
   for (const quizId of quizIds) {
