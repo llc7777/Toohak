@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+import { Token } from 'yaml/dist/parse/cst';
 import { getData } from './dataStore';
 import {
   validQuizName,
@@ -12,6 +13,7 @@ import {
   getQuizIndex,
   findUserFromEmail,
 } from './helper';
+import { ErrorResponse, Token } from './interfaces';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -415,11 +417,11 @@ export function adminQuizTransfer(token, userEmail, quizId) {
 /**
  * Restores a quiz from the trash back to the list of active quizzes for an authenticated user.
  *
- * @param {string|number} quizId Id of quiz
+ * @param {string} quizId Id of quiz
  * @param {string} token
  * @returns {Object} empty object on success
  */
-export function adminQuizRestore(quizId, token) {
+export function adminQuizRestore(quizId: string, token: Token): object | ErrorResponse {
   const data = getData();
 
   if (token === '') {
