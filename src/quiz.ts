@@ -12,6 +12,13 @@ import {
   getQuizIndex,
   findUserFromEmail,
 } from './helper';
+import {
+  ErrorResponse,
+  User,
+  Quiz,
+  Token,
+  Data
+} from './interfaces';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -143,7 +150,7 @@ export function adminQuizCreate(token, name, description) {
     return { error: 'Description is more than 100 characters in length.' };
   }
 
-  const newQuizId = data.quizzes.length + 1;
+  const newQuizId = data.quizzes.length + data.trash.length + 1;
   const newQuiz = {
     quizId: newQuizId,
     authUserId,
@@ -165,24 +172,24 @@ export function adminQuizCreate(token, name, description) {
  * @param {integer} quizId Id of quiz
  * @returns
  */
-export function adminQuizRemove(token, quizId) {
-  const data = getData();
+export function adminQuizRemove(token: string, quizId: number): object | ErrorResponse {
+  const data: Data = getData();
 
-  const tokenObj = decodeToken(token);
-  const user = findUserFromToken(tokenObj);
+  const tokenObj: Token = decodeToken(token);
+  const user: string = findUserFromToken(tokenObj);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
 
   // Check if the quizId refers to a valid quiz
-  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   if (quizIndex === -1) {
     return { error: 'Quiz ID does not refer to a valid quiz.' };
   }
 
   // Check if the quiz belongs to the user
-  const quiz = data.quizzes[quizIndex];
+  const quiz: Quiz = data.quizzes[quizIndex];
   if (quiz.authUserId !== tokenObj.authUserId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
@@ -209,14 +216,14 @@ Gets information for a given quiz given a quizId and authUserId
   - {string} description:
 *
 */
-export function adminQuizInfo(token, quizId) {
-  const tokenObj = decodeToken(token);
-  const user = findUserFromToken(tokenObj);
+export function adminQuizInfo(token: string, quizId: number): Quiz | ErrorResponse {
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
   if (!user) {
     return { error: 'Unable to find user Id ' };
   }
 
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'Quiz unable to be found' };
   }
@@ -369,12 +376,15 @@ Updates the description of the relevant quiz
 @param {integer} quizId of a quiz
 @returns empty object { }
 */
-export function adminQuizTransfer(token, userEmail, quizId) {
-  const data = getData();
+export function adminQuizTransfer(
+  token: string,
+  userEmail: string,
+  quizId: number): object | ErrorResponse {
+  const data: Data = getData();
 
-  const tokenDecoded = decodeToken(token);
-  const loggedInUser = findUserFromToken(tokenDecoded);
-  const userToTransferTo = findUserFromEmail(userEmail);
+  const tokenDecoded: string = decodeToken(token);
+  const loggedInUser: User = findUserFromToken(tokenDecoded);
+  const userToTransferTo: User = findUserFromEmail(userEmail);
 
   if (!userToTransferTo) {
     return {
@@ -390,7 +400,7 @@ export function adminQuizTransfer(token, userEmail, quizId) {
     };
   }
 
-  const quizToTransfer = findQuizFromQuizId(quizId);
+  const quizToTransfer: Quiz = findQuizFromQuizId(quizId);
   if (!quizToTransfer) {
     return {
       error: 'No quiz exists with the given quizId',
