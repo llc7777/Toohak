@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { Token } from 'yaml/dist/parse/cst';
 import { getData } from './dataStore';
 import { decodeToken, findUserFromToken } from './helper';
 import { ErrorResponse, Token } from './interfaces';
