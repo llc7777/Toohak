@@ -19,6 +19,7 @@ import {
   findUserIndexFromToken,
 } from './helper';
 import validator from 'validator';
+import { ErrorResponse, Token } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
@@ -186,18 +187,18 @@ export function adminUserDetails(token) {
 /**
  * Given an admin user's token and a set of properties,
  * update the properties of this logged-in admin user.
- * @param {string} token
+ * @param {object} token
  * @param {string} email
  * @param {string} nameFirst
  * @param {string} nameLast
  * @returns {object} - Returns an empty object
  */
 export function adminUserDetailsUpdate(
-  token: string,
+  token: Token,
   email: string,
   nameFirst: string,
   nameLast:string
-): AdminUserDetailsUpdateResponse {
+): object | ErrorResponse {
   const data = getData();
 
   // Check if the token is empty
