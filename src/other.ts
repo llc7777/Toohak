@@ -22,10 +22,10 @@ export function clear() {
 /**
  * Function to empty the quiz trash
  * @param {object} token - The authentication token of the user
- * @param {string} quizIds - A JSON string representing an array of quiz IDs to delete
+ * @param {number} quizIds - A JSON number representing an array of quiz IDs to delete
  * @returns {Object}
  */
-export function emptyTrash(token: Token, quizIds: string): object | ErrorResponse {
+export function emptyTrash(token: Token, quizIds: number): object | ErrorResponse {
   const data = getData();
 
   if (token === '') {
