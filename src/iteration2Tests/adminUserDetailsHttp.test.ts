@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
-import config from './config.json';
-import { decodeToken } from './helper';
+import config from '../config.json';
+import { decodeToken } from '../helper';
 
 const port = config.port;
 const url = config.url;
