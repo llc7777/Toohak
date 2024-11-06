@@ -12,6 +12,17 @@ export interface User {
   token: Token[];
 }
 
+export interface UserInfo {
+  user:
+  {
+    userId: number
+    name: string,
+    email: string,
+    numSuccessfulLogins: number,
+    numFailedPasswordsSinceLastLogin: number
+  }
+}
+
 export interface Token {
   sessionId: number;
   authUserId: number;
@@ -59,4 +70,8 @@ export interface Data {
 
 export interface ErrorResponse {
   error: string;
+}
+
+export interface QuestionIdObject {
+  questionId: number;
 }

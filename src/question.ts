@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+import { Token } from 'yaml/dist/parse/cst';
 import { getData } from './dataStore';
 
 import {
@@ -12,27 +13,28 @@ import {
   findQuestionFromQuestionId,
   getQuestionIndexFromQuestionId,
 } from './helper';
+import { AnswerOptions, Data, QuestionIdObject, QuestionInfo } from './interfaces';
 
 export function adminQuizQuestionCreate(
-  quizId,
-  token,
-  question,
-  timeLimit,
-  points,
-  answerOptions
-) {
-  const data = getData();
+  quizId: number,
+  token: string,
+  question: string,
+  timeLimit: number,
+  points: number,
+  answerOptions: AnswerOptions
+): QuestionIdObject {
+  const data: Data = getData();
 
   // Token, quizId, user checks
-  let user = false;
-  let quiz = false;
+  let user: boolean = false;
+  let quiz: boolean = false;
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
 
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
@@ -51,7 +53,7 @@ export function adminQuizQuestionCreate(
       error: 'User does not own the quiz',
     };
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Question body checks
   // Question string between 5 and 50 characters
   if (question.length < 5 || question.length > 50) {
@@ -72,7 +74,7 @@ export function adminQuizQuestionCreate(
     };
   }
   // Sum of question time limits in quiz does not exceed 3 minutes
-  let totalTime = timeLimit;
+  let totalTime: number = timeLimit;
   for (const question of quiz.questions) {
     totalTime += question.timeLimit;
   }
@@ -108,7 +110,7 @@ export function adminQuizQuestionCreate(
     }
   }
   // There is at least 1 correct answer
-  let hasCorrectAnswer = false;
+  let hasCorrectAnswer: boolean = false;
   for (const options of answerOptions) {
     if (options.correct === true) {
       hasCorrectAnswer = true;
@@ -126,8 +128,8 @@ export function adminQuizQuestionCreate(
     answerOptions[index].answerId = parseInt(index) + 1;
   }
 
-  const newQuestionId = quiz.questions.length + 1;
-  const newQuestion = {
+  const newQuestionId: number = quiz.questions.length + 1;
+  const newQuestion: QuestionInfo = {
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
@@ -183,16 +185,20 @@ export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
   return { };
 }
 
-export function adminQuizQuestionDuplicate(quizId, questionId, token) {
-  let user = false;
-  const data = getData();
+export function adminQuizQuestionDuplicate(
+  quizId: number,
+  questionId: number,
+  token: string
+): QuestionIdObject {
+  let user: boolean = false;
+  const data: Data = getData();
   // Checks token and user is valid
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
@@ -200,15 +206,15 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     };
   }
   // Search through the data to check if the quiz exists
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'Quiz Id does not exist',
     };
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Search through the data to check if the question exists
-  const question = findQuestionFromQuestionId(questionId, quizId);
+  const question: string = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
     return {
       error: 'Question Id does not exist',
@@ -222,8 +228,9 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     };
   }
 
-  const newQuestionId = quiz.questions.length + 1;
-  const duplicateQuestion = {
+  const newQuestionId: number = quiz.questions.length + 1;
+  const duplicateQuestion: QuestionInfo = {
+    questionId: newQuestionId,
     question: quiz.question,
     timeLimit: quiz.timeLimit,
     points: quiz.points,

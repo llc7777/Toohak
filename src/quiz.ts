@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+import { Token } from 'yaml/dist/parse/cst';
 import { getData } from './dataStore';
 import {
   validQuizName,
@@ -12,6 +13,7 @@ import {
   getQuizIndex,
   findUserFromEmail,
 } from './helper';
+import { Data, ErrorResponse } from './interfaces';
 
 /**
  * Retrieve a list of all quizzes created by the authenticated user.
@@ -243,22 +245,20 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(token, quizId, name) {
-  let user = false;
-  let isQuizExist = false;
-  const data = getData();
+export function adminQuizNameUpdate(
+  token: string,
+  quizId: number,
+  name: string
+): object | ErrorResponse {
+  let user: boolean = false;
+  const data: Data = getData();
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
-  // Search through the data to check if the user exists
-  // for (let i = 0; i < data.users.length; i++) {
-  //   if (data.users[i].authUserId === authUserId) {
-  //     isUserExist = true;
-  //   }
-  // }
-  const tokenDecoded = decodeToken(token);
+
+  const tokenDecoded: Token = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
@@ -267,20 +267,19 @@ export function adminQuizNameUpdate(token, quizId, name) {
     // Check quiz exists
   }
   // Search through the data to check if the quiz exists
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      isQuizExist = true;
-    }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+
+  if (!quiz) {
+    return {
+      error: 'Quiz Id does not exist',
+    };
   }
   // Check user owns the quiz
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].quizId === quizId) {
-      if (data.quizzes[i].authUserId !== user.authUserId) {
-        return {
-          error: 'User does not own the quiz',
-        };
-      }
-    }
+  if (user.authUserId !== quiz.authUserId) {
+    return {
+      error: 'User does not own the quiz',
+    };
   }
   // Check quiz name is already used
   for (let i = 0; i < data.quizzes.length; i++) {
@@ -291,13 +290,8 @@ export function adminQuizNameUpdate(token, quizId, name) {
     }
   }
 
-  // Check user exists
-  if (!isQuizExist) {
-    return {
-      error: 'Quiz Id does not exist',
-    };
-    // Check name contains invalid characters. Valid characters are alphanumeric and spaces.
-  } else if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
+  // Check name contains invalid characters. Valid characters are alphanumeric and spaces.
+  if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
     return {
       error: 'Name contains invalid characters (Valid characters are alphanumeric and spaces)',
     };
