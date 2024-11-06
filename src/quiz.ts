@@ -324,38 +324,35 @@ export function adminQuizNameUpdate(token, quizId, name) {
     }
   }
 }
-/**
-Updates the description of the relevant quiz
-@param {integer} authUser Id of user
-@param {integer} quizId of user
-@param {string} description
-@returns empty object { }
-*/
-export function adminQuizDescriptionUpdate(token, quizId, description) {
-  const data = getData();
 
+/**
+ * Updates the description of the quiz
+ * @param {string} token - The user's authentication token
+ * @param {number} quizId - The ID of the quiz to be updated
+ * @param {string} description - The new description for the quiz
+ * @returns {object | ErrorResponse} - An empty object on success or an error
+ */
+export function adminQuizDescriptionUpdate(
+  token: string,
+  quizId: number,
+  description: string
+): object | ErrorResponse {
   if (!token) {
     return { error: 'Token is empty' };
   }
 
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
-
-  const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
-      t.authUserId === authUserId)
-  );
-
-  if (!userExists) {
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
+  if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
 
-  const quiz = data.quizzes.find(q => q.quizId === quizId);
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.' };
   }
 
-  if (quiz.authUserId !== authUserId) {
+  if (quiz.authUserId !== user.authUserId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
 
