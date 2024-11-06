@@ -62,7 +62,7 @@ export interface ErrorResponse {
 }
 
 export interface AdminUserDetailsUpdateRequest {
-  token: string;
+  token: Token;
   email: string;
   nameFirst: string;
   nameLast: string;
