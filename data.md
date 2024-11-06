@@ -14,7 +14,7 @@ let data = {
 				timeCreated: -1,
 				numSuccessfulLogins: -1,
 				numFailedPasswordsSinceLastLogin: -1,
-				tokens = ['string'],
+				tokens = [ {sessionId: -1, authUserId = -1} ],
 			}
 		],
 		quizzes: [
