@@ -63,6 +63,12 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       });
 
       const validQuizId2 = quizCreateRes2.quizId;
+
+      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId2}`, {
+        qs: { token },
+        timeout: TIMEOUT_MS
+      });
+
       const res = emptyTrash(token, [validQuizId, validQuizId2]);
 
       expect(res.statusCode).toStrictEqual(200);

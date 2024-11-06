@@ -12,6 +12,7 @@ import {
   findQuestionFromQuestionId,
   getQuestionIndexFromQuestionId,
 } from './helper';
+import { ErrorResponse, User, Token, Quiz } from './interfaces';
 
 export function adminQuizQuestionCreate(
   quizId,
@@ -140,15 +141,20 @@ export function adminQuizQuestionCreate(
   return { questionId: newQuestionId };
 }
 
-export function adminQuizMoveQuestion(token, quizId, questionId, newPosition) {
-  const tokenObj = decodeToken(token);
-  const user = findUserFromToken(tokenObj);
+export function adminQuizMoveQuestion(
+  token: string,
+  quizId: number,
+  questionId: number,
+  newPosition: number
+): object | ErrorResponse {
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
 
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'The given quizId does not refer to any quiz',
