@@ -232,7 +232,6 @@ Updates the name of the relevant quiz
 @returns empty object { }
 */
 export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
-  let isQuizExist = false;
   const data = getData();
   if (!encodedTokenExists(token)) {
     return {

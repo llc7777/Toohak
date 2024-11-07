@@ -17,7 +17,6 @@ import {
   Token,
   Quiz,
   AnswerOptions,
-  Data,
   QuestionInfo
 } from './interfaces';
 
@@ -29,7 +28,6 @@ export function adminQuizQuestionCreate(
   points: number,
   answerOptions: AnswerOptions[]
 ) {
-
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',

@@ -19,7 +19,6 @@ import {
   adminUserDetailsErrorChecking,
 } from './helper';
 import { ErrorResponse, Token, User } from './interfaces';
-import { UserInfo } from 'os';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
