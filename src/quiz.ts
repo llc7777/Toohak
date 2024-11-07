@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import { getData } from './dataStore';
 import {
   validQuizName,
@@ -17,7 +16,8 @@ import {
   User,
   Quiz,
   Token,
-  Data
+  Data,
+  QuizInfo,
 } from './interfaces';
 
 /**
@@ -25,8 +25,8 @@ import {
  * @param {string} token of user
  * @returns {object} - An object containing a list of quizzes created by the user
  */
-export function adminQuizList(token) {
-  const data = getData();
+export function adminQuizList(token: string) {
+  const data: Data = getData();
   const arr = [];
   // Check if the token is empty
   if (token === '') {
@@ -36,8 +36,8 @@ export function adminQuizList(token) {
   }
 
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
+  const tokenData: Token = decodeToken(token);
+  const authUserId: number = tokenData.authUserId;
 
   // verify user with the sessionId and authUserId
   const userExists = findUserFromToken(tokenData);
@@ -68,7 +68,7 @@ export function adminQuizList(token) {
  * @param {string} token of user
  * @returns {object} - An object containing quizzes in trash
  */
-export function adminQuizTrashList(token) {
+export function adminQuizTrashList(token: string) {
   const data = getData();
   const arr = [];
 
@@ -111,8 +111,12 @@ export function adminQuizTrashList(token) {
  * @param {string} description Description of new quiz
  * @returns
  */
-export function adminQuizCreate(token, name, description) {
-  const data = getData();
+export function adminQuizCreate(
+  token: string,
+  name: string,
+  description: string
+) {
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
@@ -151,13 +155,13 @@ export function adminQuizCreate(token, name, description) {
   }
 
   const newQuizId = data.quizzes.length + data.trash.length + 1;
-  const newQuiz = {
-    quizId: newQuizId,
+  const newQuiz: Quiz = {
     authUserId,
+    quizId: newQuizId,
     name,
-    description,
     timeCreated: Math.floor(Date.now() / 1000),
     timeLastEdited: Math.floor(Date.now() / 1000),
+    description,
     questions: [],
   };
 
@@ -216,7 +220,7 @@ Gets information for a given quiz given a quizId and authUserId
   - {string} description:
 *
 */
-export function adminQuizInfo(token: string, quizId: number): Quiz | ErrorResponse {
+export function adminQuizInfo(token: string, quizId: number): QuizInfo | ErrorResponse {
   const tokenObj: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenObj);
   if (!user) {
@@ -250,8 +254,7 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(token, quizId, name) {
-  let user = false;
+export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
   let isQuizExist = false;
   const data = getData();
   if (!encodedTokenExists(token)) {
@@ -266,8 +269,8 @@ export function adminQuizNameUpdate(token, quizId, name) {
   //   }
   // }
   const tokenDecoded = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
-  if (!user) {
+  const user = findUserFromToken(tokenDecoded);
+  if (user === null) {
     return {
       error: 'User Id does not exist',
     };
@@ -331,7 +334,11 @@ Updates the description of the relevant quiz
 @param {string} description
 @returns empty object { }
 */
-export function adminQuizDescriptionUpdate(token, quizId, description) {
+export function adminQuizDescriptionUpdate(
+  token: Token,
+  quizId: number,
+  description: string
+) {
   const data = getData();
 
   if (!token) {
@@ -342,7 +349,7 @@ export function adminQuizDescriptionUpdate(token, quizId, description) {
   const authUserId = tokenData.authUserId;
 
   const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some(t => t.sessionId === tokenData.sessionId &&
+    user.tokens && user.tokens.some((t: Token) => t.sessionId === tokenData.sessionId &&
       t.authUserId === authUserId)
   );
 
@@ -382,7 +389,7 @@ export function adminQuizTransfer(
   quizId: number): object | ErrorResponse {
   const data: Data = getData();
 
-  const tokenDecoded: string = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
 
@@ -429,7 +436,7 @@ export function adminQuizTransfer(
  * @param {string} token
  * @returns {Object} empty object on success
  */
-export function adminQuizRestore(quizId: number, token: Token): object | ErrorResponse {
+export function adminQuizRestore(quizId: number, token: string): object | ErrorResponse {
   const data = getData();
 
   if (token === '') {

@@ -27,6 +27,16 @@ export interface Quiz {
   questions: QuestionInfo[];
 }
 
+export interface QuizInfo {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string,
+  numOfQuestions: number,
+  questions: QuestionInfo[],
+}
+
 export interface AnswerOptions {
   answerId: number;
   answer: string;
