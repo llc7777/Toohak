@@ -13,6 +13,7 @@ import {
   findUserFromEmail,
   adminQuizInfoErrorChecking,
   adminQuizRemoveErrorChecking,
+  adminQuizTransferErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -356,40 +357,11 @@ export function adminQuizTransfer(
   quizId: number): object | ErrorResponse {
   const data: Data = getData();
 
+  adminQuizTransferErrorChecking(token, userEmail, quizId);
+
   const tokenDecoded: string = decodeToken(token);
   const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
-
-  if (!userToTransferTo) {
-    return {
-      error: 'No user has the given email',
-    };
-  } else if (!loggedInUser) {
-    return {
-      error: 'This is not a valid logged in user',
-    };
-  } else if (loggedInUser.email === userEmail) {
-    return {
-      error: 'The email is the same as the one of the current logged in user',
-    };
-  }
-
-  const quizToTransfer: Quiz = findQuizFromQuizId(quizId);
-  if (!quizToTransfer) {
-    return {
-      error: 'No quiz exists with the given quizId',
-    };
-  } else if (quizToTransfer.authUserId !== tokenDecoded.authUserId) {
-    return {
-      error: 'This user does not own the quiz',
-    };
-  }
-
-  if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
-    return {
-      error: 'This user already owns a quiz with the same name',
-    };
-  }
 
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
