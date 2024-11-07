@@ -530,6 +530,36 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   return res.status(200).json(result);
 });
 
+// v2 Routes
+
+app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response): void => {
+  const token: Token = req.headers.token as string | undefined;
+  const quizIds: string = req.query.quizIds as string;
+
+  try {
+    const parsedQuizIds: number[] = JSON.parse(quizIds);
+    const result = emptyTrash(token, parsedQuizIds);
+
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
+    saveData();
+    res.status(200).json(result);
+  } catch (error: string) {
+    saveData();
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    } else if (
+      error.message === 'You do not own quiz ID' ||
+      error.message === 'This quiz does not exist.'
+    ) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
