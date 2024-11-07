@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import { getData } from './dataStore';
-import { decodeToken, findUserFromToken } from './helper';
+import { emptyTrashErrorChecking } from './helper';
 import { ErrorResponse, Token } from './interfaces';
 
 /**
@@ -25,39 +25,9 @@ export function clear() {
  * @returns {Object}
  */
 export function emptyTrash(token: Token, quizIds: number): object | ErrorResponse {
+  emptyTrashErrorChecking(token, quizIds);
+
   const data = getData();
-
-  if (token === '') {
-    return { error: 'Token is empty' };
-  }
-
-  const tokenData = decodeToken(token);
-  const user = findUserFromToken(tokenData);
-  if (!user) {
-    return { error: 'Token is invalid' };
-  }
-
-  if (!Array.isArray(quizIds)) {
-    return { error: 'quizIds must be an array' };
-  }
-
-  if (data.quizzes.find(quiz => quiz.quizIds === quizIds)) {
-    return { error: 'This quiz is not in the trash.' };
-  }
-
-  for (const quizId of quizIds) {
-    const quizInTrash = data.trash.find(
-      quiz => quiz.quizId === quizId
-    );
-
-    if (!quizInTrash) {
-      return { error: 'One or more quiz IDs are not currently in the trash.' };
-    }
-
-    if (quizInTrash.authUserId !== user.authUserId) {
-      return { error: 'You do not own quiz ID' };
-    }
-  }
   data.trash = data.trash.filter(quiz => !quizIds.includes(quiz.quizId));
 
   return {};

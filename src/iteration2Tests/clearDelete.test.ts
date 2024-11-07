@@ -1,5 +1,5 @@
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
+import { port, url } from '../config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -44,7 +44,7 @@ const registerUser = (
 };
 
 // Helper function to create a quiz
-const createQuiz = (authUserId: string, name: string, description: string) => {
+const createQuiz = (authUserId: string | undefined, name: string, description: string) => {
   const res = request('POST', `${SERVER_URL}/v1/admin/quiz/create`, {
     json: { authUserId, name, description },
     timeout: TIMEOUT_MS,

@@ -6,10 +6,12 @@ import {
   decodeToken,
   findUserFromToken,
   encodedTokenExists,
-  userHasQuizWithSameName,
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
+  adminQuizInfoErrorChecking,
+  adminQuizRemoveErrorChecking,
+  adminQuizTransferErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -177,26 +179,12 @@ export function adminQuizCreate(
  * @returns
  */
 export function adminQuizRemove(token: string, quizId: number): object | ErrorResponse {
+  adminQuizRemoveErrorChecking(token, quizId);
+
   const data: Data = getData();
 
-  const tokenObj: Token = decodeToken(token);
-  const user: string = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
-  // Check if the quizId refers to a valid quiz
-  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
-  }
-
-  // Check if the quiz belongs to the user
-  const quiz: Quiz = data.quizzes[quizIndex];
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
-  }
+  const quiz = findQuizFromQuizId(quizId);
+  const quizIndex = getQuizIndex(quizId);
 
   // Send quiz to trash before removing it
   data.trash.push(quiz);
@@ -228,13 +216,6 @@ export function adminQuizInfo(token: string, quizId: number): QuizInfo | ErrorRe
   }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
-  if (!quiz) {
-    return { error: 'Quiz unable to be found' };
-  }
-
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return { error: 'The given user does not own the given quiz' };
-  }
 
   return {
     quizId: quiz.quizId,
@@ -341,6 +322,18 @@ export function adminQuizDescriptionUpdate(
 ) {
   const data = getData();
 
+/**
+ * Updates the description of the quiz
+ * @param {string} token - The user's authentication token
+ * @param {number} quizId - The ID of the quiz to be updated
+ * @param {string} description - The new description for the quiz
+ * @returns {object | ErrorResponse} - An empty object on success or an error
+ */
+export function adminQuizDescriptionUpdate(
+  token: string,
+  quizId: number,
+  description: string
+): object | ErrorResponse {
   if (!token) {
     return { error: 'Token is empty' };
   }
@@ -357,12 +350,12 @@ export function adminQuizDescriptionUpdate(
     return { error: 'AuthUserId is not a valid user.' };
   }
 
-  const quiz = data.quizzes.find(q => q.quizId === quizId);
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.' };
   }
 
-  if (quiz.authUserId !== authUserId) {
+  if (quiz.authUserId !== user.authUserId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
 
@@ -392,37 +385,6 @@ export function adminQuizTransfer(
   const tokenDecoded: Token = decodeToken(token);
   const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
-
-  if (!userToTransferTo) {
-    return {
-      error: 'No user has the given email',
-    };
-  } else if (!loggedInUser) {
-    return {
-      error: 'This is not a valid logged in user',
-    };
-  } else if (loggedInUser.email === userEmail) {
-    return {
-      error: 'The email is the same as the one of the current logged in user',
-    };
-  }
-
-  const quizToTransfer: Quiz = findQuizFromQuizId(quizId);
-  if (!quizToTransfer) {
-    return {
-      error: 'No quiz exists with the given quizId',
-    };
-  } else if (quizToTransfer.authUserId !== tokenDecoded.authUserId) {
-    return {
-      error: 'This user does not own the quiz',
-    };
-  }
-
-  if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
-    return {
-      error: 'This user already owns a quiz with the same name',
-    };
-  }
 
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;

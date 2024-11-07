@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;

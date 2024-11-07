@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
+import { port, url } from '../config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -67,8 +67,8 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
           timeLimit: 5,
           points: 6,
           answerOptions: [
-            { answer: 'Blue Whale', correct: true },
-            { answer: 'Whale Shark', correct: false },
+            { answer: 'Blue Whale', correctAnswer: true },
+            { answer: 'Whale Shark', correctAnswer: false },
           ],
         },
       },
