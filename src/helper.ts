@@ -266,7 +266,7 @@ export function adminQuizRemoveErrorChecking(
   }
 }
 
-  export function emptyTrashErrorChecking(token: Token, quizIds: number): object | ErrorResponse {
+export function emptyTrashErrorChecking(token: Token, quizIds: number): object | ErrorResponse {
   const data = getData();
 
   if (token === '') {
