@@ -35,6 +35,7 @@ import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 import { AdminUserDetailsUpdateRequest } from './interfaces';
+import { Token } from 'yaml/dist/parse/cst';
 
 // Set up web app
 const app = express();
@@ -451,24 +452,32 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   res.status(200).json({ });
 });
 
-app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const quizIds = req.query.quizIds as string;
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response): void => {
+  const token: Token = req.query.token as string;
+  const quizIds: string = req.query.quizIds as string;
 
-  const result = emptyTrash(token, JSON.parse(quizIds));
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+  try {
+    const parsedQuizIds: number[] = JSON.parse(quizIds);
+    const result = emptyTrash(token, parsedQuizIds);
+
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
     saveData();
-    return res.status(401).json(result);
-  } else if (result.error === 'You do not own quiz ID' ||
-    result.error === 'One or more quiz IDs are not currently in the trash.') {
+    res.status(200).json(result);
+  } catch (error: string) {
     saveData();
-    return res.status(403).json(result);
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json(result);
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    } else if (
+      error.message === 'You do not own quiz ID' ||
+      error.message === 'This quiz does not exist.'
+    ) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // POST request to transfer a quiz to another user
