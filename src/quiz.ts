@@ -209,11 +209,7 @@ Gets information for a given quiz given a quizId and authUserId
 *
 */
 export function adminQuizInfo(token: string, quizId: number): QuizInfo | ErrorResponse {
-  const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-  if (!user) {
-    return { error: 'Unable to find user Id ' };
-  }
+  adminQuizInfoErrorChecking(token, quizId);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
@@ -308,19 +304,6 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
     }
   }
 }
-/**
-Updates the description of the relevant quiz
-@param {integer} authUser Id of user
-@param {integer} quizId of user
-@param {string} description
-@returns empty object { }
-*/
-export function adminQuizDescriptionUpdate(
-  token: Token,
-  quizId: number,
-  description: string
-) {
-  const data = getData();
 
 /**
  * Updates the description of the quiz
@@ -338,15 +321,13 @@ export function adminQuizDescriptionUpdate(
     return { error: 'Token is empty' };
   }
 
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
+  if (!token) {
+    return { error: 'Token is empty' };
+  }
 
-  const userExists = data.users.some(user =>
-    user.tokens && user.tokens.some((t: Token) => t.sessionId === tokenData.sessionId &&
-      t.authUserId === authUserId)
-  );
-
-  if (!userExists) {
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
+  if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
 
@@ -380,10 +361,10 @@ export function adminQuizTransfer(
   token: string,
   userEmail: string,
   quizId: number): object | ErrorResponse {
+  adminQuizTransferErrorChecking(token, userEmail, quizId);
+
   const data: Data = getData();
 
-  const tokenDecoded: Token = decodeToken(token);
-  const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
 
   const quizIndex = getQuizIndex(quizId);
