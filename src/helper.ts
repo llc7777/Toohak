@@ -235,3 +235,39 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz 
     throw new Error('403 - User does not own the quiz');
   }
 }
+
+export function emptyTrashErrorChecking(token: Token, quizIds: number): object | ErrorResponse {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('Token is empty');
+  }
+
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('Token is invalid');
+  }
+
+  if (!Array.isArray(quizIds)) {
+    throw new Error('quizIds must be an array');
+  }
+
+  if (data.quizzes.find(quiz => quiz.quizIds === quizIds)) {
+    throw new Error('This quiz does not exist.');
+  }
+
+  for (const quizId of quizIds) {
+    const quizInTrash = data.trash.find(
+      quiz => quiz.quizId === quizId
+    );
+
+    if (!quizInTrash) {
+      throw new Error('One or more quiz IDs is not currently in the trash.');
+    }
+
+    if (quizInTrash.authUserId !== user.authUserId) {
+      throw new Error('You do not own quiz ID');
+    }
+  }
+}
