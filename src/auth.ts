@@ -19,7 +19,6 @@ import {
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
 } from './helper';
-import validator from 'validator';
 import { ErrorResponse, Token, User } from './interfaces';
 import { UserInfo } from 'os';
 
