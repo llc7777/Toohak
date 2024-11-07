@@ -17,6 +17,7 @@ import {
   findUserFromToken,
   encodedTokenExists,
   findUserIndexFromToken,
+  adminUserDetailsErrorChecking,
 } from './helper';
 import validator from 'validator';
 import { ErrorResponse, Token, User } from './interfaces';
@@ -200,45 +201,11 @@ export function adminUserDetailsUpdate(
   nameFirst: string,
   nameLast:string
 ): object | ErrorResponse {
-  const data = getData();
+  // Check for errors
+  adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
 
-  // Check if the token is empty
-  if (token === '') {
-    return { error: 'Token is empty' };
-  }
-
-  // Find the user from the token
   const tokenData = decodeToken(token);
-
   const user = findUserFromToken(tokenData);
-  if (!user) {
-    return {
-      error: 'Token is invalid',
-    };
-  }
-
-  // Check if the email is valid
-  if (!validator.isEmail(email)) {
-    return { error: 'Email is not valid. Please try another email.' };
-  }
-
-  //  Check if the email is already in use by another user
-  const emailInUse = data.users.find(
-    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
-  if (emailInUse) {
-    return { error: 'Email is currently used by another user. Please use another email.' };
-  }
-
-  // Validating first name and last name
-  const firstNameError = isValidName(nameFirst, 'First');
-  if (firstNameError) {
-    return { error: firstNameError };
-  }
-
-  const lastNameError = isValidName(nameLast, 'Last');
-  if (lastNameError) {
-    return { error: lastNameError };
-  }
 
   // Update user properties
   user.email = email;

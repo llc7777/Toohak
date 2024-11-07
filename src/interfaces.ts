@@ -75,3 +75,9 @@ export interface ErrorResponse {
 export interface QuestionIdObject {
   questionId: number;
 }
+export interface AdminUserDetailsUpdateRequest {
+  token: Token;
+  email: string;
+  nameFirst: string;
+  nameLast: string;
+}

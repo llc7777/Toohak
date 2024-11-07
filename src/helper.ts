@@ -2,6 +2,13 @@
 // @ts-nocheck
 import { getData } from './dataStore';
 import validator from 'validator';
+import {
+  Token,
+  User,
+  Quiz,
+  ErrorResponse,
+  Data,
+} from './interfaces';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
@@ -168,4 +175,129 @@ export function getRandomColour() {
   const colours = ['green', 'red', 'blue', 'brown', 'orange', 'yellow', 'pink', 'purple'];
   const randomIndex = Math.floor(Math.random() * colours.length);
   return colours[randomIndex];
+}
+
+export function adminUserDetailsErrorChecking(
+  token: Token,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): void {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  // Check if the email is valid
+  if (!validator.isEmail(email)) {
+    throw new Error('400 - Email is not valid. Please try another email.');
+  }
+
+  //  Check if the email is already in use by another user
+  const emailInUse = data.users.find(
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
+  if (emailInUse) {
+    throw new Error('400 - Email is currently used by another user. Please use another email.');
+  }
+
+  // Validating first name and last name
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    throw new Error(firstNameError);
+  }
+
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    throw new Error(lastNameError);
+  }
+}
+
+export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz | ErrorResponse {
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+  if (!user) {
+    throw new Error('401 - Invalid Token');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
+
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+}
+
+export function adminQuizRemoveErrorChecking(
+  token: string,
+  quizId: number
+): object | ErrorResponse {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const data: Data = getData();
+  const tokenObj: Token = decodeToken(token);
+  const user: string = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Given user is not logged in');
+  }
+
+  // Check if the quizId refers to a valid quiz
+  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  if (quizIndex === -1) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+
+  // Check if the quiz belongs to the user
+  const quiz: Quiz = data.quizzes[quizIndex];
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+}
+
+export function emptyTrashErrorChecking(token: Token, quizIds: number): object | ErrorResponse {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('Token is empty');
+  }
+
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('Token is invalid');
+  }
+
+  if (!Array.isArray(quizIds)) {
+    throw new Error('quizIds must be an array');
+  }
+
+  if (data.quizzes.find(quiz => quiz.quizIds === quizIds)) {
+    throw new Error('This quiz does not exist.');
+  }
+
+  for (const quizId of quizIds) {
+    const quizInTrash = data.trash.find(
+      quiz => quiz.quizId === quizId
+    );
+
+    if (!quizInTrash) {
+      throw new Error('One or more quiz IDs is not currently in the trash.');
+    }
+
+    if (quizInTrash.authUserId !== user.authUserId) {
+      throw new Error('You do not own quiz ID');
+    }
+  }
 }
