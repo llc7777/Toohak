@@ -11,6 +11,7 @@ import {
   getRandomColour,
   findQuestionFromQuestionId,
   getQuestionIndexFromQuestionId,
+  adminQuizMoveQuestionErrorChecking
 } from './helper';
 import { Quiz, Token, User, ErrorResponse, AnswerOptions, QuestionInfo } from './interface';
 
@@ -147,42 +148,13 @@ export function adminQuizMoveQuestion(
   questionId: number,
   newPosition: number
 ): object | ErrorResponse {
-  const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
+  adminQuizMoveQuestionErrorChecking(token, quizId, questionId, newPosition);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
-  if (!quiz) {
-    return {
-      error: 'The given quizId does not refer to any quiz',
-    };
-  }
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return {
-      error: 'This user does not own the given quiz',
-    };
-  }
-  if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
-    return {
-      error: 'The new position is outside the bounds of the questions array',
-    };
-  }
-  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
-  if (questionIndex === -1) {
-    return {
-      error: 'No question exists within the quiz for the given questionId',
-    };
-  }
-  if (questionIndex === newPosition) {
-    return {
-      error: 'The new position and the current question position are the same',
-    };
-  }
+  const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
+
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
-  const tempQuestion = quiz.questions[questionIndex];
+  const tempQuestion: QuestionInfo = quiz.questions[questionIndex];
   quiz.questions[questionIndex] = quiz.questions[newPosition];
   quiz.questions[newPosition] = tempQuestion;
 

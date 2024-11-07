@@ -306,6 +306,45 @@ export function emptyTrashErrorChecking(token: Token, quizIds: number): object |
   }
 }
 
+export function adminQuizMoveQuestionErrorChecking(
+  token: string,
+  quizId: number,
+  questionId: number,
+  newPosition: number
+): object | ErrorResponse {
+  console.log('Error checking');
+
+  if (!encodedTokenExists(token) || token === '') {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - The given quizId does not refer to any quiz');
+  }
+
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - This user does not own the quiz');
+  }
+  if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
+    throw new Error('400 - The new position is outside the bounds of questions array');
+  }
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  if (questionIndex === -1) {
+    throw new Error('400 - No question exists with the quiz for the given questionId');
+  }
+  if (questionIndex === newPosition) {
+    throw new Error('400 - New position is the current position');
+  }
+}
+
 export function adminQuizTransferErrorChecking(
   token: string,
   userEmail: string,
