@@ -7,7 +7,6 @@ import {
   decodeToken,
   findUserFromToken,
   encodedTokenExists,
-  userHasQuizWithSameName,
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
@@ -359,8 +358,6 @@ export function adminQuizTransfer(
 
   adminQuizTransferErrorChecking(token, userEmail, quizId);
 
-  const tokenDecoded: string = decodeToken(token);
-  const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
 
   const quizIndex = getQuizIndex(quizId);

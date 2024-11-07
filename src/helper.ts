@@ -221,7 +221,6 @@ export function adminUserDetailsErrorChecking(
 }
 
 export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz | ErrorResponse {
-
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
   }
@@ -312,7 +311,6 @@ export function adminQuizTransferErrorChecking(
   userEmail: string,
   quizId: number
 ): object | ErrorResponse {
-
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
   }
