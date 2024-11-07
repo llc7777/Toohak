@@ -2,7 +2,12 @@
 // @ts-nocheck
 import { getData } from './dataStore';
 import validator from 'validator';
-import { Token } from './interfaces';
+import {
+  Token,
+  User,
+  Quiz,
+  ErrorResponse,
+} from './interfaces';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {

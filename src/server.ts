@@ -133,11 +133,13 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const name = req.body.name;
   const result = adminQuizNameUpdate(token, quizId, name);
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result);
+    return res.status(403).json({ error: err.message });
   }
+
   if ('error' in result) {
     saveData();
     return res.status(400).json(result);
@@ -246,17 +248,24 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
+
   if (!encodedTokenExists(token) || token.length === 0) {
     saveData();
     return res.status(401).json({ error: 'Token is empty or invalid' });
   }
-  const result = adminQuizInfo(token, quizid);
-  if ('error' in result) {
+
+  try {
+    const result = adminQuizInfo(token, quizid);
     saveData();
-    return res.status(403).json({ error: result.error });
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: 'Token is empty or invalid' });
+    } else {
+      return res.status(403).json({ error: 'User does not own quiz, or it not exist' });
+    }
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // adminQuizDelete DELETE request
@@ -287,9 +296,11 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const result = adminQuizInfo(token, quizId);
-  if ('error' in result) {
-    return res.status(403).json(result);
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
+    saveData();
+    return res.status(403).json({ error: err.message });
   }
 
   const updateResult = adminQuizQuestionUpdate(quizId,
@@ -340,10 +351,11 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Invalid or missing token.' });
   }
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result2);
+    return res.status(403).json({ error: err.message });
   }
 
   const result = adminQuizDescriptionUpdate(token, quizId, description);
@@ -365,9 +377,11 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
-    return res.status(403).json(result2);
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
+    saveData();
+    return res.status(403).json({ error: err.message });
   }
 
   const result = adminQuizQuestionDelete(token, quizId, questionId);
@@ -396,11 +410,13 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unknown Type: string - error' });
   }
 
-  const result = adminQuizInfo(token, quizId);
-  if ('error' in result) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result);
+    return res.status(403).json({ error: err.message });
   }
+
   const result2 = adminQuizQuestionCreate(quizId, token, question,
     timeLimit, points, answerOptions);
   if ('error' in result2) {
@@ -489,11 +505,13 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
   const questionId = parseInt(req.params.questionid as string);
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result2);
+    return res.status(403).json({ error: err.message });
   }
+
   const result = adminQuizQuestionDuplicate(quizId, questionId, token);
   if ('error' in result) {
     saveData();
