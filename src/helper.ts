@@ -7,6 +7,7 @@ import {
   User,
   Quiz,
   ErrorResponse,
+  Data,
 } from './interfaces';
 
 // Helper function for adminAuthRegister
@@ -233,6 +234,35 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz 
 
   if (quiz.authUserId !== tokenObj.authUserId) {
     throw new Error('403 - User does not own the quiz');
+  }
+}
+
+export function adminQuizRemoveErrorChecking(
+  token: string,
+  quizId: number
+): object | ErrorResponse {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const data: Data = getData();
+  const tokenObj: Token = decodeToken(token);
+  const user: string = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Given user is not logged in');
+  }
+
+  // Check if the quizId refers to a valid quiz
+  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  if (quizIndex === -1) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+
+  // Check if the quiz belongs to the user
+  const quiz: Quiz = data.quizzes[quizIndex];
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
   }
 }
 

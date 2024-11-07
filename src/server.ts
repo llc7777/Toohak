@@ -273,17 +273,19 @@ app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
 app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
-  if (!encodedTokenExists(token) || token.length === 0) {
+
+  try {
+    adminQuizRemove(token, quizid);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
-  }
-  const result = adminQuizRemove(token, quizid);
-  if ('error' in result) {
+    return res.status(200).json({ });
+  } catch (err) {
     saveData();
-    return res.status(403).json({ error: result.error });
+    if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  saveData();
-  return res.status(200).json({ });
 });
 
 // PUT request for adminQuizQuestionUpdate

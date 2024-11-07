@@ -12,6 +12,7 @@ import {
   getQuizIndex,
   findUserFromEmail,
   adminQuizInfoErrorChecking,
+  adminQuizRemoveErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -174,26 +175,12 @@ export function adminQuizCreate(token, name, description) {
  * @returns
  */
 export function adminQuizRemove(token: string, quizId: number): object | ErrorResponse {
+  adminQuizRemoveErrorChecking(token, quizId);
+
   const data: Data = getData();
 
-  const tokenObj: Token = decodeToken(token);
-  const user: string = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
-  // Check if the quizId refers to a valid quiz
-  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
-  }
-
-  // Check if the quiz belongs to the user
-  const quiz: Quiz = data.quizzes[quizIndex];
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
-  }
+  const quiz = findQuizFromQuizId(quizId);
+  const quizIndex = getQuizIndex(quizId);
 
   // Send quiz to trash before removing it
   data.trash.push(quiz);
