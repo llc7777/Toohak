@@ -34,6 +34,7 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
+import { AdminUserDetailsUpdateRequest } from './interfaces';
 
 // Set up web app
 const app = express();
@@ -159,20 +160,26 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   return res.json(result);
 });
 
-app.put('/v1/admin/user/details', (req: Request, res: Response) => {
-  const { token, email, nameFirst, nameLast } = req.body;
+app.put('/v1/admin/user/details', (req: Request, res: Response): void => {
+  const { token, email, nameFirst, nameLast }: AdminUserDetailsUpdateRequest = req.body;
 
-  const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  try {
+    const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
     saveData();
-    return res.status(401).json(result);
-  } else if ('error' in result) {
+    res.status(200).json(result);
+  } catch (error: string) {
     saveData();
-    return res.status(400).json(result);
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // adiminUserPasswordUpdate PUT request

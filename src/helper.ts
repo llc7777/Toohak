@@ -176,6 +176,49 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
+export function adminUserDetailsErrorChecking(
+  token: Token,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): void {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  // Check if the email is valid
+  if (!validator.isEmail(email)) {
+    throw new Error('400 - Email is not valid. Please try another email.');
+  }
+
+  //  Check if the email is already in use by another user
+  const emailInUse = data.users.find(
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
+  if (emailInUse) {
+    throw new Error('400 - Email is currently used by another user. Please use another email.');
+  }
+
+  // Validating first name and last name
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    throw new Error(firstNameError);
+  }
+
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    throw new Error(lastNameError);
+  }
+}
+
 export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz | ErrorResponse {
   const tokenObj: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenObj);
