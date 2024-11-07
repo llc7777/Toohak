@@ -432,26 +432,26 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
 // PUT request that moves the position of question in a quiz
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+
   const quizId = parseInt(req.params.quizid as string);
   const questionId = parseInt(req.params.questionid as string);
   const token = req.body.token;
   const newPosition = parseInt(req.body.newPosition);
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
+  try {
+    adminQuizMoveQuestion(token, quizId, questionId, newPosition);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
+    return res.status(200).json({ });
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
-  if (result.error === 'The given quizId does not refer to any quiz' ||
-    result.error === 'This user does not own the given quiz') {
-    saveData();
-    return res.status(403).json({ error: result.error });
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json({ error: result.error });
-  }
-  saveData();
-  res.status(200).json({ });
 });
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response): void => {
