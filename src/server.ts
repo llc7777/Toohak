@@ -487,21 +487,20 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const token = req.body.token;
   const email = req.body.userEmail;
 
-  if (!encodedTokenExists(token) || token.length === 0) {
+  try {
+    adminQuizTransfer(token, email, quizId);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
+    return res.status(200).json({ });
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  const result = adminQuizTransfer(token, email, quizId);
-  if (result.error === 'No quiz exists with the given quizId' ||
-    result.error === 'This user does not own the quiz') {
-    saveData();
-    return res.status(403).json({ error: result.error });
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json({ error: result.error });
-  }
-  saveData();
-  return res.status(200).json({});
 });
 
 // admin quiz question duplicate
