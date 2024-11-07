@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import express, { json, Request, Response } from 'express';
 import { echo } from './newecho';
@@ -35,7 +33,6 @@ import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 import { AdminUserDetailsUpdateRequest } from './interfaces';
-import { Token } from 'yaml/dist/parse/cst';
 
 // Set up web app
 const app = express();
@@ -116,7 +113,7 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   const result = adminAuthLogout(token);
 
-  if (result.error) {
+  if ('error' in result) {
     saveData();
     return res.status(401).json(result);
   }
@@ -150,7 +147,7 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token;
+  const token = req.query.token as string;
   const result = adminUserDetails(token);
 
   if ('error' in result || token.length === 0) {
@@ -161,21 +158,15 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   return res.json(result);
 });
 
-app.put('/v1/admin/user/details', (req: Request, res: Response): void => {
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast }: AdminUserDetailsUpdateRequest = req.body;
 
   try {
-    const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
-
-    if (result.status) {
-      return res.status(result.status).json({ error: result.error });
-    }
-
+    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
     saveData();
-    res.status(200).json(result);
-  } catch (error: string) {
+    return res.status(200).json({});
+  } catch (error) {
     saveData();
-
     if (error.message.includes('Token')) {
       return res.status(401).json({ error: error.message });
     }
@@ -219,7 +210,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
 // adminQuizList GET request
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  const { token } = req.query;
+  const token = req.query.token as string;
 
   const result = adminQuizList(token);
 
@@ -234,7 +225,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 // adminQuizTrashList GET request
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  const { token } = req.query;
+  const token = req.query.token as string;
   const result = adminQuizTrashList(token);
 
   if ('error' in result) {
@@ -327,17 +318,19 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
 
   const result = adminQuizRestore(quizid, token);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
-    saveData();
-    return res.status(401).json(result);
-  } else if (result.error === 'You do not own quiz ID, or quiz does not exist' ||
-    result.error === 'Quiz ID does not refer to a quiz in the trash.'
-  ) {
-    saveData();
-    return res.status(403).json(result);
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json(result);
+  if ('error' in result) {
+    if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+      saveData();
+      return res.status(401).json(result);
+    } else if (result.error === 'You do not own quiz ID, or quiz does not exist' ||
+      result.error === 'Quiz ID does not refer to a quiz in the trash.'
+    ) {
+      saveData();
+      return res.status(403).json(result);
+    } else if ('error' in result) {
+      saveData();
+      return res.status(400).json(result);
+    }
   }
   saveData();
   res.status(200).json(result);
@@ -424,6 +417,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
     timeLimit, points, answerOptions);
   if ('error' in result2) {
     saveData();
+    console.log(result2);
     return res.status(400).json(result2);
   }
   saveData();
@@ -453,22 +447,17 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   }
 });
 
-app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response): void => {
-  const token: Token = req.query.token as string;
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
   const quizIds: string = req.query.quizIds as string;
 
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
     const result = emptyTrash(token, parsedQuizIds);
-
-    if (result.status) {
-      return res.status(result.status).json({ error: result.error });
-    }
     saveData();
     res.status(200).json(result);
-  } catch (error: string) {
+  } catch (error) {
     saveData();
-
     if (error.message.includes('Token')) {
       return res.status(401).json({ error: error.message });
     } else if (
@@ -532,20 +521,17 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
 // v2 Routes
 
-app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response): void => {
-  const token: Token = req.headers.token as string | undefined;
+app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
 
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
     const result = emptyTrash(token, parsedQuizIds);
 
-    if (result.status) {
-      return res.status(result.status).json({ error: result.error });
-    }
     saveData();
     res.status(200).json(result);
-  } catch (error: string) {
+  } catch (error) {
     saveData();
 
     if (error.message.includes('Token')) {

@@ -39,6 +39,7 @@ export function adminQuizList(token: string) {
 
   // decode the token and get the authUserId and sessionId
   const tokenData: Token = decodeToken(token);
+  console.log(tokenData);
   const authUserId: number = tokenData.authUserId;
 
   // verify user with the sessionId and authUserId

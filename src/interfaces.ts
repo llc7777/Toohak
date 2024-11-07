@@ -9,7 +9,7 @@ export interface User {
   timeCreated: number;
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
-  token: Token[];
+  tokens: Token[];
 }
 
 export interface Token {
@@ -41,7 +41,7 @@ export interface AnswerOptions {
   answerId: number;
   answer: string;
   colour: string;
-  correctAnswer: boolean;
+  correct: boolean;
 }
 
 export interface QuestionInfo {
@@ -64,7 +64,7 @@ export interface Trash {
 export interface Data {
   users: User[];
   quizzes: Quiz[];
-  trash: Trash[];
+  trash: Quiz[];
 }
 
 export interface ErrorResponse {
@@ -72,7 +72,7 @@ export interface ErrorResponse {
 }
 
 export interface AdminUserDetailsUpdateRequest {
-  token: Token;
+  token: string;
   email: string;
   nameFirst: string;
   nameLast: string;

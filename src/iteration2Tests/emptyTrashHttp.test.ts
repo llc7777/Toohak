@@ -57,10 +57,10 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
     test('empty the trash with different quiz IDs', () => {
       const quizCreateRes2 = quizCreate(token, 'Test 2', 'Description 2');
 
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
-        qs: { token },
-        timeout: TIMEOUT_MS
-      });
+      // request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
+      //   qs: { token },
+      //   timeout: TIMEOUT_MS
+      // });
 
       const validQuizId2 = quizCreateRes2.quizId;
 

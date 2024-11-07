@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import { getData } from './dataStore';
 
 import {
@@ -13,21 +11,28 @@ import {
   getQuestionIndexFromQuestionId,
   adminQuizMoveQuestionErrorChecking
 } from './helper';
-import { Quiz, Token, User, ErrorResponse, AnswerOptions, QuestionInfo } from './interface';
+import {
+  Quiz,
+  Token,
+  User,
+  ErrorResponse,
+  AnswerOptions,
+  QuestionInfo
+} from './interfaces';
 
 export function adminQuizQuestionCreate(
-  quizId,
-  token,
-  question,
-  timeLimit,
-  points,
-  answerOptions
+  quizId: number,
+  token: string,
+  question: string,
+  timeLimit: number,
+  points: number,
+  answerOptions: AnswerOptions[]
 ) {
+  console.log(answerOptions);
   const data = getData();
 
   // Token, quizId, user checks
-  let user = false;
-  let quiz = false;
+
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
@@ -35,14 +40,14 @@ export function adminQuizQuestionCreate(
   }
 
   const tokenDecoded = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
+  const user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
       error: 'User Id does not exist',
     };
   }
 
-  quiz = findQuizFromQuizId(quizId);
+  const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'No such quiz exists',
@@ -161,8 +166,11 @@ export function adminQuizMoveQuestion(
   return { };
 }
 
-export function adminQuizQuestionDuplicate(quizId, questionId, token) {
-  let user = false;
+export function adminQuizQuestionDuplicate(
+  quizId: number,
+  questionId: number,
+  token: string
+) {
   const data = getData();
   // Checks token and user is valid
   if (!encodedTokenExists(token)) {
@@ -171,7 +179,7 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     };
   }
   const tokenDecoded = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
+  const user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
       error: 'User Id does not exist',
@@ -202,10 +210,11 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
 
   const newQuestionId = quiz.questions.length + 1;
   const duplicateQuestion = {
-    question: quiz.question,
-    timeLimit: quiz.timeLimit,
-    points: quiz.points,
-    answerOptions: quiz.answerOptions
+    questionId: newQuestionId,
+    question: question.question,
+    timeLimit: question.timeLimit,
+    points: question.points,
+    answerOptions: question.answerOptions
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
@@ -290,7 +299,7 @@ export function adminQuizQuestionUpdate(
     return { error: 'Answers must have no duplicates of one another' };
   }
 
-  const hasCorrectAnswer = answerOptions.some(option => option.correctAnswer);
+  const hasCorrectAnswer = answerOptions.some(option => option.correct);
   if (!hasCorrectAnswer) {
     return { error: 'There must be at least one correct answer' };
   }

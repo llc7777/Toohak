@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import { getData } from './dataStore';
 import { emptyTrashErrorChecking } from './helper';
-import { ErrorResponse, Token } from './interfaces';
+import { ErrorResponse } from './interfaces';
 
 /**
  * Reset the state of the application back to the start.
@@ -24,7 +22,7 @@ export function clear() {
  * @param {number} quizIds - A JSON number representing an array of quiz IDs to delete
  * @returns {Object}
  */
-export function emptyTrash(token: Token, quizIds: number): object | ErrorResponse {
+export function emptyTrash(token: string, quizIds: number[]): object | ErrorResponse {
   emptyTrashErrorChecking(token, quizIds);
 
   const data = getData();

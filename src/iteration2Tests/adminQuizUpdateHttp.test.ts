@@ -67,8 +67,8 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
           timeLimit: 5,
           points: 6,
           answerOptions: [
-            { answer: 'Blue Whale', correctAnswer: true },
-            { answer: 'Whale Shark', correctAnswer: false },
+            { answer: 'Blue Whale', correct: true },
+            { answer: 'Whale Shark', correct: false },
           ],
         },
       },

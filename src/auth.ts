@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /*
 Register a user with an email, password, and names, then returns
 their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-// @ts-nocheck
+
 import { getData } from './dataStore';
 import {
   generateRandomSessionId,
@@ -132,7 +131,7 @@ export function adminAuthLogin(email: string, password: string) {
  * @param {string} token
  * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
  */
-export function adminAuthLogout(token) {
+export function adminAuthLogout(token: string) {
   const data = getData();
 
   if (token === '') {
@@ -148,7 +147,7 @@ export function adminAuthLogout(token) {
   }
 
   data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
-    userToken => userToken.sessionId !== tokenData.sessionId &&
+    (userToken: Token) => userToken.sessionId !== tokenData.sessionId &&
       userToken.authUserId === tokenData.authUserId);
 
   return {};
@@ -160,7 +159,7 @@ export function adminAuthLogout(token) {
 * @param {string} token
 * @returns {Object} user
 */
-export function adminUserDetails(token) {
+export function adminUserDetails(token: string) {
   if (!encodedTokenExists(token)) {
     return { error: 'Invalid token' };
   }
@@ -194,7 +193,7 @@ export function adminUserDetails(token) {
  * @returns {object} - Returns an empty object
  */
 export function adminUserDetailsUpdate(
-  token: Token,
+  token: string,
   email: string,
   nameFirst: string,
   nameLast:string
@@ -221,9 +220,12 @@ export function adminUserDetailsUpdate(
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(
+  token: string,
+  oldPassword: string,
+  newPassword: string
+) {
   let checkOldPassword = false;
-  let alreadyUsedThisPassword = false;
   const data = getData();
 
   // Check if the token is empty
@@ -249,8 +251,8 @@ export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
     checkOldPassword = true;
   }
   // Search through the users old passwords to see if the new password has already been used
-  alreadyUsedThisPassword = data.users[userIndex].oldPasswords.find(
-    oldPassword => oldPassword === newPassword);
+  const alreadyUsedThisPassword = data.users[userIndex].oldPasswords.find(
+    (oldPassword: string) => oldPassword === newPassword);
 
   // Check password is right
   if (!checkOldPassword) {
