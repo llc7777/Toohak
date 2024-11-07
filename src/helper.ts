@@ -2,6 +2,12 @@
 // @ts-nocheck
 import { getData } from './dataStore';
 import validator from 'validator';
+import {
+  Token,
+  User,
+  Quiz,
+  ErrorResponse,
+} from './interfaces';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
@@ -168,4 +174,21 @@ export function getRandomColour() {
   const colours = ['green', 'red', 'blue', 'brown', 'orange', 'yellow', 'pink', 'purple'];
   const randomIndex = Math.floor(Math.random() * colours.length);
   return colours[randomIndex];
+}
+
+export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz | ErrorResponse {
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+  if (!user) {
+    throw new Error('401 - Invalid Token');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
+
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
 }

@@ -11,6 +11,7 @@ import {
   findQuizFromQuizId,
   getQuizIndex,
   findUserFromEmail,
+  adminQuizInfoErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -217,20 +218,9 @@ Gets information for a given quiz given a quizId and authUserId
 *
 */
 export function adminQuizInfo(token: string, quizId: number): Quiz | ErrorResponse {
-  const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-  if (!user) {
-    return { error: 'Unable to find user Id ' };
-  }
+  adminQuizInfoErrorChecking(token, quizId);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
-  if (!quiz) {
-    return { error: 'Quiz unable to be found' };
-  }
-
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return { error: 'The given user does not own the given quiz' };
-  }
 
   return {
     quizId: quiz.quizId,

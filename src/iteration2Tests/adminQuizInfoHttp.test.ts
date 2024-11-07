@@ -64,6 +64,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(401);
   });
+
   test('returns error when trying to get info of a quiz that does not exist', () => {
     const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
