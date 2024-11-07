@@ -28,49 +28,35 @@ export function adminQuizQuestionCreate(
   let user = false;
   let quiz = false;
   if (!encodedTokenExists(token)) {
-    return {
-      error: 'Invalid token',
-    };
+    throw new Error('401 - Invalid token')
   }
 
   const tokenDecoded = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
-    return {
-      error: 'User Id does not exist',
-    };
+    throw new Error('401 - User does not exist');
   }
 
   quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return {
-      error: 'No such quiz exists',
-    };
+    throw new Error ('403 - No such quiz exists')
   }
   if (quiz.authUserId !== user.authUserId) {
-    return {
-      error: 'User does not own the quiz',
-    };
+    throw new Error ('403 - User does not own the quiz')
   }
   const quizIndex = getQuizIndex(quizId);
   // Question body checks
   // Question string between 5 and 50 characters
   if (question.length < 5 || question.length > 50) {
-    return {
-      error: 'Question must be between 5 to 50 characters',
-    };
+    throw new Error ('400 - Question must be between 5 to 50 characters');
   }
   // Question has between 2 and 6 answers
   if (answerOptions.length < 2 || answerOptions.length > 6) {
-    return {
-      error: 'Question must have between 2 to 6 answers',
-    };
+    throw new Error ('400 - Question must have between 2 to 6 answers');
   }
   // Question time limit is a positive number
   if (timeLimit <= 0) {
-    return {
-      error: 'Time limit must be a postive number',
-    };
+    throw new Error ('400 - Time limit must be a postive number');
   }
   // Sum of question time limits in quiz does not exceed 3 minutes
   let totalTime = timeLimit;
@@ -78,23 +64,17 @@ export function adminQuizQuestionCreate(
     totalTime += question.timeLimit;
   }
   if (totalTime > 180) {
-    return {
-      error: 'Total time limit across quiz must not exceed 3 minutes',
-    };
+    throw new Error ('400 - Total time limit across quiz must not exceed 3 minutes');
   }
 
   // Points awarded for the question are between 1 and 10
   if (points < 1 || points > 10) {
-    return {
-      error: 'Points awarded must be between 1 and 10 points',
-    };
+    throw new Error ('400 - Points awarded must be between 1 and 10 points');
   }
   // The length of answers are between 1 and 30 characters long
   for (const options of answerOptions) {
     if (options.answer.length < 1 || options.answer.length > 30) {
-      return {
-        error: 'Answers must be between 1 and 30 characters long',
-      };
+      throw new Error ('400 - Answers must be between 1 and 30 characters long');
     }
   }
 
@@ -102,9 +82,7 @@ export function adminQuizQuestionCreate(
   for (let i = 0; i < answerOptions.length; i++) {
     for (let j = i + 1; j < answerOptions.length; j++) {
       if (answerOptions[i].answer === answerOptions[j].answer) {
-        return {
-          error: 'Answers must have no duplicates of one another',
-        };
+        throw new Error ('400 - Answers must have no duplicates of one another');
       }
     }
   }
@@ -117,9 +95,7 @@ export function adminQuizQuestionCreate(
   }
 
   if (!hasCorrectAnswer) {
-    return {
-      error: 'There must be at least one correct answer',
-    };
+    throw new Error ('400 - There must be at least one correct answer');
   }
 
   for (const index in answerOptions) {

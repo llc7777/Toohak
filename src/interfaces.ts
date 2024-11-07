@@ -42,6 +42,13 @@ export interface QuestionInfo {
   answerOptions: AnswerOptions[];
 }
 
+export interface QuestionCreateReq {
+  question: string;
+  timeLimit: number;
+  points: number;
+  answerOptions: AnswerOptions[];
+}
+
 export interface Trash {
   authUserId: number;
   quizId: number;
