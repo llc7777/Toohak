@@ -417,7 +417,6 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
     timeLimit, points, answerOptions);
   if ('error' in result2) {
     saveData();
-    console.log(result2);
     return res.status(400).json(result2);
   }
   saveData();

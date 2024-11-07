@@ -18,7 +18,8 @@ import {
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
 } from './helper';
-import { ErrorResponse, Token } from './interfaces';
+import { ErrorResponse, Token, User } from './interfaces';
+import { UserInfo } from 'os';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string, token?: string) {
@@ -159,13 +160,14 @@ export function adminAuthLogout(token: string) {
 * @param {string} token
 * @returns {Object} user
 */
+
 export function adminUserDetails(token: string) {
   if (!encodedTokenExists(token)) {
     return { error: 'Invalid token' };
   }
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
 
-  const user = findUserFromToken(tokenDecoded);
+  const user: User = findUserFromToken(tokenDecoded);
 
   if (!user) {
     return { error: 'AuthUserId is not a valid user.' };

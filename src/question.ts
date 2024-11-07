@@ -12,11 +12,12 @@ import {
   adminQuizMoveQuestionErrorChecking
 } from './helper';
 import {
-  Quiz,
-  Token,
-  User,
   ErrorResponse,
+  User,
+  Token,
+  Quiz,
   AnswerOptions,
+  Data,
   QuestionInfo
 } from './interfaces';
 
@@ -28,10 +29,6 @@ export function adminQuizQuestionCreate(
   points: number,
   answerOptions: AnswerOptions[]
 ) {
-  console.log(answerOptions);
-  const data = getData();
-
-  // Token, quizId, user checks
 
   if (!encodedTokenExists(token)) {
     return {
@@ -58,7 +55,7 @@ export function adminQuizQuestionCreate(
       error: 'User does not own the quiz',
     };
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Question body checks
   // Question string between 5 and 50 characters
   if (question.length < 5 || question.length > 50) {
@@ -79,7 +76,7 @@ export function adminQuizQuestionCreate(
     };
   }
   // Sum of question time limits in quiz does not exceed 3 minutes
-  let totalTime = timeLimit;
+  let totalTime: number = timeLimit;
   for (const question of quiz.questions) {
     totalTime += question.timeLimit;
   }
@@ -115,7 +112,7 @@ export function adminQuizQuestionCreate(
     }
   }
   // There is at least 1 correct answer
-  let hasCorrectAnswer = false;
+  let hasCorrectAnswer: boolean = false;
   for (const options of answerOptions) {
     if (options.correct === true) {
       hasCorrectAnswer = true;
@@ -133,14 +130,17 @@ export function adminQuizQuestionCreate(
     answerOptions[index].answerId = parseInt(index) + 1;
   }
 
-  const newQuestionId = quiz.questions.length + 1;
-  const newQuestion = {
+  const newQuestionId: number = quiz.questions.length + 1;
+  const newQuestion: QuestionInfo = {
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
     points: points,
     answerOptions: answerOptions
   };
+
+  const data = getData();
+
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   data.quizzes[quizIndex].questions.push(newQuestion);
@@ -186,15 +186,15 @@ export function adminQuizQuestionDuplicate(
     };
   }
   // Search through the data to check if the quiz exists
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'Quiz Id does not exist',
     };
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Search through the data to check if the question exists
-  const question = findQuestionFromQuestionId(questionId, quizId);
+  const question: QuestionInfo = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
     return {
       error: 'Question Id does not exist',
