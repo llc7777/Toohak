@@ -308,8 +308,7 @@ export function adminQuizMoveQuestionErrorChecking(
   questionId: number,
   newPosition: number
 ): object | ErrorResponse {
-
-  console.log("Error checking");
+  console.log('Error checking');
 
   if (!encodedTokenExists(token) || token === '') {
     throw new Error('401 - Token is empty or invalid');

@@ -432,7 +432,6 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
 // PUT request that moves the position of question in a quiz
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
-
   const quizId = parseInt(req.params.quizid as string);
   const questionId = parseInt(req.params.questionid as string);
   const token = req.body.token;

@@ -148,12 +148,11 @@ export function adminQuizMoveQuestion(
   questionId: number,
   newPosition: number
 ): object | ErrorResponse {
-
   adminQuizMoveQuestionErrorChecking(token, quizId, questionId, newPosition);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
-  
+
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   const tempQuestion: QuestionInfo = quiz.questions[questionIndex];
   quiz.questions[questionIndex] = quiz.questions[newPosition];
