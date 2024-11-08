@@ -21,20 +21,8 @@ import {
 import { ErrorResponse, Token, User } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string, token?: string) {
+  nameFirst: string, nameLast: string) {
   const store = getData();
-
-  let decodedTokenData = null;
-
-  // If a token exist, decode and check user
-  if (token) {
-    decodedTokenData = decodeToken(token);
-    const userExist = findUserFromToken(decodedTokenData.sessionId);
-
-    if (userExist) {
-      return { error: 'You are already logged in as a different user. Please log out first.' };
-    }
-  }
 
   const wrongEmail = isValidEmail(email);
   if (wrongEmail) {
