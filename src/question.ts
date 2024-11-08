@@ -17,7 +17,7 @@ import {
   Token,
   Quiz,
   AnswerOptions,
-  QuestionInfo
+  QuestionInfo,
 } from './interfaces';
 
 export function adminQuizQuestionCreate(
@@ -133,6 +133,7 @@ export function adminQuizQuestionCreate(
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
+    thumbnailUrl: '',
     points: points,
     answerOptions: answerOptions
   };
@@ -140,6 +141,7 @@ export function adminQuizQuestionCreate(
   const data = getData();
 
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].timeLimit += totalTime;
 
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
@@ -211,10 +213,12 @@ export function adminQuizQuestionDuplicate(
     questionId: newQuestionId,
     question: question.question,
     timeLimit: question.timeLimit,
+    thumbnailUrl: question.thumbnailUrl,
     points: question.points,
     answerOptions: question.answerOptions
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].timeLimit += question.timeLimit;
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
   return { duplicatedQuestionId: newQuestionId };
 }
@@ -238,7 +242,8 @@ export function adminQuizQuestionUpdate(
   question: string,
   timeLimit: number,
   points: number,
-  answerOptions: AnswerOptions[]
+  answerOptions: AnswerOptions[],
+  thumbnailUrl?: string
 ): object | ErrorResponse {
   if (!token) {
     return { error: 'Token is missing' };
@@ -250,7 +255,7 @@ export function adminQuizQuestionUpdate(
     return { error: 'Invalid token' };
   }
 
-  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
+  const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'No such quiz exists' };
   }
@@ -259,7 +264,7 @@ export function adminQuizQuestionUpdate(
     return { error: 'User does not own the quiz' };
   }
 
-  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  const questionIndex: number = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
     return { error: 'No such question exists' };
   }
@@ -302,14 +307,18 @@ export function adminQuizQuestionUpdate(
     return { error: 'There must be at least one correct answer' };
   }
 
+  quiz.timeLimit -= quiz.questions[questionIndex].timeLimit;
+
   const updatedQuestion: QuestionInfo = {
     questionId,
     question,
     timeLimit,
+    thumbnailUrl,
     points,
     answerOptions,
   };
   quiz.questions[questionIndex] = updatedQuestion;
+  quiz.timeLimit += timeLimit;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   answerOptions.forEach((option, index) => {
