@@ -553,11 +553,6 @@ app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.headers.token as string;
 
-  if (!encodedTokenExists(token) || token.length === 0) {
-    saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
-  }
-
   try {
     const result = adminQuizInfo(token, quizid, true);
     saveData();
