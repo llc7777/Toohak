@@ -106,6 +106,17 @@ describe('Test for DELETE /v1/admin/quiz/{quizId}/question/{questionId}', () => 
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
+  test('error for non-existent quiz id', () => {
+    const res = request('DELETE',
+    `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}`, {
+      qs: { token },
+      timeout: TIMEOUT_MS,
+    });
+
+    expect(res.statusCode).toStrictEqual(403);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
   test('error for valid token but incorrect owner', () => {
     const secondUserResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
