@@ -506,6 +506,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         }
       });
       expect(response.statusCode).toBe(403);
+      console.log(JSON.parse(response.body.toString()));
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
   });
