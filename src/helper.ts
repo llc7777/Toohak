@@ -61,12 +61,6 @@ export function validQuizName(name: string) {
   return true;
 }
 
-// Check if the provided user ID corresponds to a valid user
-export function isUserValid(authUserId: number) {
-  const data = getData();
-  return data.users.some(user => user.authUserId === authUserId);
-}
-
 // Check if the specified name is already used by the given user ID in quizzes
 export function nameUsed(authUserId: number, name: string) {
   const data = getData();
@@ -226,10 +220,6 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-  if (!user) {
-    throw new Error('401 - Invalid Token');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -251,11 +241,6 @@ export function adminQuizRemoveErrorChecking(
 
   const data: Data = getData();
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    throw new Error('401 - Given user is not logged in');
-  }
 
   // Check if the quizId refers to a valid quiz
   const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -312,18 +297,11 @@ export function adminQuizMoveQuestionErrorChecking(
   questionId: number,
   newPosition: number
 ) {
-  console.log('Error checking');
-
   if (!encodedTokenExists(token) || token === '') {
     throw new Error('401 - Token is empty or invalid');
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    throw new Error('401 - Token is empty or invalid');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -360,8 +338,6 @@ export function adminQuizTransferErrorChecking(
 
   if (!userToTransferTo) {
     throw new Error('400 - No user has this email');
-  } else if (!loggedInUser) {
-    throw new Error('401 - This is not a valid logged in user');
   } else if (loggedInUser.email === userEmail) {
     throw new Error('400 - Given email is the same as the current logged in user');
   }

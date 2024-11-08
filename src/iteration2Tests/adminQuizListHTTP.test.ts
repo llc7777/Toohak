@@ -83,6 +83,23 @@ describe('Test for GET /v1/admin/quiz/list', () => {
       timeout: TIMEOUT_MS
     });
 
+    let token1 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+      json: {
+        email: 'jake.renzella@gmail.com',
+        password: 'password123',
+        nameFirst: 'Jake',
+        nameLast: 'Renzella'
+      },
+      timeout: TIMEOUT_MS
+    });
+    token1 = JSON.parse(token1.body.toString()).token;
+
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json:
+        { token1, name: 'quiz4', description: 'description4' },
+      timeout: TIMEOUT_MS
+    });
+
     const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
       timeout: TIMEOUT_MS
     });
