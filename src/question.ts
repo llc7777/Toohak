@@ -28,19 +28,9 @@ export function adminQuizQuestionCreate(
   points: number,
   answerOptions: AnswerOptions[]
 ) {
-  if (!encodedTokenExists(token)) {
-    return {
-      error: 'Invalid token',
-    };
-  }
 
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
-  if (!user) {
-    return {
-      error: 'User Id does not exist',
-    };
-  }
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {

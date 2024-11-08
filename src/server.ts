@@ -401,23 +401,21 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const token = req.body.token;
   const { question, timeLimit, points, answerOptions } = req.body.questionBody;
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
-    saveData();
-    return res.status(401).json({ error: 'Unknown Type: string - error' });
-  }
-
-  try {
-    adminQuizInfo(token, quizId);
-  } catch (err) {
-    saveData();
-    return res.status(403).json({ error: err.message });
+  if (!encodedTokenExists(token) || token.length === 0) {
+    return res.status(401).json({ error: 'Token is empty or invalid'});
   }
 
   const result2 = adminQuizQuestionCreate(quizId, token, question,
     timeLimit, points, answerOptions);
   if ('error' in result2) {
-    saveData();
-    return res.status(400).json(result2);
+    if (result2.error === 'User does not own the quiz' ||
+      result2.error === 'No such quiz exists'
+    ) {
+      saveData();
+      return res.status(403).json(result2);
+    } else {
+      return res.status(400).json(result2);
+    }
   }
   saveData();
   return res.status(200).json(result2);
