@@ -16,7 +16,7 @@ import {
   findUserFromToken,
   encodedTokenExists,
   findUserIndexFromToken,
-  adminUserDetailsErrorChecking,
+  adminUserDetailsUpdateErrorChecking,
 } from './helper';
 import { ErrorResponse, Token, User } from './interfaces';
 
@@ -200,7 +200,7 @@ export function adminUserDetailsUpdate(
   nameLast:string
 ): object | ErrorResponse {
   // Check for errors
-  adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
+  adminUserDetailsUpdateErrorChecking(token, email, nameFirst, nameLast);
 
   const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
