@@ -36,6 +36,8 @@ export interface Quiz {
   timeLastEdited: number;
   description: string;
   questions: QuestionInfo[];
+  timeLimit: number;
+  thumbnailUrl: string;
 }
 
 export interface QuizInfo {
@@ -46,6 +48,18 @@ export interface QuizInfo {
   description: string,
   numOfQuestions: number,
   questions: QuestionInfo[],
+}
+
+export interface QuizInfoDetailed {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string,
+  numOfQuestions: number,
+  questions: QuestionInfo[],
+  timeLimit: number,
+  thumbnailUrl: string,
 }
 
 export interface AnswerOptions {
@@ -59,6 +73,7 @@ export interface QuestionInfo {
   questionId: number;
   question: string;
   timeLimit: number;
+  thumbnailUrl: string;
   points: number;
   answerOptions: AnswerOptions[];
 }
