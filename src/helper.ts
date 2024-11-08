@@ -274,34 +274,34 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   const data = getData();
 
   if (token === '') {
-    throw new Error('Token is empty');
+    throw new Error('401 - Token is empty');
   }
 
   const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
   if (!user) {
-    throw new Error('Token is invalid');
+    throw new Error('401 - Token is invalid');
   }
 
   if (!Array.isArray(quizIds)) {
-    throw new Error('quizIds must be an array');
+    throw new Error('400 - quizIds must be an array');
   }
 
   for (const quizId of quizIds) {
     if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
-      throw new Error('One or more quiz IDs is not currently in the trash.');
+      throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
 
-    if (!data.trash.find(quiz => quiz.quizId === quizId)) {
-      throw new Error('This quiz does not exits');
-    }
+    for (const quizId of quizIds) {
+      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
 
-    const quizInTrash = data.trash.find(
-      quiz => quiz.quizId === quizId
-    );
+      if (!quizInTrash) {
+        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+      }
 
-    if (quizInTrash.authUserId !== user.authUserId) {
-      throw new Error('You do not own quiz ID');
+      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
+        throw new Error('403 - You do not own quiz ID');
+      }
     }
   }
 }
