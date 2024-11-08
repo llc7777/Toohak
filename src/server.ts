@@ -32,7 +32,10 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
-import { AdminUserDetailsUpdateRequest } from './interfaces';
+import { 
+  AdminUserDetailsUpdateRequest,
+  AdminUserDetailsUpdateV2Request
+} from './interfaces';
 
 // Set up web app
 const app = express();
@@ -516,6 +519,22 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 });
 
 // v2 Routes
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+  const { email, nameFirst, nameLast }: AdminUserDetailsUpdateV2Request = req.body;
+
+  try {
+    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+});
 
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
