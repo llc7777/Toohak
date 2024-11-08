@@ -273,5 +273,81 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
+
+    test('non existent quiz', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Dolphin', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
+    test('non existent question', () => {
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId + 1}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Dolphin', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
+    test('user does not own quiz', () => {
+
+      const response = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        json: {
+          email: 'andrew.taylor@gmail.com',
+          password: 'Aeropass1',
+          nameFirst: 'Andrew',
+          nameLast: 'Taylor',
+        },
+        timeout: TIMEOUT_MS,
+      });
+      const token1 = JSON.parse(response.body.toString()).token;
+
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token: token1,
+          questionBody: {
+            question: 'What is the largest animal in the world?',
+            timeLimit: 5,
+            points: 5,
+            answerOptions: [
+              { answer: 'Whale', correct: true },
+              { answer: 'Dolphin', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    });
+
   });
 });
