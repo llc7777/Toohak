@@ -229,7 +229,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
     });
 
     const resultRes = request('PUT',
-      `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${1}/move`, {
+      `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${0}/move`, {
         json: {
           token: userToken,
           newPosition: 1,
@@ -240,6 +240,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
     expect(resultRes.statusCode).toStrictEqual(400);
 
     const result = JSON.parse(resultRes.body.toString());
+
     expect(result).toStrictEqual({ error: expect.any(String) });
   });
 
