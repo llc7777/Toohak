@@ -518,8 +518,11 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   return res.status(200).json(result);
 });
 
-// v2 Routes
-
+/*
+* ===========================================================================
+* ============================= V2 ROUTES BELOW =============================
+* ===========================================================================
+*/
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
@@ -544,6 +547,31 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
     return res.status(400).json({ error: error.message });
   }
 });
+
+// adminQuizInfo GET request. Gets info for a quiz
+app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+
+  if (!encodedTokenExists(token) || token.length === 0) {
+    saveData();
+    return res.status(401).json({ error: 'Token is empty or invalid' });
+  }
+
+  try {
+    const result = adminQuizInfo(token, quizid);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: 'Token is empty or invalid' });
+    } else {
+      return res.status(403).json({ error: 'User does not own quiz, or it not exist' });
+    }
+  }
+});
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
