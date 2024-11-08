@@ -11,27 +11,37 @@ import {
   getRandomColour,
   findQuestionFromQuestionId,
   getQuestionIndexFromQuestionId,
+  adminQuizMoveQuestionErrorChecking
 } from './helper';
-import { ErrorResponse, User, Token, Quiz } from './interfaces';
+import {
+  ErrorResponse,
+  User,
+  Token,
+  Quiz,
+  AnswerOptions,
+  Data,
+  QuestionIdObject,
+  QuestionInfo
+} from './interfaces';
 
 export function adminQuizQuestionCreate(
-  quizId,
-  token,
-  question,
-  timeLimit,
-  points,
-  answerOptions
-) {
-  const data = getData();
+  quizId: number,
+  token: string,
+  question: string,
+  timeLimit: number,
+  points: number,
+  answerOptions: AnswerOptions
+): QuestionIdObject {
+  const data: Data = getData();
 
   // Token, quizId, user checks
-  let user = false;
-  let quiz = false;
+  let user: boolean = false;
+  let quiz: boolean = false;
   if (!encodedTokenExists(token)) {
     throw new Error('401 - Invalid token')
   }
 
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
     throw new Error('401 - User does not exist');
@@ -44,7 +54,7 @@ export function adminQuizQuestionCreate(
   if (quiz.authUserId !== user.authUserId) {
     throw new Error ('403 - User does not own the quiz')
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Question body checks
   // Question string between 5 and 50 characters
   if (question.length < 5 || question.length > 50) {
@@ -59,7 +69,7 @@ export function adminQuizQuestionCreate(
     throw new Error ('400 - Time limit must be a postive number');
   }
   // Sum of question time limits in quiz does not exceed 3 minutes
-  let totalTime = timeLimit;
+  let totalTime: number = timeLimit;
   for (const question of quiz.questions) {
     totalTime += question.timeLimit;
   }
@@ -87,7 +97,7 @@ export function adminQuizQuestionCreate(
     }
   }
   // There is at least 1 correct answer
-  let hasCorrectAnswer = false;
+  let hasCorrectAnswer: boolean = false;
   for (const options of answerOptions) {
     if (options.correct === true) {
       hasCorrectAnswer = true;
@@ -103,8 +113,8 @@ export function adminQuizQuestionCreate(
     answerOptions[index].answerId = parseInt(index) + 1;
   }
 
-  const newQuestionId = quiz.questions.length + 1;
-  const newQuestion = {
+  const newQuestionId: number = quiz.questions.length + 1;
+  const newQuestion: QuestionInfo = {
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
@@ -123,58 +133,33 @@ export function adminQuizMoveQuestion(
   questionId: number,
   newPosition: number
 ): object | ErrorResponse {
-  const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
+  adminQuizMoveQuestionErrorChecking(token, quizId, questionId, newPosition);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
-  if (!quiz) {
-    return {
-      error: 'The given quizId does not refer to any quiz',
-    };
-  }
-  if (quiz.authUserId !== tokenObj.authUserId) {
-    return {
-      error: 'This user does not own the given quiz',
-    };
-  }
-  if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
-    return {
-      error: 'The new position is outside the bounds of the questions array',
-    };
-  }
-  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
-  if (questionIndex === -1) {
-    return {
-      error: 'No question exists within the quiz for the given questionId',
-    };
-  }
-  if (questionIndex === newPosition) {
-    return {
-      error: 'The new position and the current question position are the same',
-    };
-  }
+  const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
+
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
-  const tempQuestion = quiz.questions[questionIndex];
+  const tempQuestion: QuestionInfo = quiz.questions[questionIndex];
   quiz.questions[questionIndex] = quiz.questions[newPosition];
   quiz.questions[newPosition] = tempQuestion;
 
   return { };
 }
 
-export function adminQuizQuestionDuplicate(quizId, questionId, token) {
-  let user = false;
-  const data = getData();
+export function adminQuizQuestionDuplicate(
+  quizId: number,
+  questionId: number,
+  token: string
+): QuestionIdObject {
+  let user: boolean = false;
+  const data: Data = getData();
   // Checks token and user is valid
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
@@ -182,15 +167,15 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     };
   }
   // Search through the data to check if the quiz exists
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return {
       error: 'Quiz Id does not exist',
     };
   }
-  const quizIndex = getQuizIndex(quizId);
+  const quizIndex: number = getQuizIndex(quizId);
   // Search through the data to check if the question exists
-  const question = findQuestionFromQuestionId(questionId, quizId);
+  const question: string = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
     return {
       error: 'Question Id does not exist',
@@ -204,8 +189,9 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
     };
   }
 
-  const newQuestionId = quiz.questions.length + 1;
-  const duplicateQuestion = {
+  const newQuestionId: number = quiz.questions.length + 1;
+  const duplicateQuestion: QuestionInfo = {
+    questionId: newQuestionId,
     question: quiz.question,
     timeLimit: quiz.timeLimit,
     points: quiz.points,
@@ -219,38 +205,35 @@ export function adminQuizQuestionDuplicate(quizId, questionId, token) {
 /**
  * Updates a question in a specified quiz with new details.
  *
- * @param {string} token - The authentication token of the user.
  * @param {number} quizId - The ID of the quiz containing the question to update.
  * @param {number} questionId - The ID of the question to update within the quiz.
+ * @param {string} token - The user's authentication token.
  * @param {string} question - The new question text.
- * @param {string[]} answers - An array of answer options.
+ * @param {AnswerOptions[]} answerOptions - An array of answer options.
  * @param {number} timeLimit - The time limit for answering the question.
  * @param {number} points - The points awarded for the question.
- *
- * @returns {Object} an empty object
+ * @returns {Object | ErrorResponse} - An empty object on success or an error message on failure.
  */
 export function adminQuizQuestionUpdate(
-  quizId,
-  questionId,
-  token,
-  question,
-  timeLimit,
-  points,
-  answerOptions
-) {
-  const data = getData();
+  quizId: number,
+  questionId: number,
+  token: string,
+  question: string,
+  timeLimit: number,
+  points: number,
+  answerOptions: AnswerOptions[]
+): object | ErrorResponse {
+  if (!token) {
+    return { error: 'Token is missing' };
+  }
 
-  if (!encodedTokenExists(token)) {
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
+  if (!user) {
     return { error: 'Invalid token' };
   }
 
-  const tokenDecoded = decodeToken(token);
-  const user = findUserFromToken(tokenDecoded);
-  if (!user) {
-    return { error: 'User Id does not exist' };
-  }
-
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'No such quiz exists' };
   }
@@ -259,7 +242,6 @@ export function adminQuizQuestionUpdate(
     return { error: 'User does not own the quiz' };
   }
 
-  const quizIndex = getQuizIndex(quizId);
   const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
     return { error: 'No such question exists' };
@@ -277,9 +259,8 @@ export function adminQuizQuestionUpdate(
     return { error: 'Time limit must be a positive number' };
   }
 
-  let totalTime = quiz.questions.reduce(
-    (total, q) => total + q.timeLimit, 0) - quiz.questions[questionIndex].timeLimit;
-  totalTime += timeLimit;
+  const totalTime = quiz.questions.reduce((total, q) => total + q.timeLimit, 0) -
+                    quiz.questions[questionIndex].timeLimit + timeLimit;
   if (totalTime > 180) {
     return { error: 'Total time limit across quiz must not exceed 3 minutes' };
   }
@@ -288,74 +269,73 @@ export function adminQuizQuestionUpdate(
     return { error: 'Points awarded must be between 1 and 10 points' };
   }
 
-  for (const option of answerOptions) {
-    if (option.answer.length < 1 || option.answer.length > 30) {
-      return { error: 'Answers must be between 1 and 30 characters long' };
-    }
+  const answerSet = new Set(answerOptions.map(option => option.answer));
+  const allAnswersValid = answerOptions.every(option =>
+    option.answer.length >= 1 && option.answer.length <= 30
+  );
+  if (!allAnswersValid) {
+    return { error: 'Answers must be between 1 and 30 characters long' };
+  }
+  if (answerSet.size !== answerOptions.length) {
+    return { error: 'Answers must have no duplicates of one another' };
   }
 
-  const answerSet = new Set();
-  for (const option of answerOptions) {
-    if (answerSet.has(option.answer)) {
-      return { error: 'Answers must have no duplicates of one another' };
-    }
-    answerSet.add(option.answer);
-  }
-
-  const hasCorrectAnswer = answerOptions.some(option => option.correct === true);
+  const hasCorrectAnswer = answerOptions.some(option => option.correctAnswer);
   if (!hasCorrectAnswer) {
     return { error: 'There must be at least one correct answer' };
   }
 
-  const updatedQuestion = {
+  const updatedQuestion: QuestionInfo = {
     questionId,
     question,
     timeLimit,
     points,
     answerOptions,
   };
+  quiz.questions[questionIndex] = updatedQuestion;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
-  data.quizzes[quizIndex].questions[questionIndex] = updatedQuestion;
-  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
-
-  for (const index in answerOptions) {
-    answerOptions[index].colour = getRandomColour();
-    answerOptions[index].answerId = parseInt(index) + 1;
-  }
+  answerOptions.forEach((option, index) => {
+    option.colour = option.colour || getRandomColour();
+    option.answerId = index + 1;
+  });
 
   return {};
 }
 
 /**
- * Deletes a question from a quiz
- * @param {string} token - The token of the user
- * @param {number} quizId - The ID of the quiz
+ * Deletes a question from a quiz if the user is authenticated and owns the quiz.
+ * @param {string} token - The authentication token of the user
+ * @param {number} quizId - The ID of the quiz from which the question will be deleted
  * @param {number} questionId - The ID of the question to be deleted
- * @returns {object} - An empty object if successful
+ * @returns {object | ErrorResponse} - An empty object on success or an error message on failure
  */
-export function adminQuizQuestionDelete(token, quizId, questionId) {
+export function adminQuizQuestionDelete(
+  token: string,
+  quizId: number,
+  questionId: number
+): object | ErrorResponse {
   if (!token) {
     return { error: 'Token is empty' };
   }
 
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
 
-  const userExists = findUserFromToken(tokenData);
-  if (!userExists) {
-    return { error: 'Token is invalid' };
+  if (!user) {
+    return { error: 'Invalid token' };
   }
 
-  const quiz = findQuizFromQuizId(quizId);
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.' };
   }
 
-  if (quiz.authUserId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  if (quiz.authUserId !== user.authUserId) {
+    return { error: 'User does not own the quiz.' };
   }
 
-  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
   if (questionIndex === -1) {
     return { error: 'Question ID does not refer to a valid question.' };
   }

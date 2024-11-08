@@ -34,7 +34,8 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
-import { QuestionCreateReq, QuestionInfo } from './interfaces';
+import { AdminUserDetailsUpdateRequest, QuestionCreateReq, QuestionInfo } from './interfaces';
+import { Token } from 'yaml/dist/parse/cst';
 
 // Set up web app
 const app = express();
@@ -133,11 +134,13 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const name = req.body.name;
   const result = adminQuizNameUpdate(token, quizId, name);
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result);
+    return res.status(403).json({ error: err.message });
   }
+
   if ('error' in result) {
     saveData();
     return res.status(400).json(result);
@@ -158,20 +161,26 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   return res.json(result);
 });
 
-app.put('/v1/admin/user/details', (req: Request, res: Response) => {
-  const { token, email, nameFirst, nameLast } = req.body;
+app.put('/v1/admin/user/details', (req: Request, res: Response): void => {
+  const { token, email, nameFirst, nameLast }: AdminUserDetailsUpdateRequest = req.body;
 
-  const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  try {
+    const result = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
     saveData();
-    return res.status(401).json(result);
-  } else if ('error' in result) {
+    res.status(200).json(result);
+  } catch (error: string) {
     saveData();
-    return res.status(400).json(result);
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // adiminUserPasswordUpdate PUT request
@@ -240,34 +249,43 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
+
   if (!encodedTokenExists(token) || token.length === 0) {
     saveData();
     return res.status(401).json({ error: 'Token is empty or invalid' });
   }
-  const result = adminQuizInfo(token, quizid);
-  if ('error' in result) {
+
+  try {
+    const result = adminQuizInfo(token, quizid);
     saveData();
-    return res.status(403).json({ error: result.error });
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: 'Token is empty or invalid' });
+    } else {
+      return res.status(403).json({ error: 'User does not own quiz, or it not exist' });
+    }
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // adminQuizDelete DELETE request
 app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const token = req.query.token as string;
-  if (!encodedTokenExists(token) || token.length === 0) {
+
+  try {
+    adminQuizRemove(token, quizid);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
-  }
-  const result = adminQuizRemove(token, quizid);
-  if ('error' in result) {
+    return res.status(200).json({ });
+  } catch (err) {
     saveData();
-    return res.status(403).json({ error: result.error });
+    if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  saveData();
-  return res.status(200).json({ });
 });
 
 // PUT request for adminQuizQuestionUpdate
@@ -281,9 +299,11 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const result = adminQuizInfo(token, quizId);
-  if ('error' in result) {
-    return res.status(403).json(result);
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
+    saveData();
+    return res.status(403).json({ error: err.message });
   }
 
   const updateResult = adminQuizQuestionUpdate(quizId,
@@ -334,10 +354,11 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Invalid or missing token.' });
   }
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result2);
+    return res.status(403).json({ error: err.message });
   }
 
   const result = adminQuizDescriptionUpdate(token, quizId, description);
@@ -359,9 +380,11 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
-    return res.status(403).json(result2);
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
+    saveData();
+    return res.status(403).json({ error: err.message });
   }
 
   const result = adminQuizQuestionDelete(token, quizId, questionId);
@@ -392,7 +415,6 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
     return res.status(200).json(result2);
   } catch (error) {
     saveData();
-
     if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
     } else if (error.message.includes('403')) {
@@ -410,41 +432,48 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const token = req.body.token;
   const newPosition = parseInt(req.body.newPosition);
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
+  try {
+    adminQuizMoveQuestion(token, quizId, questionId, newPosition);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
+    return res.status(200).json({ });
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  const result = adminQuizMoveQuestion(token, quizId, questionId, newPosition);
-  if (result.error === 'The given quizId does not refer to any quiz' ||
-    result.error === 'This user does not own the given quiz') {
-    saveData();
-    return res.status(403).json({ error: result.error });
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json({ error: result.error });
-  }
-  saveData();
-  res.status(200).json({ });
 });
 
-app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const quizIds = req.query.quizIds as string;
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response): void => {
+  const token: Token = req.query.token as string;
+  const quizIds: string = req.query.quizIds as string;
 
-  const result = emptyTrash(token, JSON.parse(quizIds));
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+  try {
+    const parsedQuizIds: number[] = JSON.parse(quizIds);
+    const result = emptyTrash(token, parsedQuizIds);
+
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
     saveData();
-    return res.status(401).json(result);
-  } else if (result.error === 'You do not own quiz ID' ||
-    result.error === 'One or more quiz IDs are not currently in the trash.') {
+    res.status(200).json(result);
+  } catch (error: string) {
     saveData();
-    return res.status(403).json(result);
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json(result);
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    } else if (
+      error.message === 'You do not own quiz ID' ||
+      error.message === 'This quiz does not exist.'
+    ) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // POST request to transfer a quiz to another user
@@ -453,21 +482,20 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const token = req.body.token;
   const email = req.body.userEmail;
 
-  if (!encodedTokenExists(token) || token.length === 0) {
+  try {
+    adminQuizTransfer(token, email, quizId);
     saveData();
-    return res.status(401).json({ error: 'Token is empty or invalid' });
+    return res.status(200).json({ });
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
   }
-  const result = adminQuizTransfer(token, email, quizId);
-  if (result.error === 'No quiz exists with the given quizId' ||
-    result.error === 'This user does not own the quiz') {
-    saveData();
-    return res.status(403).json({ error: result.error });
-  } else if ('error' in result) {
-    saveData();
-    return res.status(400).json({ error: result.error });
-  }
-  saveData();
-  return res.status(200).json({});
 });
 
 // admin quiz question duplicate
@@ -481,11 +509,13 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
   const questionId = parseInt(req.params.questionid as string);
 
-  const result2 = adminQuizInfo(token, quizId);
-  if ('error' in result2) {
+  try {
+    adminQuizInfo(token, quizId);
+  } catch (err) {
     saveData();
-    return res.status(403).json(result2);
+    return res.status(403).json({ error: err.message });
   }
+
   const result = adminQuizQuestionDuplicate(quizId, questionId, token);
   if ('error' in result) {
     saveData();
@@ -493,6 +523,36 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   }
   saveData();
   return res.status(200).json(result);
+});
+
+// v2 Routes
+
+app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response): void => {
+  const token: Token = req.headers.token as string | undefined;
+  const quizIds: string = req.query.quizIds as string;
+  
+  try {
+    const parsedQuizIds: number[] = JSON.parse(quizIds);
+    const result = emptyTrash(token, parsedQuizIds);
+    
+    if (result.status) {
+      return res.status(result.status).json({ error: result.error });
+    }
+    saveData();
+    res.status(200).json(result);
+  } catch (error: string) {
+    saveData();
+
+    if (error.message.includes('Token')) {
+      return res.status(401).json({ error: error.message });
+    } else if (
+      error.message === 'You do not own quiz ID' ||
+      error.message === 'This quiz does not exist.'
+    ) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
 });
 
 app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
@@ -517,7 +577,6 @@ app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
     };
   }
 });
-
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
