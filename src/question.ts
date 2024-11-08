@@ -317,16 +317,12 @@ export function adminQuizQuestionDelete(
   quizId: number,
   questionId: number
 ): object | ErrorResponse {
-  if (!token) {
-    return { error: 'Token is empty' };
+  if (!encodedTokenExists(token) || token.length === 0) {
+    return { error: 'Token is invalid' };
   }
 
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
-
-  if (!user) {
-    return { error: 'Invalid token' };
-  }
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
