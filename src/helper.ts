@@ -275,6 +275,7 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   }
 
   for (const quizId of quizIds) {
+
     if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
       throw new Error('One or more quiz IDs is not currently in the trash.');
     }
@@ -307,10 +308,6 @@ export function adminQuizMoveQuestionErrorChecking(
 
   const tokenObj: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    throw new Error('401 - Token is empty or invalid');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
