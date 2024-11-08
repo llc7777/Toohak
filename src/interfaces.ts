@@ -100,8 +100,15 @@ export interface ErrorResponse {
 export interface QuestionIdObject {
   questionId: number;
 }
+
 export interface AdminUserDetailsUpdateRequest {
   token: string;
+  email: string;
+  nameFirst: string;
+  nameLast: string;
+}
+
+export interface AdminUserDetailsUpdateV2Request {
   email: string;
   nameFirst: string;
   nameLast: string;
