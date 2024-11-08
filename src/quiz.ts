@@ -20,6 +20,7 @@ import {
   Token,
   Data,
   QuizInfo,
+  QuizInfoDetailed,
 } from './interfaces';
 
 /**
@@ -165,6 +166,8 @@ export function adminQuizCreate(
     timeLastEdited: Math.floor(Date.now() / 1000),
     description,
     questions: [],
+    timeLimit: 0,
+    thumbnailUrl: '',
   };
 
   data.quizzes.push(newQuiz);
@@ -208,20 +211,38 @@ Gets information for a given quiz given a quizId and authUserId
   - {string} description:
 *
 */
-export function adminQuizInfo(token: string, quizId: number): QuizInfo | ErrorResponse {
+export function adminQuizInfo(
+  token: string,
+  quizId: number,
+  detailed?: boolean
+): QuizInfo | QuizInfoDetailed | ErrorResponse {
   adminQuizInfoErrorChecking(token, quizId);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
-  return {
-    quizId: quiz.quizId,
-    name: quiz.name,
-    timeCreated: quiz.timeCreated,
-    timeLastEdited: quiz.timeLastEdited,
-    description: quiz.description,
-    numOfQuestions: quiz.questions.length,
-    questions: quiz.questions,
-  };
+  if (detailed) {
+    return {
+      quizId: quiz.quizId,
+      name: quiz.name,
+      timeCreated: quiz.timeCreated,
+      timeLastEdited: quiz.timeLastEdited,
+      description: quiz.description,
+      numOfQuestions: quiz.questions.length,
+      questions: quiz.questions,
+      timeLimit: quiz.timeLimit,
+      thumbnailUrl: quiz.thumbnailUrl,
+    };
+  } else {
+    return {
+      quizId: quiz.quizId,
+      name: quiz.name,
+      timeCreated: quiz.timeCreated,
+      timeLastEdited: quiz.timeLastEdited,
+      description: quiz.description,
+      numOfQuestions: quiz.questions.length,
+      questions: quiz.questions,
+    };
+  }
 }
 
 /**
