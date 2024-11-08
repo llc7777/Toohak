@@ -369,23 +369,20 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
   const questionId = parseInt(req.params.questionId as string);
   const token = req.query.token as string;
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
-
-  try {
-    adminQuizInfo(token, quizId);
-  } catch (err) {
-    saveData();
-    return res.status(403).json({ error: err.message });
-  }
-
   const result = adminQuizQuestionDelete(token, quizId, questionId);
 
   if ('error' in result) {
-    return res.status(400).json(result);
+    saveData();
+    if (result.error === 'Token is invalid') {
+      return res.status(401).json(result);
+    } else if (result.error === 'Quiz ID does not refer to a valid quiz.' ||
+      result.error === 'User does not own the quiz.') {
+        return res.status(403).json(result);
+    } else {
+      return res.status(400).json(result);
+    }
   }
-
+  saveData();
   return res.status(200).json({});
 });
 
