@@ -524,18 +524,13 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
     const result = emptyTrash(token, parsedQuizIds);
-
     saveData();
     res.status(200).json(result);
   } catch (error) {
     saveData();
-
-    if (error.message.includes('Token')) {
+    if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
-    } else if (
-      error.message === 'You do not own quiz ID' ||
-      error.message === 'This quiz does not exist.'
-    ) {
+    } else if (error.message.includes('403')) {
       return res.status(403).json({ error: error.message });
     }
     return res.status(400).json({ error: error.message });
