@@ -163,18 +163,10 @@ export function adminQuizQuestionDuplicate(
 ) {
   const data = getData();
   // Checks token and user is valid
-  if (!encodedTokenExists(token)) {
-    return {
-      error: 'Invalid token',
-    };
-  }
+  
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
-  if (!user) {
-    return {
-      error: 'User Id does not exist',
-    };
-  }
+
   // Search through the data to check if the quiz exists
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -235,15 +227,9 @@ export function adminQuizQuestionUpdate(
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
 ): object | ErrorResponse {
-  if (!token) {
-    return { error: 'Token is missing' };
-  }
 
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
-  if (!user) {
-    return { error: 'Invalid token' };
-  }
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
