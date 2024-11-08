@@ -221,9 +221,6 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
 
   const tokenObj: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenObj);
-  if (!user) {
-    throw new Error('401 - Invalid Token');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
