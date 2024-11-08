@@ -244,10 +244,6 @@ export function adminQuizRemoveErrorChecking(
   const tokenObj: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenObj);
 
-  if (!user) {
-    throw new Error('401 - Given user is not logged in');
-  }
-
   // Check if the quizId refers to a valid quiz
   const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   if (quizIndex === -1) {
