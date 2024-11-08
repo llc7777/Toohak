@@ -167,7 +167,7 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
     return res.status(200).json({});
   } catch (error) {
     saveData();
-    if (error.message.includes('Token')) {
+    if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
     }
     return res.status(400).json({ error: error.message });
