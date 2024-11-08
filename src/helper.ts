@@ -177,7 +177,7 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
-export function adminUserDetailsErrorChecking(
+export function adminUserDetailsUpdateErrorChecking(
   token: string,
   email: string,
   nameFirst: string,
