@@ -1,3 +1,4 @@
+import { encode } from 'punycode';
 import { getData } from './dataStore';
 
 import {
@@ -163,6 +164,12 @@ export function adminQuizQuestionDuplicate(
 ) {
   const data = getData();
   // Checks token and user is valid
+
+  if (!encodedTokenExists(token) || token.length === 0) {
+    return {
+      error: 'Invalid token',
+    }
+  }
   
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
