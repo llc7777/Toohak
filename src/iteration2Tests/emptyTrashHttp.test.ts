@@ -154,5 +154,17 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });
+
+    test('quiz is not in the trash and has not yet been deleted', () => {
+      const quizRes = quizCreate(token, 'quiz 1', 'description 1');
+      const quizId = quizRes.quizId;
+
+      const res = emptyTrash(token, [quizId]);
+
+      expect(res.statusCode).toStrictEqual(400);
+      const body = JSON.parse(res.body.toString());
+      expect(body).toStrictEqual({ error: expect.any(String) });
+
+    })
   });
 });
