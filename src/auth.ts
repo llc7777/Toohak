@@ -156,10 +156,6 @@ export function adminUserDetails(token: string) {
 
   const user: User = findUserFromToken(tokenDecoded);
 
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
   return {
     user:
     {
