@@ -220,6 +220,29 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
     const result = JSON.parse(resultRes.body.toString());
     expect(result).toStrictEqual({ error: expect.any(String) });
   });
+
+  test('returns error when trying to move a question in a quiz that does not exist', () => {
+
+    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token: userToken },
+      timeout: TIMEOUT_MS,
+    });
+
+    const resultRes = request('PUT',
+      `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${1}/move`, {
+        json: {
+          token: userToken,
+          newPosition: 1,
+        }
+      }
+    );
+
+    expect(resultRes.statusCode).toStrictEqual(400);
+
+    const result = JSON.parse(resultRes.body.toString());
+    expect(result).toStrictEqual({ error: expect.any(String) });
+  });
+
 });
 
 describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', () => {
