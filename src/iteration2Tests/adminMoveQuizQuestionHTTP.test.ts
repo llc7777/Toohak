@@ -3,7 +3,6 @@
 
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
-import { getData } from '../dataStore';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -12,7 +11,6 @@ let userToken;
 let userToken2;
 let quizId;
 let questionId;
-let questionId2;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
@@ -72,7 +70,7 @@ beforeEach(() => {
   questionId = JSON.parse(createQuestionRes.body.toString()).questionId;
 
   // Create a second question for the quiz
-  const createQuestionRes2 = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+  request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
     json: {
       token: userToken,
       questionBody: {
@@ -92,8 +90,6 @@ beforeEach(() => {
       }
     }
   });
-  questionId2 = JSON.parse(createQuestionRes2.body.toString()).questionId;
-
 });
 
 describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () => {
@@ -226,8 +222,7 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
   });
 
   test('returns error when trying to move a question for a questionId that not exist', () => {
-
-    const res = request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+    request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
       qs: { token: userToken },
       timeout: TIMEOUT_MS,
     });
@@ -248,7 +243,6 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
 
     expect(result).toStrictEqual({ error: expect.any(String) });
   });
-
 });
 
 describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', () => {

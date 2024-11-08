@@ -185,8 +185,6 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
     });
 
     test('quiz ID is an active quiz', () => {
-      const invalidQuizId = validQuizId + '1';
-
       const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
 
       const res = restoreQuiz(quizId1, token);

@@ -164,7 +164,6 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       expect(res.statusCode).toStrictEqual(400);
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
-
-    })
+    });
   });
 });

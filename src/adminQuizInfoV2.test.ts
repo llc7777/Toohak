@@ -12,24 +12,23 @@ function adminAuthRegisterWrapper(
   nameFirst: string,
   nameLast: string
 ) {
-const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-  json: {
-    email,
-    password,
-    nameFirst,
-    nameLast,
-  }
-});
-const userToken = JSON.parse(userTokenRes.body.toString()).token;
-return userToken;
+  const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email,
+      password,
+      nameFirst,
+      nameLast,
+    }
+  });
+  const userToken = JSON.parse(userTokenRes.body.toString()).token;
+  return userToken;
 }
 
 function adminQuizCreateWrapper(
   token: string,
   name: string,
-  description: string,
+  description: string
 ) {
-
   const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: {
       token,
@@ -46,19 +45,17 @@ beforeEach(() => {
 });
 
 describe('GET /v2/admin/quiz/:quizId', () => {
-
   test('returns error when trying to delete quiz with invalid token', () => {
-
-    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com','password123','Jake',
-      'Renzella' 
+    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
-    
+
     const invalidUserToken = userToken + 'a';
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
-      headers: { token: invalidUserToken},
+      headers: { token: invalidUserToken },
       timeout: TIMEOUT_MS
     });
 
@@ -70,18 +67,17 @@ describe('GET /v2/admin/quiz/:quizId', () => {
   });
 
   test('returns error when trying to delete quiz with empty user token', () => {
-
-    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com','password123','Jake',
-      'Renzella' 
+    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
-      headers: {token: ''},
+      headers: { token: '' },
       timeout: TIMEOUT_MS
     });
-  
+
     expect(JSON.parse(result.body.toString())).toStrictEqual({
       error: expect.any(String),
     });
@@ -90,14 +86,13 @@ describe('GET /v2/admin/quiz/:quizId', () => {
   });
 
   test('returns error when trying to get info of a quiz that does not exist', () => {
- 
-    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com','password123','Jake',
-      'Renzella' 
+    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId + 1}`, {
-      headers: {token: userToken},
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
@@ -109,21 +104,20 @@ describe('GET /v2/admin/quiz/:quizId', () => {
   });
 
   test('returns error when trying to get info of a quiz that does not belong to user', () => {
-
-    const userToken1 = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123','Jake',
-      'Renzella' 
+    const userToken1 = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
     const quizId1 = adminQuizCreateWrapper(userToken1, 'Basic quiz', 'Just a normal quiz');
 
     const userToken2 = adminAuthRegisterWrapper('hayden.smith@gmail.com', 'password123', 'Hayden',
-      'Smith' 
+      'Smith'
     );
     const quizId2 = adminQuizCreateWrapper(userToken2, 'Good quiz', 'Just a good quiz');
-    
+
     expect(quizId2).toStrictEqual(expect.any(Number));
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId1}`, {
-      headers: {token: userToken2},
+      headers: { token: userToken2 },
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
@@ -133,15 +127,14 @@ describe('GET /v2/admin/quiz/:quizId', () => {
   });
 
   test('successfully returns quiz info when a single quiz exists', () => {
-
-    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123','Jake',
-      'Renzella' 
+    const userToken = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
-      headers: {token: userToken},
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
@@ -162,25 +155,22 @@ describe('GET /v2/admin/quiz/:quizId', () => {
   });
 
   test('successfully returns quiz info when a multiple quizzes exists', () => {
-
-
-    const userToken1 = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123','Jake',
-      'Renzella' 
+    const userToken1 = adminAuthRegisterWrapper('jake.renzella@gmail.com', 'password123', 'Jake',
+      'Renzella'
     );
 
     const quizId1 = adminQuizCreateWrapper(userToken1, 'Basic quiz', 'Just a normal quiz');
 
     const userToken2 = adminAuthRegisterWrapper('hayden.smith@gmail.com', 'password123', 'Hayden',
       'Smith'
-    )
+    );
 
     const quizId2 = adminQuizCreateWrapper(userToken2, 'Good quiz', 'Just a good quiz');
-
 
     expect(quizId2).toStrictEqual(expect.any(Number));
 
     const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId1}`, {
-      headers: {token: userToken1},
+      headers: { token: userToken1 },
       timeout: TIMEOUT_MS
     });
 

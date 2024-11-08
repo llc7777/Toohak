@@ -254,70 +254,72 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
     });
 
     test('duplicate answer strings', () => {
-      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
-        json: {
-          token,
-          questionBody: {
-            question: 'What is the largest animal in the world?',
-            timeLimit: 5,
-            points: 5,
-            answerOptions: [
-              { answer: 'Whale', correct: true },
-              { answer: 'Whale', correct: false },
-            ],
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`,
+        {
+          json: {
+            token,
+            questionBody: {
+              question: 'What is the largest animal in the world?',
+              timeLimit: 5,
+              points: 5,
+              answerOptions: [
+                { answer: 'Whale', correct: true },
+                { answer: 'Whale', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('non existent quiz', () => {
-      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}`, {
-        json: {
-          token,
-          questionBody: {
-            question: 'What is the largest animal in the world?',
-            timeLimit: 5,
-            points: 5,
-            answerOptions: [
-              { answer: 'Whale', correct: true },
-              { answer: 'Dolphin', correct: false },
-            ],
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}`,
+        {
+          json: {
+            token,
+            questionBody: {
+              question: 'What is the largest animal in the world?',
+              timeLimit: 5,
+              points: 5,
+              answerOptions: [
+                { answer: 'Whale', correct: true },
+                { answer: 'Dolphin', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(res.statusCode).toBe(403);
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('non existent question', () => {
-      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId + 1}`, {
-        json: {
-          token,
-          questionBody: {
-            question: 'What is the largest animal in the world?',
-            timeLimit: 5,
-            points: 5,
-            answerOptions: [
-              { answer: 'Whale', correct: true },
-              { answer: 'Dolphin', correct: false },
-            ],
+      const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId + 1}`,
+        {
+          json: {
+            token,
+            questionBody: {
+              question: 'What is the largest animal in the world?',
+              timeLimit: 5,
+              points: 5,
+              answerOptions: [
+                { answer: 'Whale', correct: true },
+                { answer: 'Dolphin', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('user does not own quiz', () => {
-
       const response = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'andrew.taylor@gmail.com',
@@ -350,69 +352,70 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
     });
 
     test('empty or invalid token', () => {
-      const response = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
-        json: {
-          token: '',
-          questionBody: {
-            question: 'How many sides on a square?',
-            timeLimit: 11,
-            points: 5,
-            answerOptions: [
-              { answer: '4', correct: true },
-              { answer: '15', correct: false },
-            ],
+      const response = request(
+        'PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`,
+        {
+          json: {
+            token: '',
+            questionBody: {
+              question: 'How many sides on a square?',
+              timeLimit: 11,
+              points: 5,
+              answerOptions: [
+                { answer: '4', correct: true },
+                { answer: '15', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(response.statusCode).toBe(401);
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    })
+    });
 
     test('400: sum of question time limits in quiz exceeds 3 minutes', () => {
-
-      const response = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
-        json: {
-          token,
-          questionBody: {
-            question: 'How many sides on a square?',
-            timeLimit: 181,
-            points: 5,
-            answerOptions: [
-              { answer: '4', correct: true },
-              { answer: '15', correct: false },
-            ],
+      const response = request(
+        'PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+          json: {
+            token,
+            questionBody: {
+              question: 'How many sides on a square?',
+              timeLimit: 181,
+              points: 5,
+              answerOptions: [
+                { answer: '4', correct: true },
+                { answer: '15', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(response.statusCode).toBe(400);
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
     test('400: there is not a correct answer', () => {
-
-      const response = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
-        json: {
-          token,
-          questionBody: {
-            question: 'How many sides on a square?',
-            timeLimit: 20,
-            points: 5,
-            answerOptions: [
-              { answer: '4', correct: false },
-              { answer: '15', correct: false },
-            ],
+      const response = request(
+        'PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+          json: {
+            token,
+            questionBody: {
+              question: 'How many sides on a square?',
+              timeLimit: 20,
+              points: 5,
+              answerOptions: [
+                { answer: '4', correct: false },
+                { answer: '15', correct: false },
+              ],
+            },
           },
-        },
-        timeout: TIMEOUT_MS,
-      });
+          timeout: TIMEOUT_MS,
+        });
 
       expect(response.statusCode).toBe(400);
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
-
   });
 });

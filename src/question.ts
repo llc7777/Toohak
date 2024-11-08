@@ -1,4 +1,3 @@
-import { encode } from 'punycode';
 import { getData } from './dataStore';
 
 import {
@@ -29,7 +28,6 @@ export function adminQuizQuestionCreate(
   points: number,
   answerOptions: AnswerOptions[]
 ) {
-
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
 
@@ -168,9 +166,9 @@ export function adminQuizQuestionDuplicate(
   if (!encodedTokenExists(token) || token.length === 0) {
     return {
       error: 'Invalid token',
-    }
+    };
   }
-  
+
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
 
@@ -234,7 +232,6 @@ export function adminQuizQuestionUpdate(
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
 ): object | ErrorResponse {
-
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
 

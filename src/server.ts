@@ -366,7 +366,7 @@ app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
       return res.status(401).json(result);
     } else if (result.error === 'Quiz ID does not refer to a valid quiz.' ||
       result.error === 'User does not own the quiz.') {
-        return res.status(403).json(result);
+      return res.status(403).json(result);
     } else {
       return res.status(400).json(result);
     }
@@ -388,7 +388,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { question, timeLimit, points, answerOptions } = req.body.questionBody;
 
   if (!encodedTokenExists(token) || token.length === 0) {
-    return res.status(401).json({ error: 'Token is empty or invalid'});
+    return res.status(401).json({ error: 'Token is empty or invalid' });
   }
 
   const result2 = adminQuizQuestionCreate(quizId, token, question,
@@ -543,7 +543,6 @@ app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
     }
   }
 });
-
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

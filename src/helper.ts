@@ -220,7 +220,6 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -242,7 +241,6 @@ export function adminQuizRemoveErrorChecking(
 
   const data: Data = getData();
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
 
   // Check if the quizId refers to a valid quiz
   const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -275,7 +273,6 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   }
 
   for (const quizId of quizIds) {
-
     if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
@@ -305,7 +302,6 @@ export function adminQuizMoveQuestionErrorChecking(
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {

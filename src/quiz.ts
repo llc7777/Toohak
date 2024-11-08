@@ -254,7 +254,7 @@ Updates the name of the relevant quiz
 */
 export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
   const data = getData();
- 
+
   if (token.length === 0 || !encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
@@ -322,11 +322,9 @@ export function adminQuizDescriptionUpdate(
   quizId: number,
   description: string
 ): object | ErrorResponse {
-
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return {error: 'Token is invalid'};
+    return { error: 'Token is invalid' };
   }
-
 
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
