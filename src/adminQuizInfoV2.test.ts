@@ -45,7 +45,7 @@ beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 });
 
-describe('GET /v1/admin/quiz/:quizId', () => {
+describe('GET /v2/admin/quiz/:quizId', () => {
 
   test('returns error when trying to delete quiz with invalid token', () => {
 
@@ -57,8 +57,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     
     const invalidUserToken = userToken + 'a';
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: invalidUserToken },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: { token: invalidUserToken},
       timeout: TIMEOUT_MS
     });
 
@@ -77,8 +77,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
 
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: '' },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: {token: ''},
       timeout: TIMEOUT_MS
     });
   
@@ -96,8 +96,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     );
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId + 1}`, {
-      qs: { token: userToken },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId + 1}`, {
+      headers: {token: userToken},
       timeout: TIMEOUT_MS
     });
 
@@ -122,8 +122,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     
     expect(quizId2).toStrictEqual(expect.any(Number));
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId1}`, {
-      qs: { token: userToken2 },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId1}`, {
+      headers: {token: userToken2},
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
@@ -140,8 +140,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
 
     const quizId = adminQuizCreateWrapper(userToken, 'Basic quiz', 'Just a normal quiz');
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: userToken },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: {token: userToken},
       timeout: TIMEOUT_MS
     });
 
@@ -156,6 +156,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       description: 'Just a normal quiz',
       numOfQuestions: 0,
       questions: [],
+      timeLimit: expect.any(Number),
+      thumbnailUrl: expect.any(String),
     });
   });
 
@@ -177,8 +179,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
 
     expect(quizId2).toStrictEqual(expect.any(Number));
 
-    const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId1}`, {
-      qs: { token: userToken1 },
+    const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId1}`, {
+      headers: {token: userToken1},
       timeout: TIMEOUT_MS
     });
 
@@ -193,6 +195,8 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       description: 'Just a normal quiz',
       numOfQuestions: 0,
       questions: [],
+      timeLimit: expect.any(Number),
+      thumbnailUrl: expect.any(String),
     });
   });
 });
