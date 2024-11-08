@@ -298,12 +298,11 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
       if (!quizInTrash) {
         throw new Error('400 - One or more quiz IDs is not currently in the trash.');
       }
-  
+
       if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
         throw new Error('403 - You do not own quiz ID');
       }
     }
-  
   }
 }
 
