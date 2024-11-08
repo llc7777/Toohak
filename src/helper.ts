@@ -61,12 +61,6 @@ export function validQuizName(name: string) {
   return true;
 }
 
-// Check if the provided user ID corresponds to a valid user
-export function isUserValid(authUserId: number) {
-  const data = getData();
-  return data.users.some(user => user.authUserId === authUserId);
-}
-
 // Check if the specified name is already used by the given user ID in quizzes
 export function nameUsed(authUserId: number, name: string) {
   const data = getData();
