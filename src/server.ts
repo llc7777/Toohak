@@ -290,13 +290,6 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  try {
-    adminQuizInfo(token, quizId);
-  } catch (err) {
-    saveData();
-    return res.status(403).json({ error: err.message });
-  }
-
   const updateResult = adminQuizQuestionUpdate(quizId,
     questionId,
     token,
@@ -305,7 +298,14 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
     points,
     answerOptions);
   if ('error' in updateResult) {
-    return res.status(400).json(updateResult);
+    saveData();
+    if (updateResult.error === 'No such quiz exists' ||
+      updateResult.error === 'User does not own the quiz'
+    ) {
+      return res.status(403).json(updateResult);
+    } else {
+      return res.status(400).json(updateResult);
+    }
   }
 
   return res.status(200).json(updateResult);
@@ -500,16 +500,16 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
   const questionId = parseInt(req.params.questionid as string);
 
-  try {
-    adminQuizInfo(token, quizId);
-  } catch (err) {
-    saveData();
-    return res.status(403).json({ error: err.message });
-  }
-
   const result = adminQuizQuestionDuplicate(quizId, questionId, token);
   if ('error' in result) {
     saveData();
+    if (result.error === 'Invalid token') {
+      return res.status(401).json(result);
+    } else if (result.error === 'User does not own the quiz' ||
+      result.error === 'Quiz Id does not exist'
+    ) {
+      return res.status(403).json(result);
+    }
     return res.status(400).json(result);
   }
   saveData();
