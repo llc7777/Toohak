@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import { getData } from './dataStore';
 import validator from 'validator';
 import {
   Token,
   User,
   Quiz,
-  ErrorResponse,
   Data,
+  QuestionInfo,
 } from './interfaces';
 
 // Helper function for adminAuthRegister
@@ -51,7 +50,7 @@ export function isValidPassword(password: string): string {
 }
 
 // helper function for quizcreate
-export function validQuizName(name) {
+export function validQuizName(name: string) {
   const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
   for (const char of name) {
     if (!validChars.includes(char)) {
@@ -63,24 +62,24 @@ export function validQuizName(name) {
 }
 
 // Check if the provided user ID corresponds to a valid user
-export function isUserValid(authUserId) {
+export function isUserValid(authUserId: number) {
   const data = getData();
   return data.users.some(user => user.authUserId === authUserId);
 }
 
 // Check if the specified name is already used by the given user ID in quizzes
-export function nameUsed(authUserId, name) {
+export function nameUsed(authUserId: number, name: string) {
   const data = getData();
   return data.quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
 // Create a token from the given token object
-export function createToken(token) {
+export function createToken(token: Token) {
   return encodeURIComponent(JSON.stringify(token));
 }
 
 // Decode the given token string and return the token object
-export function decodeToken(token) {
+export function decodeToken(token: string) {
   token = decodeURIComponent(token);
   return JSON.parse(token);
 }
@@ -93,10 +92,10 @@ export function generateRandomSessionId() {
 }
 
 // Find a user from the given token
-export function findUserFromToken(token) {
+export function findUserFromToken(token: Token) {
   const data = getData();
   for (const user of data.users) {
-    if (user.tokens.find(usersToken =>
+    if (user.tokens.find((usersToken: Token) =>
       usersToken.sessionId === token.sessionId &&
       usersToken.authUserId === token.authUserId)) {
       return user;
@@ -106,7 +105,7 @@ export function findUserFromToken(token) {
 }
 
 // Return true if the encodedToken does exist and belongs to user. Otherwise return false.
-export function encodedTokenExists(encodedToken) {
+export function encodedTokenExists(encodedToken: string) {
   const data = getData();
   for (const user of data.users) {
     for (const token of user.tokens) {
@@ -120,14 +119,14 @@ export function encodedTokenExists(encodedToken) {
 }
 
 // Returns a user that corresponds to the given email
-export function findUserFromEmail(email) {
+export function findUserFromEmail(email: string) {
   const data = getData();
   return data.users.find(user => user.email === email);
 }
 
 // Return true if the given authUserId already owns a quiz with the
 // same name as the quiz name of the given quiz
-export function userHasQuizWithSameName(authUserId, quizId) {
+export function userHasQuizWithSameName(authUserId: number, quizId: number) {
   const data = getData();
   const givenQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   return data.quizzes.find(quiz => quiz.name === givenQuiz.name && quiz.authUserId === authUserId);
@@ -135,34 +134,35 @@ export function userHasQuizWithSameName(authUserId, quizId) {
 
 // Returns the quiz object of a quiz from the given quizId.
 // If quiz not found, undefined is returned
-export function findQuizFromQuizId(quizId) {
+export function findQuizFromQuizId(quizId: number) {
   const data = getData();
   return data.quizzes.find(quiz => quiz.quizId === quizId);
 }
 
-export function findQuestionFromQuestionId(questionId, quizId) {
+export function findQuestionFromQuestionId(questionId: number, quizId: number) {
   const data = getData();
   const quizIndex = getQuizIndex(quizId);
-  return data.quizzes[quizIndex].questions.find(question => question.questionId === questionId);
+  return data.quizzes[quizIndex].questions.find(
+    (question: QuestionInfo) => question.questionId === questionId);
 }
 
-export function getQuestionIndexFromQuestionId(questionId, quizId) {
+export function getQuestionIndexFromQuestionId(questionId: number, quizId: number) {
   const data = getData();
   const quizIndex = getQuizIndex(quizId);
   return data.quizzes[quizIndex].questions.findIndex(
-    question => question.questionId === questionId);
+    (question: QuestionInfo) => question.questionId === questionId);
 }
 
-export function getQuizIndex(quizId) {
+export function getQuizIndex(quizId: number) {
   const data = getData();
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
 }
 
-export function findUserIndexFromToken(token) {
+export function findUserIndexFromToken(token: Token) {
   const data = getData();
 
   const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(userToken =>
+    user.tokens && user.tokens.some((userToken: Token) =>
       userToken.authUserId === token.authUserId &&
       userToken.sessionId === token.sessionId
     )
@@ -178,7 +178,7 @@ export function getRandomColour() {
 }
 
 export function adminUserDetailsErrorChecking(
-  token: Token,
+  token: string,
   email: string,
   nameFirst: string,
   nameLast: string
@@ -220,7 +220,7 @@ export function adminUserDetailsErrorChecking(
   }
 }
 
-export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz | ErrorResponse {
+export function adminQuizInfoErrorChecking(token: string, quizId: number): void {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
   }
@@ -244,14 +244,14 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): Quiz 
 export function adminQuizRemoveErrorChecking(
   token: string,
   quizId: number
-): object | ErrorResponse {
+) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
   }
 
   const data: Data = getData();
   const tokenObj: Token = decodeToken(token);
-  const user: string = findUserFromToken(tokenObj);
+  const user: User = findUserFromToken(tokenObj);
 
   if (!user) {
     throw new Error('401 - Given user is not logged in');
@@ -270,7 +270,7 @@ export function adminQuizRemoveErrorChecking(
   }
 }
 
-export function emptyTrashErrorChecking(token: Token, quizIds: number): object | ErrorResponse {
+export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   const data = getData();
 
   if (token === '') {
@@ -287,18 +287,18 @@ export function emptyTrashErrorChecking(token: Token, quizIds: number): object |
     throw new Error('quizIds must be an array');
   }
 
-  if (data.quizzes.find(quiz => quiz.quizIds === quizIds)) {
-    throw new Error('This quiz does not exist.');
-  }
-
   for (const quizId of quizIds) {
+    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+      throw new Error('One or more quiz IDs is not currently in the trash.');
+    }
+
+    if (!data.trash.find(quiz => quiz.quizId === quizId)) {
+      throw new Error('This quiz does not exits');
+    }
+
     const quizInTrash = data.trash.find(
       quiz => quiz.quizId === quizId
     );
-
-    if (!quizInTrash) {
-      throw new Error('One or more quiz IDs is not currently in the trash.');
-    }
 
     if (quizInTrash.authUserId !== user.authUserId) {
       throw new Error('You do not own quiz ID');
@@ -311,7 +311,7 @@ export function adminQuizMoveQuestionErrorChecking(
   quizId: number,
   questionId: number,
   newPosition: number
-): object | ErrorResponse {
+) {
   console.log('Error checking');
 
   if (!encodedTokenExists(token) || token === '') {
@@ -349,12 +349,12 @@ export function adminQuizTransferErrorChecking(
   token: string,
   userEmail: string,
   quizId: number
-): object | ErrorResponse {
+) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
   }
 
-  const tokenDecoded: string = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
   const loggedInUser: User = findUserFromToken(tokenDecoded);
   const userToTransferTo: User = findUserFromEmail(userEmail);
 
