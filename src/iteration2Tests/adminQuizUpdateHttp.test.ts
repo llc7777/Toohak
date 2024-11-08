@@ -371,5 +371,27 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
 
+    test('400: there is not a correct answer', () => {
+
+      const response = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+        json: {
+          token,
+          questionBody: {
+            question: 'How many sides on a square?',
+            timeLimit: 20,
+            points: 5,
+            answerOptions: [
+              { answer: '4', correct: false },
+              { answer: '15', correct: false },
+            ],
+          },
+        },
+        timeout: TIMEOUT_MS,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+    });
+
   });
 });
