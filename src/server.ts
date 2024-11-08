@@ -559,7 +559,7 @@ app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
   }
 
   try {
-    const result = adminQuizInfo(token, quizid);
+    const result = adminQuizInfo(token, quizid, true);
     saveData();
     return res.status(200).json(result);
   } catch (error) {
