@@ -300,8 +300,6 @@ export function adminQuizMoveQuestionErrorChecking(
   questionId: number,
   newPosition: number
 ) {
-  console.log('Error checking');
-
   if (!encodedTokenExists(token) || token === '') {
     throw new Error('401 - Token is empty or invalid');
   }
@@ -344,8 +342,6 @@ export function adminQuizTransferErrorChecking(
 
   if (!userToTransferTo) {
     throw new Error('400 - No user has this email');
-  } else if (!loggedInUser) {
-    throw new Error('401 - This is not a valid logged in user');
   } else if (loggedInUser.email === userEmail) {
     throw new Error('400 - Given email is the same as the current logged in user');
   }
