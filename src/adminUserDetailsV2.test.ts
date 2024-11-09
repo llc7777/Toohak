@@ -44,7 +44,7 @@ const requestAdminAuthRegister = (
 
 const requestAdminAuthLogin = (
   email: string, password: string
-): { statusCode: number; body: AuthResponse }  => {
+): { statusCode: number; body: AuthResponse } => {
   const res = request('POST', `${SERVER_URL}/v1/admin/auth/login`, {
     json: {
       email: email,
@@ -121,11 +121,11 @@ describe('Test for correct return value', () => {
       expect(userDetails.statusCode).toBe(200);
       const user = userDetails.body as UserInfo;
       expect(user.user).toStrictEqual({
-          userId: userId,
-          name: fullName,
-          email: email,
-          numSuccessfulLogins: expect.any(Number),
-          numFailedPasswordsSinceLastLogin: expect.any(Number),
+        userId: userId,
+        name: fullName,
+        email: email,
+        numSuccessfulLogins: expect.any(Number),
+        numFailedPasswordsSinceLastLogin: expect.any(Number),
       });
 
       // Check if numSuccessfulLogins is at least 1
