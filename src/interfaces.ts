@@ -107,3 +107,7 @@ export interface AdminUserDetailsUpdateRequest {
   nameFirst: string;
   nameLast: string;
 }
+
+export interface AuthResponse {
+  token: string;
+}
