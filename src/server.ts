@@ -151,8 +151,7 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
     const result = adminUserDetails(token);
     saveData();
     return res.status(200).json(result);
-
-  } catch(error: any) {
+  } catch (error) {
     saveData();
     if (error.message) {
       return res.status(401).json({ error: error.message });
@@ -513,8 +512,7 @@ app.get('/v2/admin/user/details', (req: Request, res: Response) => {
     const result = adminUserDetails(token);
     saveData();
     return res.status(200).json(result);
-
-  } catch(error: any) {
+  } catch (error) {
     saveData();
     if (error.message) {
       return res.status(401).json({ error: error.message });
