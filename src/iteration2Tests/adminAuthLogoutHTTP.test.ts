@@ -32,7 +32,7 @@ beforeEach(() => {
 describe('Test for POST /v1/admin/auth/logout', () => {
   // Test for successful cases
   test('has the correct return and has it logged out the user', () => {
-    let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    const token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
       },
@@ -64,7 +64,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
   });
 
   test('has logged out the user several times', () => {
-    let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    const token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
       },
@@ -73,7 +73,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
 
     const token2Value: string = JSON.parse(token2.body.toString()).token;
 
-    let token3 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    const token3 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
       },
@@ -113,7 +113,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
   });
 
   test('has logged out all user sessions', () => {
-    let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    const token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
       },

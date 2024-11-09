@@ -115,8 +115,7 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
     const result: object = adminAuthLogout(token);
     saveData();
     return res.status(200).json(result);
-  }
-  catch (e) {
+  } catch (e) {
     saveData();
     return res.status(401).json({ error: e.message });
   }
@@ -510,8 +509,7 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
     const result: object = adminAuthLogout(token);
     saveData();
     return res.status(200).json(result);
-  }
-  catch (e) {
+  } catch (e) {
     saveData();
     return res.status(401).json({ error: e.message });
   }
