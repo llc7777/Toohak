@@ -4,12 +4,13 @@
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { createToken } from './helper';
+import { AuthResponse } from './interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Helper function for emptyTrash
-const emptyTrash = (token, quizIds) => {
+const emptyTrash = (token: string, quizIds: string) => {
   return request('DELETE', `${SERVER_URL}/v2/admin/quiz/trash/empty`, {
     headers: { token },
     qs: { quizIds: JSON.stringify(quizIds) },
@@ -18,7 +19,7 @@ const emptyTrash = (token, quizIds) => {
 };
 
 // Helper function for creating quiz
-const quizCreate = (token, name, description) => {
+const quizCreate = (token: string, name: string, description: string) => {
   const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
     headers: { token },
     json: { name, description },
@@ -28,15 +29,20 @@ const quizCreate = (token, name, description) => {
 };
 
 // Helper function to register a user
-const registerUser = (email, password, nameFirst, nameLast) => {
-  const res = request('POST', SERVER_URL + '/v2/admin/auth/register', {
+const registerUser = (
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): { statusCode: number; body: AuthResponse } => {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: { email, password, nameFirst, nameLast },
     timeout: TIMEOUT_MS
   });
   return JSON.parse(res.body.toString());
 };
 
-let token = {};
+let token: string = '';
 let validQuizId = [];
 
 beforeEach(() => {
@@ -48,8 +54,8 @@ beforeEach(() => {
   const quizCreateRes = quizCreate(token, 'Test Quiz', 'Description for test quiz');
   validQuizId = quizCreateRes.quizId;
 
-  request('DELETE', SERVER_URL + `/v2/admin/quiz/${validQuizId}`, {
-    headers: { token },
+  request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
+    qs: { token },
     timeout: TIMEOUT_MS
   });
 });
@@ -60,8 +66,8 @@ describe('DELETE /v2/admin/quiz/trash/empty', () => {
       const quizCreateRes2 = quizCreate(token, 'Test 2', 'Description 2');
       const validQuizId2 = quizCreateRes2.quizId;
 
-      request('DELETE', SERVER_URL + `/v2/admin/quiz/${validQuizId2}`, {
-        headers: { token },
+      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId2}`, {
+        qs: { token },
         timeout: TIMEOUT_MS
       });
 
@@ -139,8 +145,8 @@ describe('DELETE /v2/admin/quiz/trash/empty', () => {
       const userTokenRes2 = registerUser('different2@gmail.com', 'passss123', 'May', 'Lee');
       const userToken2 = userTokenRes2.token;
 
-      request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
-        headers: { token },
+      request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
+        qs: { token },
         timeout: TIMEOUT_MS
       });
 
