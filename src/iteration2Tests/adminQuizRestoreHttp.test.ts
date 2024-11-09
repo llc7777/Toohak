@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -181,6 +181,15 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       const res = restoreQuiz(quizId, userToken2);
 
       expect(res.statusCode).toStrictEqual(403);
+      expect(res.body).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test('quiz ID is an active quiz', () => {
+      const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
+
+      const res = restoreQuiz(quizId1, token);
+
+      expect(res.statusCode).toStrictEqual(400);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
   });

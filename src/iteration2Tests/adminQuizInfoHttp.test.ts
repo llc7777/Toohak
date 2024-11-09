@@ -1,5 +1,5 @@
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
+import { port, url } from '../config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -64,6 +64,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
     });
     expect(result.statusCode).toStrictEqual(401);
   });
+
   test('returns error when trying to get info of a quiz that does not exist', () => {
     const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {

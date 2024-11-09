@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Do not delete this file
-import { echo } from './echo';
+import { echo } from '../echo';
 
 test('Test successful echo', () => {
   let result = echo('1');

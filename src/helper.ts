@@ -1,7 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import { getData } from './dataStore';
 import validator from 'validator';
+import {
+  Token,
+  User,
+  Quiz,
+  Data,
+  QuestionInfo,
+} from './interfaces';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
@@ -44,7 +50,7 @@ export function isValidPassword(password: string): string {
 }
 
 // helper function for quizcreate
-export function validQuizName(name) {
+export function validQuizName(name: string) {
   const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
   for (const char of name) {
     if (!validChars.includes(char)) {
@@ -55,25 +61,19 @@ export function validQuizName(name) {
   return true;
 }
 
-// Check if the provided user ID corresponds to a valid user
-export function isUserValid(authUserId) {
-  const data = getData();
-  return data.users.some(user => user.authUserId === authUserId);
-}
-
 // Check if the specified name is already used by the given user ID in quizzes
-export function nameUsed(authUserId, name) {
+export function nameUsed(authUserId: number, name: string) {
   const data = getData();
   return data.quizzes.some(quiz => quiz.authUserId === authUserId && quiz.name === name);
 }
 
 // Create a token from the given token object
-export function createToken(token) {
+export function createToken(token: Token) {
   return encodeURIComponent(JSON.stringify(token));
 }
 
 // Decode the given token string and return the token object
-export function decodeToken(token) {
+export function decodeToken(token: string) {
   token = decodeURIComponent(token);
   return JSON.parse(token);
 }
@@ -86,10 +86,10 @@ export function generateRandomSessionId() {
 }
 
 // Find a user from the given token
-export function findUserFromToken(token) {
+export function findUserFromToken(token: Token) {
   const data = getData();
   for (const user of data.users) {
-    if (user.tokens.find(usersToken =>
+    if (user.tokens.find((usersToken: Token) =>
       usersToken.sessionId === token.sessionId &&
       usersToken.authUserId === token.authUserId)) {
       return user;
@@ -99,7 +99,7 @@ export function findUserFromToken(token) {
 }
 
 // Return true if the encodedToken does exist and belongs to user. Otherwise return false.
-export function encodedTokenExists(encodedToken) {
+export function encodedTokenExists(encodedToken: string) {
   const data = getData();
   for (const user of data.users) {
     for (const token of user.tokens) {
@@ -113,14 +113,14 @@ export function encodedTokenExists(encodedToken) {
 }
 
 // Returns a user that corresponds to the given email
-export function findUserFromEmail(email) {
+export function findUserFromEmail(email: string) {
   const data = getData();
   return data.users.find(user => user.email === email);
 }
 
 // Return true if the given authUserId already owns a quiz with the
 // same name as the quiz name of the given quiz
-export function userHasQuizWithSameName(authUserId, quizId) {
+export function userHasQuizWithSameName(authUserId: number, quizId: number) {
   const data = getData();
   const givenQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   return data.quizzes.find(quiz => quiz.name === givenQuiz.name && quiz.authUserId === authUserId);
@@ -128,34 +128,35 @@ export function userHasQuizWithSameName(authUserId, quizId) {
 
 // Returns the quiz object of a quiz from the given quizId.
 // If quiz not found, undefined is returned
-export function findQuizFromQuizId(quizId) {
+export function findQuizFromQuizId(quizId: number) {
   const data = getData();
   return data.quizzes.find(quiz => quiz.quizId === quizId);
 }
 
-export function findQuestionFromQuestionId(questionId, quizId) {
+export function findQuestionFromQuestionId(questionId: number, quizId: number) {
   const data = getData();
   const quizIndex = getQuizIndex(quizId);
-  return data.quizzes[quizIndex].questions.find(question => question.questionId === questionId);
+  return data.quizzes[quizIndex].questions.find(
+    (question: QuestionInfo) => question.questionId === questionId);
 }
 
-export function getQuestionIndexFromQuestionId(questionId, quizId) {
+export function getQuestionIndexFromQuestionId(questionId: number, quizId: number) {
   const data = getData();
   const quizIndex = getQuizIndex(quizId);
   return data.quizzes[quizIndex].questions.findIndex(
-    question => question.questionId === questionId);
+    (question: QuestionInfo) => question.questionId === questionId);
 }
 
-export function getQuizIndex(quizId) {
+export function getQuizIndex(quizId: number) {
   const data = getData();
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
 }
 
-export function findUserIndexFromToken(token) {
+export function findUserIndexFromToken(token: Token) {
   const data = getData();
 
   const userIndex = data.users.findIndex(user =>
-    user.tokens && user.tokens.some(userToken =>
+    user.tokens && user.tokens.some((userToken: Token) =>
       userToken.authUserId === token.authUserId &&
       userToken.sessionId === token.sessionId
     )
@@ -168,4 +169,187 @@ export function getRandomColour() {
   const colours = ['green', 'red', 'blue', 'brown', 'orange', 'yellow', 'pink', 'purple'];
   const randomIndex = Math.floor(Math.random() * colours.length);
   return colours[randomIndex];
+}
+
+export function adminUserDetailsErrorChecking(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): void {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  // Check if the email is valid
+  if (!validator.isEmail(email)) {
+    throw new Error('400 - Email is not valid. Please try another email.');
+  }
+
+  //  Check if the email is already in use by another user
+  const emailInUse = data.users.find(
+    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
+  if (emailInUse) {
+    throw new Error('400 - Email is currently used by another user. Please use another email.');
+  }
+
+  // Validating first name and last name
+  const firstNameError = isValidName(nameFirst, 'First');
+  if (firstNameError) {
+    throw new Error(firstNameError);
+  }
+
+  const lastNameError = isValidName(nameLast, 'Last');
+  if (lastNameError) {
+    throw new Error(lastNameError);
+  }
+}
+
+export function adminQuizInfoErrorChecking(token: string, quizId: number): void {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
+
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+}
+
+export function adminQuizRemoveErrorChecking(
+  token: string,
+  quizId: number
+) {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const data: Data = getData();
+  const tokenObj: Token = decodeToken(token);
+
+  // Check if the quizId refers to a valid quiz
+  const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  if (quizIndex === -1) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+
+  // Check if the quiz belongs to the user
+  const quiz: Quiz = data.quizzes[quizIndex];
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+}
+
+export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
+  const data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  if (!Array.isArray(quizIds)) {
+    throw new Error('400 - quizIds must be an array');
+  }
+
+  for (const quizId of quizIds) {
+    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+      throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+    }
+
+    for (const quizId of quizIds) {
+      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
+
+      if (!quizInTrash) {
+        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+      }
+
+      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
+        throw new Error('403 - You do not own quiz ID');
+      }
+    }
+  }
+}
+
+export function adminQuizMoveQuestionErrorChecking(
+  token: string,
+  quizId: number,
+  questionId: number,
+  newPosition: number
+) {
+  if (!encodedTokenExists(token) || token === '') {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - The given quizId does not refer to any quiz');
+  }
+
+  if (quiz.authUserId !== tokenObj.authUserId) {
+    throw new Error('403 - This user does not own the quiz');
+  }
+  if (newPosition < 0 || newPosition > quiz.questions.length - 1) {
+    throw new Error('400 - The new position is outside the bounds of questions array');
+  }
+  const questionIndex = getQuestionIndexFromQuestionId(questionId, quizId);
+  if (questionIndex === -1) {
+    throw new Error('400 - No question exists with the quiz for the given questionId');
+  }
+  if (questionIndex === newPosition) {
+    throw new Error('400 - New position is the current position');
+  }
+}
+
+export function adminQuizTransferErrorChecking(
+  token: string,
+  userEmail: string,
+  quizId: number
+) {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid');
+  }
+
+  const tokenDecoded: Token = decodeToken(token);
+  const loggedInUser: User = findUserFromToken(tokenDecoded);
+  const userToTransferTo: User = findUserFromEmail(userEmail);
+
+  if (!userToTransferTo) {
+    throw new Error('400 - No user has this email');
+  } else if (loggedInUser.email === userEmail) {
+    throw new Error('400 - Given email is the same as the current logged in user');
+  }
+
+  const quizToTransfer: Quiz = findQuizFromQuizId(quizId);
+  if (!quizToTransfer) {
+    throw new Error('403 - No quiz exists with the given quizId');
+  } else if (quizToTransfer.authUserId !== tokenDecoded.authUserId) {
+    throw new Error('403 - This user does not own the quiz');
+  }
+
+  if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
+    throw new Error('400 - This user already owns a quiz with the same name');
+  }
 }

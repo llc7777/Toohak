@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /*
 Register a user with an email, password, and names, then returns
 their authUserId value.
 Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
-// @ts-nocheck
 
 import { getData } from './dataStore';
 import {
@@ -18,25 +16,13 @@ import {
   findUserFromToken,
   encodedTokenExists,
   findUserIndexFromToken,
+  adminUserDetailsErrorChecking,
 } from './helper';
-import validator from 'validator';
-import { ErrorResponse, Token } from './interfaces';
+import { ErrorResponse, Token, User } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string, token?: string) {
+  nameFirst: string, nameLast: string) {
   const store = getData();
-
-  let decodedTokenData = null;
-
-  // If a token exist, decode and check user
-  if (token) {
-    decodedTokenData = decodeToken(token);
-    const userExist = findUserFromToken(decodedTokenData.sessionId);
-
-    if (userExist) {
-      return { error: 'You are already logged in as a different user. Please log out first.' };
-    }
-  }
 
   const wrongEmail = isValidEmail(email);
   if (wrongEmail) {
@@ -161,17 +147,14 @@ export function adminAuthLogout(token: string): object {
 * @param {string} token
 * @returns {Object} user
 */
-export function adminUserDetails(token) {
+
+export function adminUserDetails(token: string) {
   if (!encodedTokenExists(token)) {
     return { error: 'Invalid token' };
   }
-  const tokenDecoded = decodeToken(token);
+  const tokenDecoded: Token = decodeToken(token);
 
-  const user = findUserFromToken(tokenDecoded);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
+  const user: User = findUserFromToken(tokenDecoded);
 
   return {
     user:
@@ -195,50 +178,16 @@ export function adminUserDetails(token) {
  * @returns {object} - Returns an empty object
  */
 export function adminUserDetailsUpdate(
-  token: Token,
+  token: string,
   email: string,
   nameFirst: string,
   nameLast: string
 ): object | ErrorResponse {
-  const data = getData();
+  // Check for errors
+  adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
 
-  // Check if the token is empty
-  if (token === '') {
-    return { error: 'Token is empty' };
-  }
-
-  // Find the user from the token
   const tokenData = decodeToken(token);
-
   const user = findUserFromToken(tokenData);
-  if (!user) {
-    return {
-      error: 'Token is invalid',
-    };
-  }
-
-  // Check if the email is valid
-  if (!validator.isEmail(email)) {
-    return { error: 'Email is not valid. Please try another email.' };
-  }
-
-  //  Check if the email is already in use by another user
-  const emailInUse = data.users.find(
-    otherUser => otherUser.email === email && otherUser.authUserId !== user.authUserId);
-  if (emailInUse) {
-    return { error: 'Email is currently used by another user. Please use another email.' };
-  }
-
-  // Validating first name and last name
-  const firstNameError = isValidName(nameFirst, 'First');
-  if (firstNameError) {
-    return { error: firstNameError };
-  }
-
-  const lastNameError = isValidName(nameLast, 'Last');
-  if (lastNameError) {
-    return { error: lastNameError };
-  }
 
   // Update user properties
   user.email = email;
@@ -256,9 +205,12 @@ export function adminUserDetailsUpdate(
  * @param {string} newPassword
  * @returns {object} - Returns an empty object
  */
-export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
+export function adminUserPasswordUpdate(
+  token: string,
+  oldPassword: string,
+  newPassword: string
+) {
   let checkOldPassword = false;
-  let alreadyUsedThisPassword = false;
   const data = getData();
 
   // Check if the token is empty
@@ -284,8 +236,8 @@ export function adminUserPasswordUpdate(token, oldPassword, newPassword) {
     checkOldPassword = true;
   }
   // Search through the users old passwords to see if the new password has already been used
-  alreadyUsedThisPassword = data.users[userIndex].oldPasswords.find(
-    oldPassword => oldPassword === newPassword);
+  const alreadyUsedThisPassword = data.users[userIndex].oldPasswords.find(
+    (oldPassword: string) => oldPassword === newPassword);
 
   // Check password is right
   if (!checkOldPassword) {

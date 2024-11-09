@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
+import { port, url } from '../config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -218,6 +218,29 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
     expect(resultRes.statusCode).toStrictEqual(403);
 
     const result = JSON.parse(resultRes.body.toString());
+    expect(result).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('returns error when trying to move a question for a questionId that not exist', () => {
+    request('DELETE', `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${questionId}`, {
+      qs: { token: userToken },
+      timeout: TIMEOUT_MS,
+    });
+
+    const zero = 0;
+    const resultRes = request('PUT',
+      `${SERVER_URL}/v1/admin/quiz/${quizId}/question/${zero}/move`, {
+        json: {
+          token: userToken,
+          newPosition: 0,
+        }
+      }
+    );
+
+    expect(resultRes.statusCode).toStrictEqual(400);
+
+    const result = JSON.parse(resultRes.body.toString());
+
     expect(result).toStrictEqual({ error: expect.any(String) });
   });
 });

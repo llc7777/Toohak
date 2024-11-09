@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -57,12 +57,18 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
     test('empty the trash with different quiz IDs', () => {
       const quizCreateRes2 = quizCreate(token, 'Test 2', 'Description 2');
 
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
+      // request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
+      //   qs: { token },
+      //   timeout: TIMEOUT_MS
+      // });
+
+      const validQuizId2 = quizCreateRes2.quizId;
+
+      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId2}`, {
         qs: { token },
         timeout: TIMEOUT_MS
       });
 
-      const validQuizId2 = quizCreateRes2.quizId;
       const res = emptyTrash(token, [validQuizId, validQuizId2]);
 
       expect(res.statusCode).toStrictEqual(200);
@@ -111,7 +117,7 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
     test('one or more quiz IDs are not in the trash', () => {
       const res = emptyTrash(token, [100, 200, 300, 400]);
 
-      expect(res.statusCode).toStrictEqual(403);
+      expect(res.statusCode).toStrictEqual(400);
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });
@@ -121,7 +127,7 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       const res2 = emptyTrash(token, [validQuizId]);
 
       expect(res1.statusCode).toStrictEqual(200);
-      expect(res2.statusCode).toStrictEqual(403);
+      expect(res2.statusCode).toStrictEqual(400);
 
       const body1 = JSON.parse(res1.body.toString());
       const body2 = JSON.parse(res2.body.toString());
@@ -145,6 +151,17 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       const res = emptyTrash(userToken2, [quizId]);
 
       expect(res.statusCode).toStrictEqual(403);
+      const body = JSON.parse(res.body.toString());
+      expect(body).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test('quiz is not in the trash and has not yet been deleted', () => {
+      const quizRes = quizCreate(token, 'quiz 1', 'description 1');
+      const quizId = quizRes.quizId;
+
+      const res = emptyTrash(token, [quizId]);
+
+      expect(res.statusCode).toStrictEqual(400);
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });

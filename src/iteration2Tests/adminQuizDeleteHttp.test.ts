@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -103,6 +103,17 @@ describe('Test for DELETE /v1/admin/quiz/{quizId}/question/{questionId}', () => 
     });
 
     expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('error for non-existent quiz id', () => {
+    const res = request('DELETE',
+    `${SERVER_URL}/v1/admin/quiz/${quizId + 1}/question/${questionId}`, {
+      qs: { token },
+      timeout: TIMEOUT_MS,
+    });
+
+    expect(res.statusCode).toStrictEqual(403);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 

@@ -2,8 +2,8 @@
 // @ts-nocheck
 
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -80,6 +80,23 @@ describe('Test for GET /v1/admin/quiz/list', () => {
     request('POST', SERVER_URL + '/v1/admin/quiz', {
       json:
         { token, name: 'quiz3', description: 'description3' },
+      timeout: TIMEOUT_MS
+    });
+
+    let token1 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+      json: {
+        email: 'jake.renzella@gmail.com',
+        password: 'password123',
+        nameFirst: 'Jake',
+        nameLast: 'Renzella'
+      },
+      timeout: TIMEOUT_MS
+    });
+    token1 = JSON.parse(token1.body.toString()).token;
+
+    request('POST', SERVER_URL + '/v1/admin/quiz', {
+      json:
+        { token1, name: 'quiz4', description: 'description4' },
       timeout: TIMEOUT_MS
     });
 
