@@ -109,16 +109,16 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // adminAuthLogout POST request
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  const { token } = req.body;
+  const token = req.body.token as string;
 
-  const result = adminAuthLogout(token);
-
-  if ('error' in result) {
+  try {
+    const result: object = adminAuthLogout(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
@@ -212,10 +212,9 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
   const result = adminQuizList(token);
 
-  if ('error' in result) {
+  if (result.error) {
     saveData();
-    res.status(401).json(result);
-    return;
+    return res.status(401).json(result);
   }
   saveData();
   return res.json(result);
@@ -261,7 +260,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   try {
     adminQuizRemove(token, quizid);
     saveData();
-    return res.status(200).json({ });
+    return res.status(200).json({});
   } catch (err) {
     saveData();
     if (err.message.includes('401')) {
@@ -417,7 +416,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   try {
     adminQuizMoveQuestion(token, quizId, questionId, newPosition);
     saveData();
-    return res.status(200).json({ });
+    return res.status(200).json({});
   } catch (err) {
     saveData();
     if (err.message.includes('400')) {
@@ -459,7 +458,7 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   try {
     adminQuizTransfer(token, email, quizId);
     saveData();
-    return res.status(200).json({ });
+    return res.status(200).json({});
   } catch (err) {
     saveData();
     if (err.message.includes('400')) {
@@ -500,6 +499,23 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 * ============================= V2 ROUTES BELOW =============================
 * ===========================================================================
 */
+
+// auth routes
+// V2 adminAuthLogout POST request
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  try {
+    const result: object = adminAuthLogout(token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
+});
+
+// quiz routes
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;

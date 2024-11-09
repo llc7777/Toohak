@@ -117,21 +117,21 @@ export function adminAuthLogin(email: string, password: string) {
  * Logs out an admin user who has an active user session.
  *
  * @param {string} token
- * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ * @returns {object} - Returns an empty object to indicate that the user has been logged out.
  */
-export function adminAuthLogout(token: string) {
+export function adminAuthLogout(token: string): object {
   const data = getData();
 
   if (token === '') {
-    return { error: 'Token is empty' };
+    throw new Error('401 - Token is empty');
   }
 
-  const tokenData = decodeToken(token);
+  const tokenData: Token = decodeToken(token);
 
-  const userIndex = findUserIndexFromToken(tokenData);
+  const userIndex: number = findUserIndexFromToken(tokenData);
 
   if (userIndex === -1) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
@@ -181,7 +181,7 @@ export function adminUserDetailsUpdate(
   token: string,
   email: string,
   nameFirst: string,
-  nameLast:string
+  nameLast: string
 ): object | ErrorResponse {
   // Check for errors
   adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
