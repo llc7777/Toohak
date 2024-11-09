@@ -14,27 +14,16 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
-  encodedTokenExists,
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
+  adminUserDetailsUpdateErrorChecking,
+  adminAuthLoginErrorChecking
 } from './helper';
-import { ErrorResponse, Token, User } from './interfaces';
+import { ErrorResponse, Token, User, UserInfo, AuthResponse } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string, token?: string) {
+  nameFirst: string, nameLast: string) {
   const store = getData();
-
-  let decodedTokenData = null;
-
-  // If a token exist, decode and check user
-  if (token) {
-    decodedTokenData = decodeToken(token);
-    const userExist = findUserFromToken(decodedTokenData.sessionId);
-
-    if (userExist) {
-      return { error: 'You are already logged in as a different user. Please log out first.' };
-    }
-  }
 
   const wrongEmail = isValidEmail(email);
   if (wrongEmail) {
@@ -94,21 +83,14 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email: string, password: string) {
-  const data = getData();
+export function adminAuthLogin(
+  email: string, password: string
+): AuthResponse | ErrorResponse {
+  adminAuthLoginErrorChecking(email, password);
 
+  const data = getData();
   const index = data.users.findIndex((user) => user.email === email);
-  if (index === -1) {
-    return {
-      error: 'No user with this email exists'
-    };
-  }
-  if (data.users[index].password !== password) {
-    data.users[index].numFailedPasswordsSinceLastLogin += 1;
-    return {
-      error: 'Password is incorrect'
-    };
-  }
+
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
 
@@ -125,25 +107,26 @@ export function adminAuthLogin(email: string, password: string) {
     token: createToken(token)
   };
 }
+
 /**
  * Logs out an admin user who has an active user session.
  *
  * @param {string} token
- * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ * @returns {object} - Returns an empty object to indicate that the user has been logged out.
  */
-export function adminAuthLogout(token: string) {
+export function adminAuthLogout(token: string): object {
   const data = getData();
 
   if (token === '') {
-    return { error: 'Token is empty' };
+    throw new Error('401 - Token is empty');
   }
 
-  const tokenData = decodeToken(token);
+  const tokenData: Token = decodeToken(token);
 
-  const userIndex = findUserIndexFromToken(tokenData);
+  const userIndex: number = findUserIndexFromToken(tokenData);
 
   if (userIndex === -1) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
@@ -160,17 +143,11 @@ export function adminAuthLogout(token: string) {
 * @returns {Object} user
 */
 
-export function adminUserDetails(token: string) {
-  if (!encodedTokenExists(token)) {
-    return { error: 'Invalid token' };
-  }
+export function adminUserDetails(token: string): UserInfo | ErrorResponse {
+  adminUserDetailsErrorChecking(token);
+
   const tokenDecoded: Token = decodeToken(token);
-
   const user: User = findUserFromToken(tokenDecoded);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
 
   return {
     user:
@@ -197,10 +174,10 @@ export function adminUserDetailsUpdate(
   token: string,
   email: string,
   nameFirst: string,
-  nameLast:string
+  nameLast: string
 ): object | ErrorResponse {
   // Check for errors
-  adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
+  adminUserDetailsUpdateErrorChecking(token, email, nameFirst, nameLast);
 
   const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
