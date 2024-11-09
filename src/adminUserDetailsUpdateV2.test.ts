@@ -5,10 +5,10 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { createToken } from './helper';
 
-const SERVER_URL = `${url}:${port}`;
-const TIMEOUT_MS = 5 * 1000;
+const SERVER_URL: string = `${url}:${port}`;
+const TIMEOUT_MS: number = 5 * 1000;
 
-let token = {};
+let token: string = '';
 
 beforeEach(() => {
   request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
@@ -30,7 +30,7 @@ describe('PUT /v2/admin/user/details', () => {
   describe('Tests for failure', () => {
     test('returns error for invalid token', () => {
       const invalidToken = { sessionId: 1, authUserId: 1531 };
-      const encodedInvalid = createToken(invalidToken);
+      const encodedInvalid: string = createToken(invalidToken);
 
       const res = request('PUT', SERVER_URL + '/v2/admin/user/details', {
         headers: { token: encodedInvalid },
@@ -43,7 +43,7 @@ describe('PUT /v2/admin/user/details', () => {
       });
 
       expect(res.statusCode).toStrictEqual(401);
-      const body = JSON.parse(res.body.toString());
+      const body: { error: string } = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -61,7 +61,7 @@ describe('PUT /v2/admin/user/details', () => {
       });
 
       expect(res.statusCode).toStrictEqual(401);
-      const body = JSON.parse(res.body.toString());
+      const body: { error: string } = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -73,7 +73,7 @@ describe('PUT /v2/admin/user/details', () => {
       'user@domain..com', // Consecutive dots
       'user@domain.c', // .com missing characters
       'user@-domain.com', // Invalid domain
-    ])('returns error for invalid email: %s', (invalidEmail) => {
+    ])('returns error for invalid email: %s', (invalidEmail: string) => {
       const result = request('PUT', `${SERVER_URL}/v2/admin/user/details`, {
         headers: { token },
         json: {
@@ -85,13 +85,13 @@ describe('PUT /v2/admin/user/details', () => {
       });
 
       expect(result.statusCode).toStrictEqual(400);
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
     test('given email already belongs to another user', () => {
       // Register second user
-      request('POST', SERVER_URL + '/v2/admin/auth/register', {
+      request('POST', SERVER_URL + '/v1/admin/auth/register', {
         json: {
           email: 'second.user@gmail.com',
           password: 'Password123',
@@ -103,7 +103,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       // Try to update the first user's details with the second user's email
       const result = request('PUT', `${SERVER_URL}/v2/admin/user/details`, {
-        json: { token }, // First user's token
+        headers: { token }, // First user's token
         json: {
           email: 'second.user@gmail.com', // Second user's email
           nameFirst: 'UpdatedFirst',
@@ -114,7 +114,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -138,7 +138,7 @@ describe('PUT /v2/admin/user/details', () => {
       });
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -156,7 +156,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -173,7 +173,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -197,7 +197,7 @@ describe('PUT /v2/admin/user/details', () => {
       });
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -214,7 +214,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -232,7 +232,7 @@ describe('PUT /v2/admin/user/details', () => {
 
       expect(result.statusCode).toStrictEqual(400);
 
-      const response = JSON.parse(result.body.toString());
+      const response: { error: string } = JSON.parse(result.body.toString());
       expect(response).toStrictEqual({ error: expect.any(String) });
     });
   });
@@ -249,15 +249,11 @@ describe('PUT /v2/admin/user/details', () => {
         timeout: TIMEOUT_MS,
       });
 
-      console.log('Token:', token);
-      console.log('Response:', res.body);
-      console.log('Status Code:', res.statusCode);
-
       expect(res.statusCode).toStrictEqual(200);
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
-      const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        qs: { token },
+      const userDetails = request('GET', `${SERVER_URL}/v2/admin/user/details`, {
+        headers: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -280,8 +276,8 @@ describe('PUT /v2/admin/user/details', () => {
       expect(res.statusCode).toStrictEqual(200);
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
-      const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        qs: { token },
+      const userDetails = request('GET', `${SERVER_URL}/v2/admin/user/details`, {
+        headers: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -304,8 +300,8 @@ describe('PUT /v2/admin/user/details', () => {
       expect(res.statusCode).toStrictEqual(200);
       expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
-      const userDetails = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        qs: { token },
+      const userDetails = request('GET', `${SERVER_URL}/v2/admin/user/details`, {
+        headers: { token },
         timeout: TIMEOUT_MS,
       });
       const userBody = JSON.parse(userDetails.body.toString());
@@ -344,8 +340,8 @@ describe('PUT /v2/admin/user/details', () => {
       expect(result.statusCode).toStrictEqual(200);
       expect(JSON.parse(result.body.toString())).toStrictEqual({});
 
-      const updatedResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-        qs: { token },
+      const updatedResponse = request('GET', `${SERVER_URL}/v2/admin/user/details`, {
+        headers: { token },
         timeout: TIMEOUT_MS,
       });
 

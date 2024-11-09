@@ -171,6 +171,19 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
+export function adminUserDetailsErrorChecking(token: string) {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+}
+
 export function adminUserDetailsUpdateErrorChecking(
   token: string,
   email: string,
