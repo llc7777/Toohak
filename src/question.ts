@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import { getData } from './dataStore';
 
 import {
@@ -19,8 +17,6 @@ import {
   Token,
   Quiz,
   AnswerOptions,
-  Data,
-  QuestionIdObject,
   QuestionInfo
 } from './interfaces';
 
@@ -30,24 +26,21 @@ export function adminQuizQuestionCreate(
   question: string,
   timeLimit: number,
   points: number,
-  answerOptions: AnswerOptions
-): QuestionIdObject {
-  const data: Data = getData();
-
-  // Token, quizId, user checks
-  let user: boolean = false;
-  let quiz: boolean = false;
+  answerOptions: AnswerOptions[],
+  version: string,
+  thumbnailUrl?: string
+) {
   if (!encodedTokenExists(token)) {
     throw new Error('401 - Invalid token')
   }
 
-  const tokenDecoded: Token = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
+  const tokenDecoded = decodeToken(token);
+  const user = findUserFromToken(tokenDecoded);
   if (!user) {
     throw new Error('401 - User does not exist');
   }
 
-  quiz = findQuizFromQuizId(quizId);
+  const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     throw new Error ('403 - No such quiz exists')
   }
@@ -108,6 +101,10 @@ export function adminQuizQuestionCreate(
     throw new Error ('400 - There must be at least one correct answer');
   }
 
+  if (version === 'v2') {
+    // thumbnail errors
+  }
+
   for (const index in answerOptions) {
     answerOptions[index].colour = getRandomColour();
     answerOptions[index].answerId = parseInt(index) + 1;
@@ -121,6 +118,9 @@ export function adminQuizQuestionCreate(
     points: points,
     answerOptions: answerOptions
   };
+
+  const data = getData();
+
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   data.quizzes[quizIndex].questions.push(newQuestion);
@@ -150,17 +150,16 @@ export function adminQuizQuestionDuplicate(
   quizId: number,
   questionId: number,
   token: string
-): QuestionIdObject {
-  let user: boolean = false;
-  const data: Data = getData();
+) {
+  const data = getData();
   // Checks token and user is valid
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
-  const tokenDecoded: Token = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
+  const tokenDecoded = decodeToken(token);
+  const user = findUserFromToken(tokenDecoded);
   if (!user) {
     return {
       error: 'User Id does not exist',
@@ -175,7 +174,7 @@ export function adminQuizQuestionDuplicate(
   }
   const quizIndex: number = getQuizIndex(quizId);
   // Search through the data to check if the question exists
-  const question: string = findQuestionFromQuestionId(questionId, quizId);
+  const question: QuestionInfo = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
     return {
       error: 'Question Id does not exist',
@@ -189,13 +188,13 @@ export function adminQuizQuestionDuplicate(
     };
   }
 
-  const newQuestionId: number = quiz.questions.length + 1;
-  const duplicateQuestion: QuestionInfo = {
+  const newQuestionId = quiz.questions.length + 1;
+  const duplicateQuestion = {
     questionId: newQuestionId,
-    question: quiz.question,
-    timeLimit: quiz.timeLimit,
-    points: quiz.points,
-    answerOptions: quiz.answerOptions
+    question: question.question,
+    timeLimit: question.timeLimit,
+    points: question.points,
+    answerOptions: question.answerOptions
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
@@ -280,7 +279,7 @@ export function adminQuizQuestionUpdate(
     return { error: 'Answers must have no duplicates of one another' };
   }
 
-  const hasCorrectAnswer = answerOptions.some(option => option.correctAnswer);
+  const hasCorrectAnswer = answerOptions.some(option => option.correct);
   if (!hasCorrectAnswer) {
     return { error: 'There must be at least one correct answer' };
   }

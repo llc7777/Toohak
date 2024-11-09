@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+import { Data } from './interfaces';
 // YOU MAY MODIFY THIS OBJECT BELOW
-const data = {
+const data: Data = {
 
   users: [],
   quizzes: [],

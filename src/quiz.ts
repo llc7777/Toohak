@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import { getData } from './dataStore';
 import {
   validQuizName,
@@ -19,7 +18,8 @@ import {
   User,
   Quiz,
   Token,
-  Data
+  Data,
+  QuizInfo,
 } from './interfaces';
 
 /**
@@ -27,8 +27,8 @@ import {
  * @param {string} token of user
  * @returns {object} - An object containing a list of quizzes created by the user
  */
-export function adminQuizList(token) {
-  const data = getData();
+export function adminQuizList(token: string) {
+  const data: Data = getData();
   const arr = [];
   // Check if the token is empty
   if (token === '') {
@@ -38,8 +38,8 @@ export function adminQuizList(token) {
   }
 
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
+  const tokenData: Token = decodeToken(token);
+  const authUserId: number = tokenData.authUserId;
 
   // verify user with the sessionId and authUserId
   const userExists = findUserFromToken(tokenData);
@@ -70,7 +70,7 @@ export function adminQuizList(token) {
  * @param {string} token of user
  * @returns {object} - An object containing quizzes in trash
  */
-export function adminQuizTrashList(token) {
+export function adminQuizTrashList(token: string) {
   const data = getData();
   const arr = [];
 
@@ -113,8 +113,12 @@ export function adminQuizTrashList(token) {
  * @param {string} description Description of new quiz
  * @returns
  */
-export function adminQuizCreate(token, name, description) {
-  const data = getData();
+export function adminQuizCreate(
+  token: string,
+  name: string,
+  description: string
+) {
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
@@ -153,13 +157,13 @@ export function adminQuizCreate(token, name, description) {
   }
 
   const newQuizId = data.quizzes.length + data.trash.length + 1;
-  const newQuiz = {
-    quizId: newQuizId,
+  const newQuiz: Quiz = {
     authUserId,
+    quizId: newQuizId,
     name,
-    description,
     timeCreated: Math.floor(Date.now() / 1000),
     timeLastEdited: Math.floor(Date.now() / 1000),
+    description,
     questions: [],
   };
 
@@ -204,7 +208,7 @@ Gets information for a given quiz given a quizId and authUserId
   - {string} description:
 *
 */
-export function adminQuizInfo(token: string, quizId: number): Quiz | ErrorResponse {
+export function adminQuizInfo(token: string, quizId: number): QuizInfo | ErrorResponse {
   adminQuizInfoErrorChecking(token, quizId);
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
@@ -227,22 +231,17 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(
-  token: string,
-  quizId: number,
-  name: string
-): object | ErrorResponse {
-  let user: boolean = false;
-  const data: Data = getData();
+export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
+  const data = getData();
   if (!encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
   }
 
-  const tokenDecoded: Token = decodeToken(token);
-  user = findUserFromToken(tokenDecoded);
-  if (!user) {
+  const tokenDecoded = decodeToken(token);
+  const user = findUserFromToken(tokenDecoded);
+  if (user === null) {
     return {
       error: 'User Id does not exist',
     };
@@ -310,6 +309,10 @@ export function adminQuizDescriptionUpdate(
     return { error: 'Token is empty' };
   }
 
+  if (!token) {
+    return { error: 'Token is empty' };
+  }
+
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
   if (!user) {
@@ -346,9 +349,9 @@ export function adminQuizTransfer(
   token: string,
   userEmail: string,
   quizId: number): object | ErrorResponse {
-  const data: Data = getData();
-
   adminQuizTransferErrorChecking(token, userEmail, quizId);
+
+  const data: Data = getData();
 
   const userToTransferTo: User = findUserFromEmail(userEmail);
 
@@ -364,7 +367,7 @@ export function adminQuizTransfer(
  * @param {string} token
  * @returns {Object} empty object on success
  */
-export function adminQuizRestore(quizId: number, token: Token): object | ErrorResponse {
+export function adminQuizRestore(quizId: number, token: string): object | ErrorResponse {
   const data = getData();
 
   if (token === '') {
