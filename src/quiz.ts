@@ -254,7 +254,8 @@ Updates the name of the relevant quiz
 */
 export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
   const data = getData();
-  if (!encodedTokenExists(token)) {
+
+  if (token.length === 0 || !encodedTokenExists(token)) {
     return {
       error: 'Invalid token',
     };
@@ -262,12 +263,7 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
 
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
-  if (user === null) {
-    return {
-      error: 'User Id does not exist',
-    };
-    // Check quiz exists
-  }
+
   // Search through the data to check if the quiz exists
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
@@ -326,19 +322,12 @@ export function adminQuizDescriptionUpdate(
   quizId: number,
   description: string
 ): object | ErrorResponse {
-  if (!token) {
-    return { error: 'Token is empty' };
-  }
-
-  if (!token) {
-    return { error: 'Token is empty' };
+  if (token.length === 0 || !encodedTokenExists(token)) {
+    return { error: 'Token is invalid' };
   }
 
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
