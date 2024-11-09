@@ -32,7 +32,11 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
-import { AdminUserDetailsUpdateRequest, QuizID } from './interfaces';
+import {
+  AdminUserDetailsUpdateRequest,
+  AdminUserDetailsUpdateV2Request,
+  QuizID,
+} from './interfaces';
 
 // Set up web app
 const app = express();
@@ -145,15 +149,18 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const result = adminUserDetails(token);
+  const token: string = req.query.token as string;
 
-  if ('error' in result || token.length === 0) {
+  try {
+    const result = adminUserDetails(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
   }
-  saveData();
-  return res.json(result);
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -503,6 +510,40 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 * ============================= V2 ROUTES BELOW =============================
 * ===========================================================================
 */
+
+// adminUserDetails GET request. Gets the details of the admin (non-password)
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminUserDetails(token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
+  }
+});
+
+// adminUserDetailsUpdate PUT request. Update the details of the admin user (non-password)
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+  const { email, nameFirst, nameLast }: AdminUserDetailsUpdateV2Request = req.body;
+
+  try {
+    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+});
 
 // auth routes
 // V2 adminAuthLogout POST request

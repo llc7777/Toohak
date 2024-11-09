@@ -1,6 +1,7 @@
 import request from 'sync-request-curl';
-import config from '../config.json';
-import { decodeToken, createToken } from '../helper';
+import config from './config.json';
+import { decodeToken, createToken } from './helper';
+import { UserInfo, ErrorResponse, AuthResponse } from './interfaces';
 
 const port = config.port;
 const url = config.url;
@@ -8,9 +9,11 @@ const SERVER_URL = `${url}:${port}`;
 const timeout = 5 * 1000;
 
 // function to send the adminUserDetails request
-const requestAdminUserDetails = (token: string) => {
-  const res = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
-    qs: { token },
+const requestAdminUserDetails = (
+  token: string
+): { statusCode: number; body: UserInfo | ErrorResponse } => {
+  const res = request('GET', `${SERVER_URL}/v2/admin/user/details`, {
+    headers: { token },
   });
   return {
     statusCode: res.statusCode,
@@ -19,8 +22,12 @@ const requestAdminUserDetails = (token: string) => {
 };
 
 // function to call user registration
-const requestAdminAuthRegister = (email: string, password: string,
-  nameFirst: string, nameLast: string) => {
+const requestAdminAuthRegister = (
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): { statusCode: number; body: AuthResponse } => {
   const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
       email: email,
@@ -35,7 +42,9 @@ const requestAdminAuthRegister = (email: string, password: string,
   };
 };
 
-const requestAdminAuthLogin = (email: string, password: string) => {
+const requestAdminAuthLogin = (
+  email: string, password: string
+): { statusCode: number; body: AuthResponse } => {
   const res = request('POST', `${SERVER_URL}/v1/admin/auth/login`, {
     json: {
       email: email,
@@ -70,18 +79,18 @@ describe('Test for correct return value', () => {
     const userDetails = requestAdminUserDetails(token);
 
     expect(userDetails.statusCode).toBe(200);
-    expect(userDetails.body).toStrictEqual({
-      user: {
-        userId: userId,
-        name: 'Hayden Smith',
-        email: 'hayden.smith@unsw.edu.au',
-        numSuccessfulLogins: expect.any(Number),
-        numFailedPasswordsSinceLastLogin: expect.any(Number),
-      },
+    const user = userDetails.body as UserInfo;
+
+    expect(user.user).toStrictEqual({
+      userId: userId,
+      name: 'Hayden Smith',
+      email: 'hayden.smith@unsw.edu.au',
+      numSuccessfulLogins: expect.any(Number),
+      numFailedPasswordsSinceLastLogin: expect.any(Number),
     });
 
     // Check if numSuccessfulLogins is at least 1
-    expect(userDetails.body.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
+    expect(user.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
   });
 
   // Test for multiple correct return values
@@ -110,18 +119,17 @@ describe('Test for correct return value', () => {
       const userDetails = requestAdminUserDetails(token);
 
       expect(userDetails.statusCode).toBe(200);
-      expect(userDetails.body).toStrictEqual({
-        user: {
-          userId: userId,
-          name: fullName,
-          email: email,
-          numSuccessfulLogins: expect.any(Number),
-          numFailedPasswordsSinceLastLogin: expect.any(Number),
-        },
+      const user = userDetails.body as UserInfo;
+      expect(user.user).toStrictEqual({
+        userId: userId,
+        name: fullName,
+        email: email,
+        numSuccessfulLogins: expect.any(Number),
+        numFailedPasswordsSinceLastLogin: expect.any(Number),
       });
 
       // Check if numSuccessfulLogins is at least 1
-      expect(userDetails.body.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
+      expect(user.user.numSuccessfulLogins).toBeGreaterThanOrEqual(1);
     });
 });
 

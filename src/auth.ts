@@ -14,11 +14,11 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
-  encodedTokenExists,
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
+  adminUserDetailsUpdateErrorChecking
 } from './helper';
-import { ErrorResponse, Token, User } from './interfaces';
+import { ErrorResponse, Token, User, UserInfo } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string) {
@@ -148,12 +148,10 @@ export function adminAuthLogout(token: string): object {
 * @returns {Object} user
 */
 
-export function adminUserDetails(token: string) {
-  if (!encodedTokenExists(token)) {
-    return { error: 'Invalid token' };
-  }
-  const tokenDecoded: Token = decodeToken(token);
+export function adminUserDetails(token: string): UserInfo | ErrorResponse {
+  adminUserDetailsErrorChecking(token);
 
+  const tokenDecoded: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenDecoded);
 
   return {
@@ -184,7 +182,7 @@ export function adminUserDetailsUpdate(
   nameLast: string
 ): object | ErrorResponse {
   // Check for errors
-  adminUserDetailsErrorChecking(token, email, nameFirst, nameLast);
+  adminUserDetailsUpdateErrorChecking(token, email, nameFirst, nameLast);
 
   const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
