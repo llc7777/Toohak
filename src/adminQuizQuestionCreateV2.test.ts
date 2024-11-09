@@ -1,26 +1,23 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import request from 'sync-request-curl';
-import config from '../config.json';
-import { Token } from 'yaml/dist/parse/cst';
-import { AnswerOptions } from './interfaces';
+import config from './config.json';
+import { AnswerOptionsReq, Quiz } from './interfaces';
 
 const port: string = config.port;
 const url: string = config.url;
 const SERVER_URL: string = `${url}:${port}`;
 const timeout: number = 5 * 1000;
 
-const requestAdminQuestionCreate = (quizId: number, header: Token,
+const requestAdminQuestionCreate = (quizId: number, token: string,
   body: {
   questionBody: {
     question: string,
     timeLimit: number,
     points: number,
-    answerOptions: AnswerOptions,
+    answerOptions: AnswerOptionsReq[],
     thumbnailUrl: string
   }
 }) => {
-  return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+  return request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
     json: {
       questionBody: {
         question: body.questionBody.question,
@@ -30,6 +27,7 @@ const requestAdminQuestionCreate = (quizId: number, header: Token,
         thumbnailUrl: body.questionBody.thumbnailUrl
       }
     },
+    headers: { token }
   });
 };
 
@@ -39,7 +37,7 @@ let token: string;
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
@@ -48,13 +46,13 @@ beforeEach(() => {
     },
     timeout: timeout
   });
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(tokenRes.body.toString()).token;
 
-  quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+  const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
     json: { token, name: 'quiz1', description: 'random description' },
     timeout: timeout
   });
-  quiz = JSON.parse(quiz.body.toString());
+  quiz = JSON.parse(quizRes.body.toString());
 });
 
 describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
@@ -75,7 +73,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
             correct: false
           }
         ],
-        thumbnailUrl: 'filler'
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
       }
     });
     expect(response.statusCode).toBe(200);
@@ -97,7 +95,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
             answer: 'Frog',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
       }
     });
     const response2 = requestAdminQuestionCreate(quiz.quizId, token, {
@@ -118,7 +117,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
             answer: '6',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
       }
     });
     expect(response2.statusCode).toBe(200);
@@ -144,7 +144,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -186,7 +187,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Lizard',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -203,7 +205,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Whale',
               correct: true
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -225,7 +228,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -247,7 +251,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       const response2 = requestAdminQuestionCreate(quiz.quizId, token, {
@@ -268,7 +273,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: '6',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(200);
@@ -296,7 +302,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
                 answer: 'Frog',
                 correct: false
               }
-            ]
+            ],
+            thumbnailUrl: 'http://google.com/some/image/path.jpg'
           }
         });
         expect(response.statusCode).toBe(400);
@@ -318,7 +325,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: '',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -340,7 +348,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -362,7 +371,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Whale',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -384,7 +394,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             },
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(400);
@@ -417,7 +428,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     test.each([
       'https://thumbnailurl.pdf',
       'http://thumbnailurl.sdlpt',
-      'http://thumbnailurl'
+      'http://thumbnailurl',
     ])('400: The thumbnailUrl does not end with one of the following filetypes: jpg, jpeg, png', (thumbnailUrl) => {
       const response = requestAdminQuestionCreate(quiz.quizId, token, {
         questionBody: {
@@ -484,7 +495,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(401);
@@ -506,7 +518,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(401);
@@ -514,7 +527,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('403: valid token with incorrect owner', () => {
-      let incorrectUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'mew@mail.com',
           password: 'Aeropass1',
@@ -523,7 +536,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         },
         timeout: timeout
       });
-      incorrectUser = JSON.parse(incorrectUser.body.toString());
+      const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
       // to check how to retrieve token
       const response = requestAdminQuestionCreate(quiz.quizId, incorrectUser.token, {
         questionBody: {
@@ -539,7 +552,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(403);
@@ -561,7 +575,8 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       });
       expect(response.statusCode).toBe(403);

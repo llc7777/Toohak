@@ -17,7 +17,7 @@ import {
   Token,
   Quiz,
   AnswerOptions,
-  QuestionInfo
+  QuestionInfo,
 } from './interfaces';
 
 export function adminQuizQuestionCreate(
@@ -30,15 +30,12 @@ export function adminQuizQuestionCreate(
   version: string,
   thumbnailUrl?: string
 ) {
-  if (!encodedTokenExists(token)) {
+  if (token.length === 0 || !encodedTokenExists(token)) {
     throw new Error('401 - Invalid token')
   }
 
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
-  if (!user) {
-    throw new Error('401 - User does not exist');
-  }
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -102,7 +99,13 @@ export function adminQuizQuestionCreate(
   }
 
   if (version === 'v2') {
-    // thumbnail errors
+    if (thumbnailUrl === '') {
+      throw new Error('400 - ThumbnailUrl must not be empty ');
+    } else if (!thumbnailUrl.startsWith('https://') && !thumbnailUrl.startsWith('http://')) {
+      throw new Error('400 - ThumbnailUrl must begin with http:// or https:// ');
+    } else if (!thumbnailUrl.endsWith('jpg') && !thumbnailUrl.endsWith('jpeg') && !thumbnailUrl.endsWith('png')) {
+      throw new Error('400 - ThumbnailUrl must end with file type jpg, jpeg or png');
+    }
   }
 
   for (const index in answerOptions) {
@@ -115,6 +118,7 @@ export function adminQuizQuestionCreate(
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
+    thumbnailUrl: '',
     points: points,
     answerOptions: answerOptions
   };
@@ -122,6 +126,7 @@ export function adminQuizQuestionCreate(
   const data = getData();
 
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].timeLimit += totalTime;
 
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
@@ -153,18 +158,16 @@ export function adminQuizQuestionDuplicate(
 ) {
   const data = getData();
   // Checks token and user is valid
-  if (!encodedTokenExists(token)) {
+
+  if (!encodedTokenExists(token) || token.length === 0) {
     return {
       error: 'Invalid token',
     };
   }
+
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
-  if (!user) {
-    return {
-      error: 'User Id does not exist',
-    };
-  }
+
   // Search through the data to check if the quiz exists
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -193,10 +196,12 @@ export function adminQuizQuestionDuplicate(
     questionId: newQuestionId,
     question: question.question,
     timeLimit: question.timeLimit,
+    thumbnailUrl: question.thumbnailUrl,
     points: question.points,
     answerOptions: question.answerOptions
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes[quizIndex].timeLimit += question.timeLimit;
   data.quizzes[quizIndex].questions.push(duplicateQuestion);
   return { duplicatedQuestionId: newQuestionId };
 }
@@ -220,19 +225,13 @@ export function adminQuizQuestionUpdate(
   question: string,
   timeLimit: number,
   points: number,
-  answerOptions: AnswerOptions[]
+  answerOptions: AnswerOptions[],
+  thumbnailUrl?: string
 ): object | ErrorResponse {
-  if (!token) {
-    return { error: 'Token is missing' };
-  }
-
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
-  if (!user) {
-    return { error: 'Invalid token' };
-  }
 
-  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
+  const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
     return { error: 'No such quiz exists' };
   }
@@ -241,7 +240,7 @@ export function adminQuizQuestionUpdate(
     return { error: 'User does not own the quiz' };
   }
 
-  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  const questionIndex: number = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
     return { error: 'No such question exists' };
   }
@@ -284,14 +283,18 @@ export function adminQuizQuestionUpdate(
     return { error: 'There must be at least one correct answer' };
   }
 
+  quiz.timeLimit -= quiz.questions[questionIndex].timeLimit;
+
   const updatedQuestion: QuestionInfo = {
     questionId,
     question,
     timeLimit,
+    thumbnailUrl,
     points,
     answerOptions,
   };
   quiz.questions[questionIndex] = updatedQuestion;
+  quiz.timeLimit += timeLimit;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   answerOptions.forEach((option, index) => {
@@ -314,16 +317,12 @@ export function adminQuizQuestionDelete(
   quizId: number,
   questionId: number
 ): object | ErrorResponse {
-  if (!token) {
-    return { error: 'Token is empty' };
+  if (!encodedTokenExists(token) || token.length === 0) {
+    return { error: 'Token is invalid' };
   }
 
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
-
-  if (!user) {
-    return { error: 'Invalid token' };
-  }
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {

@@ -30,17 +30,20 @@ let data = {
             questionId: -1,
             question: 'string',
             timeLimit: -1,
+            thumbnailUrl: 'string',
             points: -1,
             answerOptions: [
               {
                 answerId: -1,
-				answer: 'string',
-				colour: 'string',
+				        answer: 'string',
+				        colour: 'string',
                 correctAnswer: boolean,
               }
             ]
           }
-        ]
+        ],
+        timeLimit: -1,
+        thumbnailUrl: 'string'
 			}
 		],
     trash: [

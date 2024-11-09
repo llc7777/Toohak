@@ -61,12 +61,6 @@ export function validQuizName(name: string) {
   return true;
 }
 
-// Check if the provided user ID corresponds to a valid user
-export function isUserValid(authUserId: number) {
-  const data = getData();
-  return data.users.some(user => user.authUserId === authUserId);
-}
-
 // Check if the specified name is already used by the given user ID in quizzes
 export function nameUsed(authUserId: number, name: string) {
   const data = getData();
@@ -226,10 +220,6 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-  if (!user) {
-    throw new Error('401 - Invalid Token');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -251,11 +241,6 @@ export function adminQuizRemoveErrorChecking(
 
   const data: Data = getData();
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    throw new Error('401 - Given user is not logged in');
-  }
 
   // Check if the quizId refers to a valid quiz
   const quizIndex: number = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -274,34 +259,34 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   const data = getData();
 
   if (token === '') {
-    throw new Error('Token is empty');
+    throw new Error('401 - Token is empty');
   }
 
   const tokenData = decodeToken(token);
   const user = findUserFromToken(tokenData);
   if (!user) {
-    throw new Error('Token is invalid');
+    throw new Error('401 - Token is invalid');
   }
 
   if (!Array.isArray(quizIds)) {
-    throw new Error('quizIds must be an array');
+    throw new Error('400 - quizIds must be an array');
   }
 
   for (const quizId of quizIds) {
     if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
-      throw new Error('One or more quiz IDs is not currently in the trash.');
+      throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
 
-    if (!data.trash.find(quiz => quiz.quizId === quizId)) {
-      throw new Error('This quiz does not exits');
-    }
+    for (const quizId of quizIds) {
+      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
 
-    const quizInTrash = data.trash.find(
-      quiz => quiz.quizId === quizId
-    );
+      if (!quizInTrash) {
+        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+      }
 
-    if (quizInTrash.authUserId !== user.authUserId) {
-      throw new Error('You do not own quiz ID');
+      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
+        throw new Error('403 - You do not own quiz ID');
+      }
     }
   }
 }
@@ -312,18 +297,11 @@ export function adminQuizMoveQuestionErrorChecking(
   questionId: number,
   newPosition: number
 ) {
-  console.log('Error checking');
-
   if (!encodedTokenExists(token) || token === '') {
     throw new Error('401 - Token is empty or invalid');
   }
 
   const tokenObj: Token = decodeToken(token);
-  const user: User = findUserFromToken(tokenObj);
-
-  if (!user) {
-    throw new Error('401 - Token is empty or invalid');
-  }
 
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -360,8 +338,6 @@ export function adminQuizTransferErrorChecking(
 
   if (!userToTransferTo) {
     throw new Error('400 - No user has this email');
-  } else if (!loggedInUser) {
-    throw new Error('401 - This is not a valid logged in user');
   } else if (loggedInUser.email === userEmail) {
     throw new Error('400 - Given email is the same as the current logged in user');
   }
