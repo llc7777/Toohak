@@ -32,7 +32,7 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
-import { 
+import {
   AdminUserDetailsUpdateRequest,
   AdminUserDetailsUpdateV2Request
 } from './interfaces';
@@ -500,24 +500,6 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   return res.status(200).json(result);
 });
 
-// v2 Routes
-app.put('/v2/admin/user/details', (req: Request, res: Response) => {
-  const token: string = req.headers.token as string;
-  const { email, nameFirst, nameLast }: AdminUserDetailsUpdateV2Request = req.body;
-
-  try {
-    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
-    saveData();
-    return res.status(200).json({});
-  } catch (error) {
-    saveData();
-    if (error.message.includes('401')) {
-      return res.status(401).json({ error: error.message });
-    }
-    return res.status(400).json({ error: error.message });
-  }
-});
-
 /*
 * ===========================================================================
 * ============================= V2 ROUTES BELOW =============================
@@ -537,6 +519,24 @@ app.get('/v2/admin/user/details', (req: Request, res: Response) => {
     if (error.message) {
       return res.status(401).json({ error: error.message });
     }
+  }
+});
+
+// adminUserDetailsUpdate PUT request. Update the details of the admin user (non-password)
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+  const { email, nameFirst, nameLast }: AdminUserDetailsUpdateV2Request = req.body;
+
+  try {
+    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
 });
 
