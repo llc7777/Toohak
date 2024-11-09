@@ -6,6 +6,7 @@ Parameters: email, password, nameFirst, nameLast
 Return object: authUserId: 1
 */
 // @ts-nocheck
+
 import { getData } from './dataStore';
 import {
   generateRandomSessionId,
@@ -130,25 +131,25 @@ export function adminAuthLogin(email: string, password: string) {
  * Logs out an admin user who has an active user session.
  *
  * @param {string} token
- * @returns {Object} - Returns an empty object to indicate that the user has been logged out.
+ * @returns {object} - Returns an empty object to indicate that the user has been logged out.
  */
-export function adminAuthLogout(token) {
+export function adminAuthLogout(token: string): object {
   const data = getData();
 
   if (token === '') {
-    return { error: 'Token is empty' };
+    throw new Error('401 - Token is empty');
   }
 
-  const tokenData = decodeToken(token);
+  const tokenData: Token = decodeToken(token);
 
-  const userIndex = findUserIndexFromToken(tokenData);
+  const userIndex: number = findUserIndexFromToken(tokenData);
 
   if (userIndex === -1) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   data.users[userIndex].tokens = data.users[userIndex].tokens.filter(
-    userToken => userToken.sessionId !== tokenData.sessionId &&
+    (userToken: Token) => userToken.sessionId !== tokenData.sessionId &&
       userToken.authUserId === tokenData.authUserId);
 
   return {};
@@ -197,7 +198,7 @@ export function adminUserDetailsUpdate(
   token: Token,
   email: string,
   nameFirst: string,
-  nameLast:string
+  nameLast: string
 ): object | ErrorResponse {
   const data = getData();
 
