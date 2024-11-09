@@ -88,7 +88,7 @@ describe('Test for POST /v2/admin/auth/logout', () => {
         });
 
         request('POST', SERVER_URL + '/v2/admin/auth/logout', {
-            headers: { token: token3Value }, timeout: TIMEOUT_MS
+            headers: { token: token2Value }, timeout: TIMEOUT_MS
         });
 
         const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
@@ -135,7 +135,7 @@ describe('Test for POST /v2/admin/auth/logout', () => {
             timeout: TIMEOUT_MS
         });
 
-        const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+        const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
             timeout: TIMEOUT_MS
         });
 
