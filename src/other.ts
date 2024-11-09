@@ -22,7 +22,7 @@ export function clear() {
  * @param {number} quizIds - A JSON number representing an array of quiz IDs to delete
  * @returns {Object}
  */
-export function emptyTrash(token: string, quizIds: number[]): object | ErrorResponse {
+export function emptyTrash(token: string, quizIds: number[]): object {
   emptyTrashErrorChecking(token, quizIds);
 
   const data = getData();
