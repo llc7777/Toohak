@@ -40,6 +40,10 @@ export interface Quiz {
   thumbnailUrl: string;
 }
 
+export interface QuizID {
+  quizId: number;
+}
+
 export interface QuizInfo {
   quizId: number,
   name: string,

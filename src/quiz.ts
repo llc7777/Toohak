@@ -21,6 +21,7 @@ import {
   Data,
   QuizInfo,
   QuizInfoDetailed,
+  QuizID,
 } from './interfaces';
 
 /**
@@ -118,46 +119,41 @@ export function adminQuizCreate(
   token: string,
   name: string,
   description: string
-) {
+): QuizID {
   const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('401 - Token is empty');
   }
   // decode the token and get the authUserId and sessionId
-  const tokenData = decodeToken(token);
-  const authUserId = tokenData.authUserId;
+  const tokenData: Token = decodeToken(token);
+  const authUserId: number = tokenData.authUserId;
 
   // verify user with the sessionId and authUserId
-  const userExists = findUserFromToken(tokenData);
+  const userExists: User | null = findUserFromToken(tokenData);
 
   if (!userExists) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 -Token is invalid');
   }
 
   if (!validQuizName(name)) {
-    return {
-      error: 'Name contains invalid characters. Only alphanumeric' +
-        'characters and spaces are allowed.'
-    };
+    throw new Error('Name contains invalid characters only alphanumeric and spaces.');
   }
 
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name must be between 3 and 30 characters long.' };
+    throw new Error('Name must be between 3 and 30 characters long.');
   }
 
   if (nameUsed(authUserId, name)) {
-    return { error: 'Name is already used for another quiz.' };
+    throw new Error('Name is already used for another quiz.');
   }
 
   if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.' };
+    throw new Error('Description is more than 100 characters in length.');
   }
 
-  const newQuizId = data.quizzes.length + data.trash.length + 1;
+  const newQuizId: number = data.quizzes.length + data.trash.length + 1;
   const newQuiz: Quiz = {
     authUserId,
     quizId: newQuizId,
@@ -367,7 +363,7 @@ export function adminQuizTransfer(
 
   const quizIndex = getQuizIndex(quizId);
   data.quizzes[quizIndex].authUserId = userToTransferTo.authUserId;
-  return { };
+  return {};
 }
 
 /**

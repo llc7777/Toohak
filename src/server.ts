@@ -35,7 +35,8 @@ import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
   AdminUserDetailsUpdateV2Request,
-  AuthLoginRes
+  QuizID,
+  AuthLoginRes,
 } from './interfaces';
 
 // Set up web app
@@ -202,17 +203,19 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // adminQuizCreate POST request
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
-  const result = adminQuizCreate(token, name, description);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+  try {
+    const result: QuizID = adminQuizCreate(token, name, description);
     saveData();
-    return res.status(401).json(result);
-  } else if ('error' in result) {
+    return res.status(200).json(result);
+  } catch (e) {
     saveData();
-    return res.status(400).json(result);
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // adminQuizList GET request
@@ -559,6 +562,26 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 });
 
 // quiz routes
+
+// V2 adminQuizCreate POST request
+app.post('/v2/admin/quiz', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name, description } = req.body;
+
+  try {
+    const result: QuizID = adminQuizCreate(token, name, description);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
@@ -613,7 +636,7 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   try {
     adminQuizMoveQuestion(token, quizId, questionId, newPosition);
     saveData();
-    return res.status(200).json({ });
+    return res.status(200).json({});
   } catch (err) {
     saveData();
     if (err.message.includes('400')) {
