@@ -14,7 +14,6 @@ import {
   createToken,
   decodeToken,
   findUserFromToken,
-  encodedTokenExists,
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
   adminUserDetailsUpdateErrorChecking
@@ -151,7 +150,7 @@ export function adminAuthLogout(token: string) {
 
 export function adminUserDetails(token: string): UserInfo {
   adminUserDetailsErrorChecking(token);
-  
+
   const tokenDecoded: Token = decodeToken(token);
   const user: User = findUserFromToken(tokenDecoded);
 
