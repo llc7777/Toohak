@@ -122,21 +122,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   }
 });
 
-// V2 adminAuthLogout POST request
-app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-
-  try {
-    const result: object = adminAuthLogout(token);
-    saveData();
-    return res.status(200).json(result);
-  }
-  catch (e) {
-    saveData();
-    return res.status(401).json({ error: e.message });
-  }
-});
-
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
   const token = req.body.token;
@@ -515,6 +500,24 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 * ============================= V2 ROUTES BELOW =============================
 * ===========================================================================
 */
+
+// auth routes
+// V2 adminAuthLogout POST request
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  try {
+    const result: object = adminAuthLogout(token);
+    saveData();
+    return res.status(200).json(result);
+  }
+  catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
+});
+
+// quiz routes
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
