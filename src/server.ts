@@ -145,15 +145,19 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const result = adminUserDetails(token);
+  const token: string = req.query.token as string;
 
-  if ('error' in result || token.length === 0) {
+  try {
+    const result = adminUserDetails(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+
+  } catch(error: any) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
   }
-  saveData();
-  return res.json(result);
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
