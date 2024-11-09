@@ -1,7 +1,7 @@
 import request from 'sync-request-curl';
-import { port, url } from './config.json';
-import { createToken } from './helper';
-import { ErrorResponse } from './interfaces';
+import { port, url } from '../config.json';
+import { createToken } from '../helper';
+import { Token, ErrorResponse } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -10,7 +10,7 @@ const TIMEOUT_MS = 5 * 1000;
 const ERROR: ErrorResponse = { error: expect.any(String) };
 
 // user token
-let token = '';
+let token: string = '';
 
 // clear the database before each test and register a user
 beforeEach(() => {
@@ -39,7 +39,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    token2 = JSON.parse(token2.body.toString()).token;
+    const token2Value: string = JSON.parse(token2.body.toString()).token;
 
     const res = request('POST', SERVER_URL + '/v1/admin/auth/logout', {
       json: { token }, timeout: TIMEOUT_MS
@@ -49,7 +49,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
       timeout: TIMEOUT_MS
     });
 
@@ -71,7 +71,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    token2 = JSON.parse(token2.body.toString()).token;
+    const token2Value: string = JSON.parse(token2.body.toString()).token;
 
     let token3 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
@@ -80,7 +80,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    token3 = JSON.parse(token3.body.toString()).token;
+    const token3Value: string = JSON.parse(token3.body.toString()).token;
 
     request('POST', SERVER_URL + '/v1/admin/auth/logout', {
       json: { token }, timeout: TIMEOUT_MS
@@ -94,11 +94,11 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
       timeout: TIMEOUT_MS
     });
 
-    const result3 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token3, {
+    const result3 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token3Value, {
       timeout: TIMEOUT_MS
     });
 
@@ -120,21 +120,21 @@ describe('Test for POST /v1/admin/auth/logout', () => {
       timeout: TIMEOUT_MS
     });
 
-    token2 = JSON.parse(token2.body.toString()).token;
+    const token2Value: string = JSON.parse(token2.body.toString()).token;
 
     request('POST', SERVER_URL + '/v1/admin/auth/logout', {
       json: { token }, timeout: TIMEOUT_MS
     });
 
     request('POST', SERVER_URL + '/v1/admin/auth/logout', {
-      json: { token: token2 }, timeout: TIMEOUT_MS
+      json: { token: token2Value }, timeout: TIMEOUT_MS
     });
 
     const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
       timeout: TIMEOUT_MS
     });
 
@@ -147,7 +147,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
 
   // Test for error cases
   test('error for empty token', () => {
-    const emptyToken = '';
+    const emptyToken: string = '';
 
     const res = request('POST', SERVER_URL + '/v1/admin/auth/logout', {
       json: {
@@ -161,8 +161,8 @@ describe('Test for POST /v1/admin/auth/logout', () => {
   });
 
   test('error for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = createToken(invalidToken);
+    const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid: string = createToken(invalidToken);
 
     const res = request('POST', SERVER_URL + '/v1/admin/auth/logout', {
       json: {

@@ -2,7 +2,7 @@
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { createToken } from './helper';
-import { ErrorResponse } from './interfaces';
+import { Token, ErrorResponse } from './interfaces';
 
 const SERVER_URL: string = `${url}:${port}`;
 const TIMEOUT_MS: number = 5 * 1000;
@@ -95,11 +95,11 @@ describe('Test for POST /v2/admin/auth/logout', () => {
             timeout: TIMEOUT_MS
         });
 
-        const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+        const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
             timeout: TIMEOUT_MS
         });
 
-        const result3 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token3, {
+        const result3 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token3Value, {
             timeout: TIMEOUT_MS
         });
 
@@ -162,7 +162,7 @@ describe('Test for POST /v2/admin/auth/logout', () => {
     });
 
     test('error for invalid token', () => {
-        const invalidToken: object = { sessionId: 1, authUserId: 1531 };
+        const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
         const encodedInvalid: string = createToken(invalidToken);
 
         const res = request('POST', SERVER_URL + '/v2/admin/auth/logout', {
