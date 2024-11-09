@@ -101,7 +101,6 @@ export interface QuestionIdObject {
   questionId: number;
 }
 
-
 export interface AdminUserDetailsUpdateRequest {
   token: string;
   email: string;
@@ -114,12 +113,7 @@ export interface AdminUserDetailsUpdateV2Request {
   nameFirst: string;
   nameLast: string;
 }
+
 export interface AuthResponse {
   token: string;
-}
-
-export interface AdminUserDetailsUpdateV2Request {
-  email: string;
-  nameFirst: string;
-  nameLast: string;
 }
