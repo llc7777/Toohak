@@ -100,6 +100,7 @@ export interface ErrorResponse {
 export interface QuestionIdObject {
   questionId: number;
 }
+
 export interface AdminUserDetailsUpdateRequest {
   token: string;
   email: string;
