@@ -1,24 +1,22 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
+import { ErrorResponse, Token } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Error object
-const ERROR = { error: expect.any(String) };
+const ERROR: ErrorResponse = { error: expect.any(String) };
 
 // user token
-let token = {};
+let token: string = '';
 
 // clear the database before each test and register a user
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
@@ -28,7 +26,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(res.body.toString()).token;
 });
 
 describe('Test for POST /v1/admin/quiz', () => {
@@ -38,7 +36,7 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(res.statusCode).toStrictEqual(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
   });
 
@@ -47,7 +45,7 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz1', description: '' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(res.statusCode).toStrictEqual(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
   });
 
@@ -64,13 +62,13 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz3', description: 'description3' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(200);
+    expect(res.statusCode).toStrictEqual(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
 
-    expect(JSON.parse(res2.statusCode)).toStrictEqual(200);
+    expect(res2.statusCode).toStrictEqual(200);
     expect(JSON.parse(res2.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
 
-    expect(JSON.parse(res3.statusCode)).toStrictEqual(200);
+    expect(res3.statusCode).toStrictEqual(200);
     expect(JSON.parse(res3.body.toString())).toStrictEqual({ quizId: expect.any(Number) });
   });
 
@@ -86,7 +84,7 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name, description: 'description' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
@@ -107,10 +105,10 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz2', description: 'description4' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
 
-    expect(JSON.parse(res2.statusCode)).toStrictEqual(400);
+    expect(res2.statusCode).toStrictEqual(400);
     expect(JSON.parse(res2.body.toString())).toStrictEqual(ERROR);
   });
 
@@ -119,24 +117,24 @@ describe('Test for POST /v1/admin/quiz', () => {
       json: { token, name: 'quiz1', description: 'W'.repeat(101) }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(400);
+    expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
   test('Test for empty token', () => {
-    const emptyToken = '';
+    const emptyToken: string = '';
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: { token: emptyToken, name: 'quiz1', description: 'description' }, timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
+    expect(res.statusCode).toStrictEqual(401);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
   test('Test for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = createToken(invalidToken);
+    const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid: string = createToken(invalidToken);
 
     const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
@@ -145,7 +143,7 @@ describe('Test for POST /v1/admin/quiz', () => {
       timeout: TIMEOUT_MS
     });
 
-    expect(JSON.parse(res.statusCode)).toStrictEqual(401);
+    expect(res.statusCode).toStrictEqual(401);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 });
