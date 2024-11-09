@@ -504,6 +504,24 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 * ============================= V2 ROUTES BELOW =============================
 * ===========================================================================
 */
+
+// adminUserDetails GET request. Gets the details of the admin (non-password)
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminUserDetails(token);
+    saveData();
+    return res.status(200).json(result);
+
+  } catch(error: any) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
+  }
+});
+
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
