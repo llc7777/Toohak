@@ -562,6 +562,29 @@ app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
   }
 });
 
+// PUT request that moves the position of question in a quiz
+app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const questionId = parseInt(req.params.questionid as string);
+  const token = req.headers.token as string;
+  const newPosition = parseInt(req.body.newPosition);
+
+  try {
+    adminQuizMoveQuestion(token, quizId, questionId, newPosition);
+    saveData();
+    return res.status(200).json({ });
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    }
+  }
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
