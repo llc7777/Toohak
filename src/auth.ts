@@ -148,7 +148,7 @@ export function adminAuthLogout(token: string): object {
 * @returns {Object} user
 */
 
-export function adminUserDetails(token: string): UserInfo {
+export function adminUserDetails(token: string): UserInfo | ErrorResponse {
   adminUserDetailsErrorChecking(token);
 
   const tokenDecoded: Token = decodeToken(token);
