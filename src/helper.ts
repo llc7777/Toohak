@@ -171,6 +171,21 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
+// Function Error Checking
+export function adminAuthLoginErrorChecking(email: string, password: string) {
+  const data = getData();
+
+  const index = data.users.findIndex((user) => user.email === email);
+  if (index === -1) {
+    throw new Error('400 - No user with this email exists');
+  }
+
+  if (data.users[index].password !== password) {
+    data.users[index].numFailedPasswordsSinceLastLogin += 1;
+    throw new Error('400 - Password is incorrect');
+  }
+}
+
 export function adminUserDetailsErrorChecking(token: string) {
   if (token === '') {
     throw new Error('401 - Token is empty');
