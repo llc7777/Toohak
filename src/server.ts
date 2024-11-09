@@ -228,10 +228,9 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
   const result = adminQuizList(token);
 
-  if ('error' in result) {
+  if (result.error) {
     saveData();
-    res.status(401).json(result);
-    return;
+    return res.status(401).json(result);
   }
   saveData();
   return res.json(result);
