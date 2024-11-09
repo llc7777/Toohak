@@ -108,6 +108,12 @@ export interface AdminUserDetailsUpdateRequest {
   nameLast: string;
 }
 
+export interface AdminUserDetailsUpdateV2Request {
+  email: string;
+  nameFirst: string;
+  nameLast: string;
+}
+
 export interface AuthResponse {
   token: string;
 }
