@@ -519,7 +519,6 @@ app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   }
 });
 
-
 // auth routes
 // V2 adminAuthLogout POST request
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
