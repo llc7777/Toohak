@@ -36,6 +36,7 @@ import {
   AdminUserDetailsUpdateRequest,
   AdminUserDetailsUpdateV2Request,
   QuizID,
+  AuthLoginRes,
 } from './interfaces';
 
 // Set up web app
@@ -99,16 +100,18 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 });
 
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password }: AuthLoginRes = req.body;
 
-  const result = adminAuthLogin(email, password);
-
-  if ('error' in result) {
+  try {
+    const result = adminAuthLogin(email, password);
     saveData();
-    return res.status(400).json(result);
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(400).json({ error: error.message });
+    }
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // adminAuthLogout POST request

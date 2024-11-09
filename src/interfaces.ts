@@ -121,3 +121,8 @@ export interface AdminUserDetailsUpdateV2Request {
 export interface AuthResponse {
   token: string;
 }
+
+export interface AuthLoginRes {
+  email: string;
+  password: string;
+}

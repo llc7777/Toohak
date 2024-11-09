@@ -16,9 +16,10 @@ import {
   findUserFromToken,
   findUserIndexFromToken,
   adminUserDetailsErrorChecking,
-  adminUserDetailsUpdateErrorChecking
+  adminUserDetailsUpdateErrorChecking,
+  adminAuthLoginErrorChecking
 } from './helper';
-import { ErrorResponse, Token, User, UserInfo } from './interfaces';
+import { ErrorResponse, Token, User, UserInfo, AuthResponse } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string) {
@@ -82,21 +83,14 @@ Given a registered user's email and password returns their authUserId value.
 Parameters: email, password
 Return object: authUserId: 1
 */
-export function adminAuthLogin(email: string, password: string) {
-  const data = getData();
+export function adminAuthLogin(
+  email: string, password: string
+): AuthResponse | ErrorResponse {
+  adminAuthLoginErrorChecking(email, password);
 
+  const data = getData();
   const index = data.users.findIndex((user) => user.email === email);
-  if (index === -1) {
-    return {
-      error: 'No user with this email exists'
-    };
-  }
-  if (data.users[index].password !== password) {
-    data.users[index].numFailedPasswordsSinceLastLogin += 1;
-    return {
-      error: 'Password is incorrect'
-    };
-  }
+
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins += 1;
 
@@ -113,6 +107,7 @@ export function adminAuthLogin(email: string, password: string) {
     token: createToken(token)
   };
 }
+
 /**
  * Logs out an admin user who has an active user session.
  *
