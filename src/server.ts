@@ -212,8 +212,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
     saveData();
     if (e.message.includes('401')) {
       return res.status(401).json({ error: e.message });
-    }
-    else {
+    } else {
       return res.status(400).json({ error: e.message });
     }
   }
@@ -232,7 +231,6 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   saveData();
   return res.json(result);
 });
-
 
 // adminQuizTrashList GET request
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
@@ -578,8 +576,7 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
     saveData();
     if (e.message.includes('401')) {
       return res.status(401).json({ error: e.message });
-    }
-    else {
+    } else {
       return res.status(400).json({ error: e.message });
     }
   }

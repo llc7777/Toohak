@@ -138,7 +138,7 @@ export function adminQuizCreate(
   }
 
   if (!validQuizName(name)) {
-    throw new Error('Name contains invalid characters (Valid characters are alphanumeric and spaces).');
+    throw new Error('Name contains invalid characters only alphanumeric and spaces.');
   }
 
   if (name.length < 3 || name.length > 30) {
