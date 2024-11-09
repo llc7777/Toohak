@@ -110,16 +110,32 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // adminAuthLogout POST request
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  const { token } = req.body;
+  const token = req.body.token as string;
 
-  const result = adminAuthLogout(token);
-
-  if (result.error) {
+  try {
+    const result: object = adminAuthLogout(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
   }
-  saveData();
-  return res.status(200).json(result);
+  catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
+});
+
+// V2 adminAuthLogout POST request
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  try {
+    const result: object = adminAuthLogout(token);
+    saveData();
+    return res.status(200).json(result);
+  }
+  catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
 });
 
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
@@ -266,7 +282,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
     return res.status(403).json({ error: result.error });
   }
   saveData();
-  return res.status(200).json({ });
+  return res.status(200).json({});
 });
 
 // PUT request for adminQuizQuestionUpdate
@@ -425,7 +441,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
     return res.status(400).json({ error: result.error });
   }
   saveData();
-  res.status(200).json({ });
+  res.status(200).json({});
 });
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
