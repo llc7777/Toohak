@@ -87,7 +87,7 @@ describe('Test for POST /v1/admin/auth/logout', () => {
     });
 
     request('POST', SERVER_URL + '/v1/admin/auth/logout', {
-      json: { token: token2 }, timeout: TIMEOUT_MS
+      json: { token: token2Value }, timeout: TIMEOUT_MS
     });
 
     const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
