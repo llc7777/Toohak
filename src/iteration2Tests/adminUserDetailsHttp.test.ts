@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
 import config from '../config.json';
-import { decodeToken } from '../helper';
+import { decodeToken, createToken } from '../helper';
 
 const port = config.port;
 const url = config.url;
@@ -148,9 +148,10 @@ describe('Test for error handling', () => {
 
     expect(admin.statusCode).toBe(200);
 
-    const invalidToken = 'invalidToken1';
+    const invalidToken = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid = createToken(invalidToken);
 
-    const userDetails = requestAdminUserDetails(invalidToken);
+    const userDetails = requestAdminUserDetails(encodedInvalid);
 
     expect(userDetails.statusCode).toBe(401);
     expect(userDetails.body).toStrictEqual({ error: expect.any(String) });
