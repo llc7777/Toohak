@@ -35,6 +35,8 @@ import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
   AdminUserDetailsUpdateV2Request,
+  QuestionCreateReq,
+  QuestionIdObject,
   QuizID,
   AuthLoginRes,
 } from './interfaces';
@@ -392,28 +394,25 @@ app.delete('/v1/clear', (req: Request, res: Response) => {
 
 // POST request for adminQuizQuestion
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizid as string);
-  const token = req.body.token;
-  const { question, timeLimit, points, answerOptions } = req.body.questionBody;
+  const quizId: number = parseInt(req.params.quizid as string);
+  const token: string = req.body.token;
+  const { question, timeLimit, points, answerOptions }: QuestionCreateReq = req.body.questionBody;
 
-  if (!encodedTokenExists(token) || token.length === 0) {
-    return res.status(401).json({ error: 'Token is empty or invalid' });
-  }
-
-  const result2 = adminQuizQuestionCreate(quizId, token, question,
-    timeLimit, points, answerOptions);
-  if ('error' in result2) {
-    if (result2.error === 'User does not own the quiz' ||
-      result2.error === 'No such quiz exists'
-    ) {
-      saveData();
-      return res.status(403).json(result2);
-    } else {
-      return res.status(400).json(result2);
+  try {
+    const result2: QuestionIdObject = adminQuizQuestionCreate(quizId, token, question,
+      timeLimit, points, answerOptions, 'v1');
+    saveData();
+    return res.status(200).json(result2);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
     }
   }
-  saveData();
-  return res.status(200).json(result2);
 });
 
 // PUT request that moves the position of question in a quiz
@@ -587,7 +586,6 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
     const result = emptyTrash(token, parsedQuizIds);
-
     saveData();
     res.status(200).json(result);
   } catch (error) {
@@ -605,6 +603,34 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   }
 });
 
+app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const token: string = req.headers.token as string;
+  const {
+    question,
+    timeLimit,
+    points,
+    answerOptions,
+    thumbnailUrl
+  }: QuestionCreateReq = req.body.questionBody;
+
+  try {
+    const result2: QuestionIdObject = adminQuizQuestionCreate(quizId, token, question,
+      timeLimit, points, answerOptions, 'v2', thumbnailUrl);
+    saveData();
+    return res.status(200).json(result2);
+  } catch (error) {
+    saveData();
+
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+});
 // adminQuizInfo GET request. Gets info for a quiz
 app.get('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
