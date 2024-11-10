@@ -35,7 +35,7 @@ import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
   AdminUserDetailsUpdateV2Request,
-  QuestionCreateReq, 
+  QuestionCreateReq,
   QuestionIdObject,
   QuizID,
   AuthLoginRes,
@@ -411,7 +411,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
       return res.status(403).json({ error: error.message });
     } else if (error.message.includes('400')) {
       return res.status(400).json({ error: error.message });
-    };
+    }
   }
 });
 
@@ -582,7 +582,7 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
-  
+
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
     const result = emptyTrash(token, parsedQuizIds);
@@ -606,7 +606,13 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
 app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId: number = parseInt(req.params.quizid as string);
   const token: string = req.headers.token as string;
-  const { question, timeLimit, points, answerOptions, thumbnailUrl }: QuestionCreateReq = req.body.questionBody;
+  const {
+    question,
+    timeLimit,
+    points,
+    answerOptions,
+    thumbnailUrl
+  }: QuestionCreateReq = req.body.questionBody;
 
   try {
     const result2: QuestionIdObject = adminQuizQuestionCreate(quizId, token, question,
@@ -622,7 +628,7 @@ app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
       return res.status(403).json({ error: error.message });
     } else if (error.message.includes('400')) {
       return res.status(400).json({ error: error.message });
-    };
+    }
   }
 });
 // adminQuizInfo GET request. Gets info for a quiz

@@ -429,28 +429,29 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       'https://thumbnailurl.pdf',
       'http://thumbnailurl.sdlpt',
       'http://thumbnailurl',
-    ])('400: The thumbnailUrl does not end with one of the following filetypes: jpg, jpeg, png', (thumbnailUrl) => {
-      const response = requestAdminQuestionCreate(quiz.quizId, token, {
-        questionBody: {
-          question: 'What is the largest mammal in the world?',
-          timeLimit: 4,
-          points: 5,
-          answerOptions: [
-            {
-              answer: 'Whale',
-              correct: true
-            },
-            {
-              answer: 'Frog',
-              correct: false
-            },
-          ],
-          thumbnailUrl: thumbnailUrl
-        }
+    ])('400: The thumbnailUrl does not end with one of the following filetypes: jpg, jpeg, png',
+      (thumbnailUrl) => {
+        const response = requestAdminQuestionCreate(quiz.quizId, token, {
+          questionBody: {
+            question: 'What is the largest mammal in the world?',
+            timeLimit: 4,
+            points: 5,
+            answerOptions: [
+              {
+                answer: 'Whale',
+                correct: true
+              },
+              {
+                answer: 'Frog',
+                correct: false
+              },
+            ],
+            thumbnailUrl: thumbnailUrl
+          }
+        });
+        expect(response.statusCode).toBe(400);
+        expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
       });
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    }); 
 
     test.each([
       'htttp://thumbnailurl.jpg',
@@ -478,7 +479,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       });
       expect(response.statusCode).toBe(400);
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
-    }); 
+    });
 
     test('401: empty token', () => {
       const response = requestAdminQuestionCreate(quiz.quizId, '', {
