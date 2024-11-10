@@ -32,8 +32,14 @@ import {
 import { clear, emptyTrash } from './other';
 import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
-import { AdminUserDetailsUpdateRequest, QuestionCreateReq, QuestionIdObject, QuestionInfo } from './interfaces';
-import { Token } from 'yaml/dist/parse/cst';
+import {
+  AdminUserDetailsUpdateRequest,
+  AdminUserDetailsUpdateV2Request,
+  QuestionCreateReq, 
+  QuestionIdObject,
+  QuizID,
+  AuthLoginRes,
+} from './interfaces';
 
 // Set up web app
 const app = express();
@@ -96,16 +102,18 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 });
 
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password }: AuthLoginRes = req.body;
 
-  const result = adminAuthLogin(email, password);
-
-  if ('error' in result) {
+  try {
+    const result = adminAuthLogin(email, password);
     saveData();
-    return res.status(400).json(result);
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(400).json({ error: error.message });
+    }
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // adminAuthLogout POST request
@@ -127,34 +135,35 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const token = req.body.token;
   const name = req.body.name;
 
-  const result = adminQuizNameUpdate(token, quizId, name);
-
-  if ('error' in result) {
+  try {
+    adminQuizNameUpdate(token, quizId, name);
     saveData();
-    if (result.error === 'Invalid token') {
-      return res.status(401).json(result);
-    } else if (result.error === 'Quiz Id does not exist' ||
-      result.error === 'User does not own the quiz'
-    ) {
-      return res.status(403).json(result);
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
     } else {
-      return res.status(400).json(result);
+      return res.status(400).json({ error: error.message });
     }
   }
-  saveData();
-  return res.status(200).json({});
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const result = adminUserDetails(token);
+  const token: string = req.query.token as string;
 
-  if ('error' in result || token.length === 0) {
+  try {
+    const result = adminUserDetails(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
   }
-  saveData();
-  return res.json(result);
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -194,17 +203,19 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // adminQuizCreate POST request
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
-  const result = adminQuizCreate(token, name, description);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+  try {
+    const result: QuizID = adminQuizCreate(token, name, description);
     saveData();
-    return res.status(401).json(result);
-  } else if ('error' in result) {
+    return res.status(200).json(result);
+  } catch (e) {
     saveData();
-    return res.status(400).json(result);
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // adminQuizList GET request
@@ -498,6 +509,40 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 * ===========================================================================
 */
 
+// adminUserDetails GET request. Gets the details of the admin (non-password)
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminUserDetails(token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message) {
+      return res.status(401).json({ error: error.message });
+    }
+  }
+});
+
+// adminUserDetailsUpdate PUT request. Update the details of the admin user (non-password)
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+  const { email, nameFirst, nameLast }: AdminUserDetailsUpdateV2Request = req.body;
+
+  try {
+    adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+});
+
 // auth routes
 // V2 adminAuthLogout POST request
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
@@ -514,6 +559,26 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 });
 
 // quiz routes
+
+// V2 adminQuizCreate POST request
+app.post('/v2/admin/quiz', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name, description } = req.body;
+
+  try {
+    const result: QuizID = adminQuizCreate(token, name, description);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
   const quizIds: string = req.query.quizIds as string;
@@ -589,7 +654,7 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   try {
     adminQuizMoveQuestion(token, quizId, questionId, newPosition);
     saveData();
-    return res.status(200).json({ });
+    return res.status(200).json({});
   } catch (err) {
     saveData();
     if (err.message.includes('400')) {
@@ -598,6 +663,27 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
       return res.status(401).json({ error: err.message });
     } else if (err.message.includes('403')) {
       return res.status(403).json({ error: err.message });
+    }
+  }
+});
+
+app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+  const name = req.body.name;
+
+  try {
+    adminQuizNameUpdate(token, quizId, name);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else {
+      return res.status(400).json({ error: error.message });
     }
   }
 });

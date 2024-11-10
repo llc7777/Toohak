@@ -40,6 +40,10 @@ export interface Quiz {
   thumbnailUrl: string;
 }
 
+export interface QuizID {
+  quizId: number;
+}
+
 export interface QuizInfo {
   quizId: number,
   name: string,
@@ -113,9 +117,25 @@ export interface ErrorResponse {
 export interface QuestionIdObject {
   questionId: number;
 }
+
 export interface AdminUserDetailsUpdateRequest {
   token: string;
   email: string;
   nameFirst: string;
   nameLast: string;
+}
+
+export interface AdminUserDetailsUpdateV2Request {
+  email: string;
+  nameFirst: string;
+  nameLast: string;
+}
+
+export interface AuthResponse {
+  token: string;
+}
+
+export interface AuthLoginRes {
+  email: string;
+  password: string;
 }

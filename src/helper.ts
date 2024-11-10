@@ -171,7 +171,35 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
-export function adminUserDetailsErrorChecking(
+// Function Error Checking
+export function adminAuthLoginErrorChecking(email: string, password: string) {
+  const data = getData();
+
+  const index = data.users.findIndex((user) => user.email === email);
+  if (index === -1) {
+    throw new Error('400 - No user with this email exists');
+  }
+
+  if (data.users[index].password !== password) {
+    data.users[index].numFailedPasswordsSinceLastLogin += 1;
+    throw new Error('400 - Password is incorrect');
+  }
+}
+
+export function adminUserDetailsErrorChecking(token: string) {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+}
+
+export function adminUserDetailsUpdateErrorChecking(
   token: string,
   email: string,
   nameFirst: string,
