@@ -133,22 +133,20 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const token = req.body.token;
   const name = req.body.name;
 
-  const result = adminQuizNameUpdate(token, quizId, name);
-
-  if ('error' in result) {
+  try {
+    adminQuizNameUpdate(token, quizId, name);
     saveData();
-    if (result.error === 'Invalid token') {
-      return res.status(401).json(result);
-    } else if (result.error === 'Quiz Id does not exist' ||
-      result.error === 'User does not own the quiz'
-    ) {
-      return res.status(403).json(result);
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
     } else {
-      return res.status(400).json(result);
+      return res.status(400).json({ error: error.message });
     }
   }
-  saveData();
-  return res.status(200).json({});
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -645,6 +643,27 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
       return res.status(401).json({ error: err.message });
     } else if (err.message.includes('403')) {
       return res.status(403).json({ error: err.message });
+    }
+  }
+});
+
+app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+  const name = req.body.name;
+
+  try {
+    adminQuizNameUpdate(token, quizId, name);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else {
+      return res.status(400).json({ error: error.message });
     }
   }
 });

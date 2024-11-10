@@ -42,12 +42,12 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/name', () => {
 
   describe('error cases', () => {
     test('401: empty token', () => {
-      const response = requestAdminQuizName(quiz.quizId, token, { name: 'new name' });
+      const response = requestAdminQuizName(quiz.quizId, '', { name: 'new name' });
       expect(response.statusCode).toBe(401);
     });
 
     test('401: invalid token', () => {
-      const response = requestAdminQuizName(quiz.quizId, 'notaToken', { name: 'new name'});
+      const response = requestAdminQuizName(quiz.quizId, 'notaToken', { name: 'new name' });
       expect(response.statusCode).toBe(401);
     });
 
@@ -63,7 +63,7 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/name', () => {
       });
       const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
       // to check how to retrieve token
-      const response = requestAdminQuizName(quiz.quizId, incorrectUser.token , { name: 'new name' });
+      const response = requestAdminQuizName(quiz.quizId, incorrectUser.token, { name: 'new name' });
       expect(response.statusCode).toBe(403);
     });
 
@@ -93,10 +93,10 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/name', () => {
     test('400: name is already used by loggin in user for another quiz', () => {
       const quiz2Res = request('POST', `${SERVER_URL}/v2/admin/quiz`, {
         json: {
-          token,
           name: 'quiz2',
           description: 'random description'
         },
+        headers: { token },
         timeout: timeout
       });
       const quiz2 = JSON.parse(quiz2Res.body.toString());
