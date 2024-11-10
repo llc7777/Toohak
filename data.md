@@ -46,6 +46,56 @@ let data = {
         thumbnailUrl: 'string'
 			}
 		],
+    sessions: [
+      {
+        sessionId: -1,
+        state: 'string',
+        atQuestion: -1,
+        players: [
+          {
+            name: 'name',
+            playerId: -1,
+            score: -1,
+          }
+        ],
+        metaData: {
+          quizId: -1,
+          name: string,
+          timeCreated: -1,
+          timeLastEdited: -1,
+          description: string,
+          numOfQuestions: -1,
+          questions: [
+            {
+              questionId: -1,
+              question: 'string',
+              timeLimit: -1,
+              thumbnailUrl: 'string',
+              points: -1,
+              answerOptions: [
+                {
+                  answerId: -1;
+                  answer: 'string';
+                  colour: 'string';
+                  correct: boolean;
+                }
+              ],
+              playersCorrect: ['string'],
+              averageAnswerTime: -1,
+              percentCorrect: -1,
+            }
+          ],
+        },
+        messages: [
+          {
+            messageBody: 'string',
+            playerId: 'string',
+            playerName: 'string',
+            timeSent: -1,
+          }
+        ]
+      }
+    ],
     trash: [
 			{
 				authUserId: -1,
