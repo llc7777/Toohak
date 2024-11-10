@@ -248,52 +248,45 @@ Updates the name of the relevant quiz
 @param {string} name
 @returns empty object { }
 */
-export function adminQuizNameUpdate(token: string, quizId: number, name: string) {
-  const data = getData();
-
+export function adminQuizNameUpdate(
+  token: string,
+  quizId: number,
+  name: string
+): object | ErrorResponse {
+  let user: boolean | User = false;
+  const data: Data = getData();
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return {
-      error: 'Invalid token',
-    };
+    throw new Error('401- Invalid token');
   }
 
-  const tokenDecoded = decodeToken(token);
-  const user = findUserFromToken(tokenDecoded);
+  const tokenDecoded: Token = decodeToken(token);
+  user = findUserFromToken(tokenDecoded);
 
   // Search through the data to check if the quiz exists
-
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
   if (!quiz) {
-    return {
-      error: 'Quiz Id does not exist',
-    };
+    throw new Error('403- Quiz Id does not exist');
   }
   // Check user owns the quiz
   if (user.authUserId !== quiz.authUserId) {
-    return {
-      error: 'User does not own the quiz',
-    };
+    throw new Error('403- User does not own the quiz');
   }
   // Check quiz name is already used
   for (let i = 0; i < data.quizzes.length; i++) {
     if (data.quizzes[i].name === name) {
-      return {
-        error: 'Name is already used',
-      };
+      throw new Error('400- Name is already used');
     }
   }
 
-  // Check name contains invalid characters. Valid characters are alphanumeric and spaces.
+  // Check user exists
   if (!name.match(/^[a-zA-Z0-9 ]+$/)) {
-    return {
-      error: 'Name contains invalid characters (Valid characters are alphanumeric and spaces)',
-    };
+    throw new Error(
+      '400- Name contains invalid characters (Valid characters are alphanumeric and spaces)'
+    );
     // Check name is less than 3 characters and more than 30 characters.
   } else if (name.length < 3 || name.length > 30) {
-    return {
-      error: 'Name must be between 3 and 30 characters long',
-    };
+    throw new Error('400- Name must be between 3 and 30 characters long');
     // Update the name of the quiz and return empty object for indication of no error
   } else {
     for (let i = 0; i < data.quizzes.length; i++) {
