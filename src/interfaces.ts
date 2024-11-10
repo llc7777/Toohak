@@ -95,6 +95,48 @@ export interface QuestionCreateReq {
   thumbnailUrl?: string;
 }
 
+export interface sessionPlayer {
+  name: string,
+  playerId: number,
+  score: number,
+}
+
+export interface SessionQuestions {
+  questionId: number,
+  question: string,
+  timeLimit: number,
+  thumbnailUrl: string,
+  points: number,
+  answerOptions: AnswerOptions[],
+  playersCorrect: string[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
+export interface Session {
+  sessionId: number,
+  state: string,
+  atQuestion: number,
+  players: sessionPlayer[],
+  metaData: {
+    quizId: number,
+    name: string,
+    timeCreated: number,
+    timeLastEdited: number,
+    description: string,
+    numOfQuestions: number,
+    questions: SessionQuestions[],
+  },
+  messages: [
+    {
+      messageBody: string,
+      playerId: string,
+      playerName: string,
+      timeSent: number,
+    }
+  ]
+}
+
 export interface Trash {
   authUserId: number;
   quizId: number;
@@ -107,6 +149,7 @@ export interface Trash {
 export interface Data {
   users: User[];
   quizzes: Quiz[];
+  sessions: Session[];
   trash: Quiz[];
 }
 
