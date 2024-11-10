@@ -161,35 +161,26 @@ export function adminQuizQuestionDuplicate(
   // Checks token and user is valid
 
   if (!encodedTokenExists(token) || token.length === 0) {
-    return {
-      error: 'Invalid token',
-    };
+    throw new Error('401 - Token is invalid');
   }
-
   const tokenDecoded = decodeToken(token);
   const user = findUserFromToken(tokenDecoded);
 
   // Search through the data to check if the quiz exists
   const quiz: Quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return {
-      error: 'Quiz Id does not exist',
-    };
+    throw new Error('403 - Quiz does not exist');
   }
   const quizIndex: number = getQuizIndex(quizId);
   // Search through the data to check if the question exists
   const question: QuestionInfo = findQuestionFromQuestionId(questionId, quizId);
   if (!question) {
-    return {
-      error: 'Question Id does not exist',
-    };
+    throw new Error('400 - Question Id does not refer to valid question in this quiz');
   }
 
   // Check user owns the quiz
   if (quiz.authUserId !== user.authUserId) {
-    return {
-      error: 'User does not own the quiz',
-    };
+    throw new Error('403 - User does not own the quiz');
   }
 
   const newQuestionId = quiz.questions.length + 1;

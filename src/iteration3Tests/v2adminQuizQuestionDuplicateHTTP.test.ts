@@ -40,13 +40,13 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate
 
     const quizRes = request('POST', `${SERVER_URL}/v2/admin/quiz`, {
       json: { name: 'quiz1', description: 'random description' },
-      headers: token,
+      headers: { token },
       timeout: timeout
     });
     quiz = JSON.parse(quizRes.body.toString());
 
     const questionRes = request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
-      headers: token, 
+      headers: { token }, 
       json: {
         questionBody: {
           question: 'What is the largest mammal in the world?',
