@@ -85,7 +85,7 @@ beforeEach(() => {
             correct: false
           }
         ],
-        thumbnailUrl: 'http://google.com/some/image/path.jpg' 
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
       },
     },
     headers: { token: userToken },
