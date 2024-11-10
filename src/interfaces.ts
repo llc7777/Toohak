@@ -66,6 +66,11 @@ export interface QuizInfoDetailed {
   thumbnailUrl: string,
 }
 
+export interface AnswerOptionsReq {
+  answer: string;
+  correct: boolean;
+}
+
 export interface AnswerOptions {
   answerId: number;
   answer: string;
@@ -80,6 +85,14 @@ export interface QuestionInfo {
   thumbnailUrl: string;
   points: number;
   answerOptions: AnswerOptions[];
+}
+
+export interface QuestionCreateReq {
+  question: string;
+  timeLimit: number;
+  points: number;
+  answerOptions: AnswerOptions[];
+  thumbnailUrl?: string;
 }
 
 export interface Trash {
