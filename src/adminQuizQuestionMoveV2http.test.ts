@@ -35,19 +35,18 @@ beforeEach(() => {
   userToken2 = JSON.parse(userTokenRes2.body.toString()).token;
 
   // Create a quiz. This quiz is called 'Basic quiz'
-  const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
+  const quizRes = request('POST', SERVER_URL + '/v2/admin/quiz', {
     json: {
-      token: userToken,
       name: 'Basic quiz',
       description: 'Just a normal quiz',
-    }
+    },
+    headers: { token: userToken },
   });
   quizId = JSON.parse(quizRes.body.toString()).quizId;
 
   // Create a quiz question for the quiz
-  const createQuestionRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+  const createQuestionRes = request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
     json: {
-      token: userToken,
       questionBody: {
         question: 'What is two plus two?',
         timeLimit: 7,
@@ -61,16 +60,17 @@ beforeEach(() => {
             answer: 'five',
             correct: false
           }
-        ]
-      }
-    }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      },
+    },
+    headers: { token: userToken },
   });
   questionId = JSON.parse(createQuestionRes.body.toString()).questionId;
 
   // Create a second question for the quiz
-  request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+  request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
     json: {
-      token: userToken,
       questionBody: {
         question: 'What is one plus one?',
         timeLimit: 7,
@@ -84,13 +84,15 @@ beforeEach(() => {
             answer: '1',
             correct: false
           }
-        ]
-      }
-    }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg' 
+      },
+    },
+    headers: { token: userToken },
   });
 });
 
-describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () => {
+describe('PUT /v2/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () => {
   test('returns error when trying to move a question to its current position', () => {
     const resultRes = request('PUT',
       `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId}/move`, {
@@ -261,10 +263,10 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/:questionid/move ERROR cases', () =
   });
 });
 
-describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', () => {
+describe('PUT /v2/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', () => {
   test('moves a question in a quiz with two questions', () => {
-    const quizInfoBeforeRes = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: userToken },
+    const quizInfoBeforeRes = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     }
     );
@@ -291,8 +293,8 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
     const result = JSON.parse(resultRes.body.toString());
     expect(result).toStrictEqual({ });
 
-    const quizInfoAfterRes = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: userToken },
+    const quizInfoAfterRes = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     }
     );
@@ -303,8 +305,8 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
     expect(quizInfoAfter.questions[1].questionId).toStrictEqual(1);
   });
   test('time updated for a quiz changes when moving a question', () => {
-    const infoBeforeMoving = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: userToken },
+    const infoBeforeMoving = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
@@ -322,8 +324,8 @@ describe('PUT /v1/admin/quiz/:quizid/quesion/{questionid}/move SUCCESS cases', (
         }
       }
     );
-    const infoAfterMoving = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-      qs: { token: userToken },
+    const infoAfterMoving = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
     // Get the time updated after moving
