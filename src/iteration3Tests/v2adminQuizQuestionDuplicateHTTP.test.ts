@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
 import config from '../config.json';
-import { QuestionCreateReq, QuestionInfo, Quiz } from '../interfaces';
+import { QuestionInfo, Quiz } from '../interfaces';
 
 const port: string = config.port;
 const url: string = config.url;
@@ -20,9 +20,9 @@ const requestAdminQuestionDuplicate = (
 };
 
 describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate', () => {
-  let quiz: Quiz
-  let token: string
-  let question: QuestionInfo
+  let quiz: Quiz;
+  let token: string;
+  let question: QuestionInfo;
 
   beforeEach(() => {
     request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
@@ -46,7 +46,7 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate
     quiz = JSON.parse(quizRes.body.toString());
 
     const questionRes = request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
-      headers: { token }, 
+      headers: { token },
       json: {
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -61,7 +61,8 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate
               answer: 'Frog',
               correct: false
             }
-          ]
+          ],
+          thumbnailUrl: 'http://google.com/some/image/path.jpg'
         }
       },
       timeout: timeout
@@ -94,7 +95,11 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate
   });
 
   test('401: Token is invalid', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId, 'invalidToken');
+    const response = requestAdminQuestionDuplicate(
+      quiz.quizId,
+      question.questionId,
+      'invalidToken'
+    );
 
     expect(response.statusCode).toBe(401);
     expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
@@ -111,7 +116,10 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/question/{questionid}/duplicate
       timeout: timeout
     });
     const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId, incorrectUser.token);
+    const response = requestAdminQuestionDuplicate(quiz.quizId,
+      question.questionId,
+      incorrectUser.token
+    );
     expect(response.statusCode).toBe(403);
     expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
   });

@@ -487,9 +487,9 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid as string);
 
   try {
-    adminQuizQuestionDuplicate(quizId, questionId, token);
+    const result = adminQuizQuestionDuplicate(quizId, questionId, token);
     saveData();
-    return res.status(200).json({});
+    return res.status(200).json(result);
   } catch (error) {
     saveData();
     if (error.message.includes('401')) {
@@ -699,9 +699,9 @@ app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid as string);
 
   try {
-    adminQuizQuestionDuplicate(quizId, questionId, token);
+    const result = adminQuizQuestionDuplicate(quizId, questionId, token);
     saveData();
-    return res.status(200).json({});
+    return res.status(200).json(result);
   } catch (error) {
     saveData();
     if (error.message.includes('401')) {
