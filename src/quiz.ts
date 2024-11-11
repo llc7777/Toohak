@@ -481,6 +481,13 @@ export function adminQuizSessionStart(
   return { sessionId };
 }
 
+/**
+ * Retrieves active and inactive sessions for a specific quiz based on the quiz ID.
+ *
+ * @param {number} quizId - The ID of the quiz
+ * @param {string} token - The authorization token of the user
+ * @returns {QuizSessionsResponse} - An object containing arrays of active and inactive session IDs
+ */
 export function adminQuizSessionView(
   quizId: number, token: string
 ): QuizSessionsResponse {
