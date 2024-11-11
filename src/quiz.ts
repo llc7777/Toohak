@@ -335,7 +335,6 @@ export function adminQuizDescriptionUpdate(
   return {};
 }
 
-
 /**
 Updates the description of the relevant quiz
 @param {string} token of a logged in user
