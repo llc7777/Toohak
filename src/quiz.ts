@@ -73,15 +73,12 @@ export function adminQuizList(token: string): QuizInfoSimpleArray {
  * @param {string} token of user
  * @returns {object} - An object containing quizzes in trash
  */
-export function adminQuizTrashList(token: string) {
-  const data = getData();
-  const arr = [];
+export function adminQuizTrashList(token: string): QuizInfoSimpleArray {
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('401 - Token is empty');
   }
 
   const tokenData = decodeToken(token);
@@ -91,20 +88,16 @@ export function adminQuizTrashList(token: string) {
   const userExists = findUserFromToken(tokenData);
 
   if (!userExists) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('401 - Token is invalid');
   }
 
-  for (let i = 0; i < data.trash.length; i++) {
-    if (data.trash[i].authUserId === authUserId) {
-      const item = {
-        quizId: data.trash[i].quizId,
-        name: data.trash[i].name,
-      };
-      arr.push(item);
-    }
-  }
+  // Find quizzes in trash for the logged in user
+  const arr = data.trash
+    .filter(trashItem => trashItem.authUserId === authUserId)
+    .map(trashItem => ({
+      quizId: trashItem.quizId,
+      name: trashItem.name,
+    }));
 
   return { quizzes: arr };
 }
