@@ -483,23 +483,22 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid as string);
   const token = req.body.token;
-
   const questionId = parseInt(req.params.questionid as string);
 
-  const result = adminQuizQuestionDuplicate(quizId, questionId, token);
-  if ('error' in result) {
+  try {
+    const result = adminQuizQuestionDuplicate(quizId, questionId, token);
     saveData();
-    if (result.error === 'Invalid token') {
-      return res.status(401).json(result);
-    } else if (result.error === 'User does not own the quiz' ||
-      result.error === 'Quiz Id does not exist'
-    ) {
-      return res.status(403).json(result);
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
     }
-    return res.status(400).json(result);
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 /*
@@ -693,6 +692,27 @@ app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   }
 });
 
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.headers.token as string;
+  const questionId = parseInt(req.params.questionid as string);
+
+  try {
+    const result = adminQuizQuestionDuplicate(quizId, questionId, token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+});
+
 app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId, 10);
   const token = req.headers.token as string;
@@ -713,7 +733,6 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
     }
   }
 });
-
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
