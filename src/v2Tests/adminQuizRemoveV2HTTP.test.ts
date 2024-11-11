@@ -36,6 +36,28 @@ function adminQuizCreateWrapper(
   return JSON.parse(quizRes.body.toString()).quizId;
 }
 
+function adminQuizQuestionCreateWrapper(
+  token: string,
+  quizId: number,
+  questionBody: {
+    question: string,
+    timeLimit: number,
+    points: number,
+    answerOptions: [
+      {
+        answer: string,
+        correct: boolean,
+      }
+    ],
+    thumbnailUrl: string,
+  }
+) {
+  const questionRes = request('POST', SERVER_URL +  `/v2/admin/quiz/${quizId}/question`, {
+    json: { questionBody },
+    headers: { token },
+  })
+}
+
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 });
@@ -118,6 +140,32 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
     expect(JSON.parse(result.body.toString())).toStrictEqual({ error: expect.any(String) });
     expect(result.statusCode).toStrictEqual(403);
   });
+
+  test('returns error when trying to delete a quiz that has a session not in end state', () => {
+    const userToken = adminAuthRegisterWrapper(
+      'jake.renzella', 'password123', 'Jake', 'Renzella'
+    );
+
+    const quizId = adminQuizCreateWrapper(
+      userToken, 'A basic quiz', 'Just a normal quiz'
+    );
+  //   token: string,
+  // quizId: number,
+  // questionBody: {
+  //   question: string,
+  //   timeLimit: number,
+  //   points: number,
+  //   answerOptions: [
+  //     {
+  //       answer: string,
+  //       correct: boolean,
+  //     }
+  //   ],
+  //   thumbnailUrl: string,
+  // }
+
+    adminQuizQuestionCreateWrapper(userToken, quizId, ) 
+  })
 
   // SUCCESS CASE
   test('correct return type for deleting a quiz', () => {
