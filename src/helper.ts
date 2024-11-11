@@ -386,3 +386,27 @@ export function adminQuizTransferErrorChecking(
     throw new Error('400 - This user already owns a quiz with the same name');
   }
 }
+
+export function adminQuizSessionViewErrorChecking(
+  quizId: number, token: string
+): void {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz not found');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+}

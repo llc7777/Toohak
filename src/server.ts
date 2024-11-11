@@ -21,6 +21,7 @@ import {
   adminQuizRestore,
   adminQuizTransfer,
   adminQuizSessionStart,
+  adminQuizSessionView,
 } from './quiz';
 import {
   adminQuizQuestionCreate,
@@ -522,6 +523,22 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
     } else {
       return res.status(400).json({ error: e.message });
     }
+  }
+});
+
+// V1 adminQuizSessionView GET request
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizSessionView(quizId, token);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
   }
 });
 

@@ -13,6 +13,7 @@ import {
   adminQuizTransferErrorChecking,
   findQuizInTrash,
   generateRandomSessionId,
+  adminQuizSessionViewErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -26,6 +27,7 @@ import {
   Session,
   SessionId,
   QuizInfoSimpleArray,
+  QuizSessionsResponse,
 } from './interfaces';
 
 /**
@@ -484,4 +486,37 @@ export function adminQuizSessionStart(
 
   // Return the session ID
   return { sessionId };
+}
+
+export function adminQuizSessionView(
+  quizId: number, token: string
+): QuizSessionsResponse {
+  // Error checking using helper function
+  adminQuizSessionViewErrorChecking(quizId, token);
+
+  const data: Data = getData();
+
+  // Filter sessions for the quiz
+  const activeSessions: number[] = [];
+  const inactiveSessions: number[] = [];
+
+  data.sessions.forEach((session) => {
+    if (session.metaData.quizId === quizId) {
+      if (session.state !== 'END') {
+        activeSessions.push(session.sessionId);
+      } else {
+        inactiveSessions.push(session.sessionId);
+      }
+    }
+  });
+
+  // Sort sessions in ascending order
+  activeSessions.sort((a, b) => a - b);
+  inactiveSessions.sort((a, b) => a - b);
+
+  // Return the session data
+  return {
+    activeSessions,
+    inactiveSessions,
+  };
 }
