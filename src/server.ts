@@ -39,7 +39,7 @@ import {
   QuestionIdObject,
   QuizID,
   AuthLoginRes,
-  SessionStartReturn,
+  SessionId,
   QuizInfoSimpleArray,
 } from './interfaces';
 
@@ -510,7 +510,7 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const autoStartNum: number = req.body.autoStartNum as number;
 
   try {
-    const result: SessionStartReturn = adminQuizSessionStart(quizId, token, autoStartNum);
+    const result: SessionId = adminQuizSessionStart(quizId, token, autoStartNum);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
