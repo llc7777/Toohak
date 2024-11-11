@@ -1,4 +1,3 @@
-
 import { getData } from './dataStore';
 import {
   validQuizName,
@@ -310,9 +309,9 @@ export function adminQuizDescriptionUpdate(
   token: string,
   quizId: number,
   description: string
-): object | ErrorResponse {
+): object {
   if (token.length === 0 || !encodedTokenExists(token)) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   const tokenData: Token = decodeToken(token);
@@ -320,17 +319,16 @@ export function adminQuizDescriptionUpdate(
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    throw new Error('403 - Quiz ID does not refer to a valid quiz');
   }
 
   if (quiz.authUserId !== user.authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+    throw new Error('403 - Quiz ID does not refer to a quiz that this user owns');
   }
 
   if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.' };
+    throw new Error('400 - Description is more than 100 characters in length');
   }
-
   quiz.description = description;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
