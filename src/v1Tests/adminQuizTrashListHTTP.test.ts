@@ -1,24 +1,22 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
+import { Token, ErrorResponse } from '../interfaces';
 
-const SERVER_URL = `${url}:${port}`;
-const TIMEOUT_MS = 5 * 1000;
+const SERVER_URL: string = `${url}:${port}`;
+const TIMEOUT_MS: number = 5 * 1000;
 
 // Error object
-const ERROR = { error: expect.any(String) };
+const ERROR: ErrorResponse = { error: expect.any(String) };
 
 // User token
-let token = {};
+let token: string = '';
 
 // clear the database before each test and register a user
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
@@ -28,7 +26,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(res.body.toString()).token;
 });
 
 describe('Test for GET /v1/admin/quiz/trash', () => {
@@ -51,7 +49,7 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const quizId = JSON.parse(quiz.body.toString()).quizId;
+    const quizId: number = JSON.parse(quiz.body.toString()).quizId;
 
     request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
       qs: { token },
@@ -73,10 +71,6 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       ]
     });
 
-    request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
-      qs: { token, quizIds: JSON.stringify([quizId]) },
-      timeout: TIMEOUT_MS
-    });
   });
 
   test('should return array of quizzes if quizzes are removed', () => {
@@ -87,7 +81,7 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const quizId1 = JSON.parse(quiz1.body.toString()).quizId;
+    const quizId1: number = JSON.parse(quiz1.body.toString()).quizId;
 
     const quiz2 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
@@ -96,7 +90,7 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const quizId2 = JSON.parse(quiz2.body.toString()).quizId;
+    const quizId2: number = JSON.parse(quiz2.body.toString()).quizId;
 
     const quiz3 = request('POST', SERVER_URL + '/v1/admin/quiz', {
       json: {
@@ -105,7 +99,7 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const quizId3 = JSON.parse(quiz3.body.toString()).quizId;
+    const quizId3: number = JSON.parse(quiz3.body.toString()).quizId;
 
     request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId1}`, {
       qs: { token },
@@ -145,15 +139,11 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       ]
     });
 
-    request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
-      qs: { token, quizIds: JSON.stringify([quizId1, quizId2, quizId3]) },
-      timeout: TIMEOUT_MS
-    });
   });
 
   // Test for error cases
   test('error for empty token', () => {
-    const emptyToken = '';
+    const emptyToken: string = '';
 
     const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
       qs: { token: emptyToken },
@@ -165,8 +155,8 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
   });
 
   test('error for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = createToken(invalidToken);
+    const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid: string = createToken(invalidToken);
 
     const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
       qs: { token: encodedInvalid },
