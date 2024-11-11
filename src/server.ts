@@ -40,6 +40,7 @@ import {
   QuizID,
   AuthLoginRes,
   SessionStartReturn,
+  QuizInfoSimpleArray,
 } from './interfaces';
 
 // Set up web app
@@ -223,14 +224,14 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
-  const result = adminQuizList(token);
-
-  if (result.error) {
+  try {
+    const result: QuizInfoSimpleArray = adminQuizList(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
   }
-  saveData();
-  return res.json(result);
 });
 
 // adminQuizTrashList GET request
@@ -581,9 +582,23 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 
 // quiz routes
 
+// adminQuizList GET request
+app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+
+  try {
+    const result: QuizInfoSimpleArray = adminQuizList(token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
+});
+
 // V2 adminQuizCreate POST request
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
+  const token: string = req.headers.token as string;
   const { name, description } = req.body;
 
   try {
