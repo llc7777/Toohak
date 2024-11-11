@@ -115,26 +115,23 @@ export interface SessionQuestions {
 
 export interface Session {
   sessionId: number,
+  autoStartNum: number,
   state: string,
   atQuestion: number,
   players: sessionPlayer[],
-  metaData: {
-    quizId: number,
-    name: string,
-    timeCreated: number,
-    timeLastEdited: number,
-    description: string,
-    numOfQuestions: number,
-    questions: SessionQuestions[],
-  },
-  messages: [
-    {
-      messageBody: string,
-      playerId: string,
-      playerName: string,
-      timeSent: number,
-    }
-  ]
+  metaData: Quiz,
+  messages: Message[],
+}
+
+export interface SessionStartReturn {
+  sessionId: number,
+}
+
+export interface Message {
+  messageBody: string,
+  playerId: string,
+  playerName: string,
+  timeSent: number,
 }
 
 export interface Trash {
