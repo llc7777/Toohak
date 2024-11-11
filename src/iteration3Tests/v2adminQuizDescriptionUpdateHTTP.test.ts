@@ -73,11 +73,11 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/description', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    test('400: Nonexistent quiz ID', () => {
+    test('403: Nonexistent quiz ID', () => {
       const invalidQuizId = quiz.quizId + 999;
       const response = requestAdminQuizDescription(invalidQuizId, token,
         { description: 'Updated description' });
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(403);
     });
 
     test('400: Description exceeds 100 characters', () => {
