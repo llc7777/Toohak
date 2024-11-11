@@ -54,6 +54,15 @@ export interface QuizInfo {
   questions: QuestionInfo[],
 }
 
+export interface QuizInfoSimple {
+  quizId: number,
+  name: string,
+}
+
+export interface QuizInfoSimpleArray {
+  quizzes: QuizInfoSimple[];
+}
+
 export interface QuizInfoDetailed {
   quizId: number,
   name: string,
@@ -123,7 +132,7 @@ export interface Session {
   messages: Message[],
 }
 
-export interface SessionStartReturn {
+export interface SessionId {
   sessionId: number,
 }
 

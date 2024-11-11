@@ -11,7 +11,7 @@ const TIMEOUT_MS: number = 5 * 1000;
 const ERROR: ErrorResponse = { error: expect.any(String) };
 
 // user token
-let token = '';
+let token: string = '';
 
 // clear the database before each test and register a user
 beforeEach(() => {
@@ -33,24 +33,26 @@ beforeEach(() => {
 describe('Test for POST /v2/admin/auth/logout', () => {
   // Test for successful cases
   test('has the correct return and has it logged out the user', () => {
-    let token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    const token2 = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: {
         email: 'Aerospace@gmail.com', password: 'Aeropass1'
       },
       timeout: TIMEOUT_MS
     });
 
-    token2 = JSON.parse(token2.body.toString()).token;
+    const token2Value: string = JSON.parse(token2.body.toString()).token;
 
     const res = request('POST', SERVER_URL + '/v2/admin/auth/logout', {
       headers: { token }, timeout: TIMEOUT_MS
     });
 
-    const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const result = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2, {
+    const result2 = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token: token2Value },
       timeout: TIMEOUT_MS
     });
 
@@ -91,15 +93,18 @@ describe('Test for POST /v2/admin/auth/logout', () => {
       headers: { token: token2Value }, timeout: TIMEOUT_MS
     });
 
-    const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const result = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
+    const result2 = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token: token2Value },
       timeout: TIMEOUT_MS
     });
 
-    const result3 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token3Value, {
+    const result3 = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token: token3Value },
       timeout: TIMEOUT_MS
     });
 
@@ -131,11 +136,13 @@ describe('Test for POST /v2/admin/auth/logout', () => {
       headers: { token: token2Value }, timeout: TIMEOUT_MS
     });
 
-    const result = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const result = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
-    const result2 = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token2Value, {
+    const result2 = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token: token2Value },
       timeout: TIMEOUT_MS
     });
 

@@ -25,7 +25,8 @@ import {
   QuizInfoDetailed,
   QuizID,
   Session,
-  SessionStartReturn,
+  SessionId,
+  QuizInfoSimpleArray,
   QuizSessionsResponse,
 } from './interfaces';
 
@@ -34,14 +35,12 @@ import {
  * @param {string} token of user
  * @returns {object} - An object containing a list of quizzes created by the user
  */
-export function adminQuizList(token: string) {
+export function adminQuizList(token: string): QuizInfoSimpleArray {
   const data: Data = getData();
-  const arr = [];
+
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('Token is empty');
   }
 
   // decode the token and get the authUserId and sessionId
@@ -51,21 +50,18 @@ export function adminQuizList(token: string) {
   // verify user with the sessionId and authUserId
   const userExists = findUserFromToken(tokenData);
 
+  // If the token is invalid, throw an error
   if (!userExists) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('Token is invalid');
   }
 
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].authUserId === authUserId) {
-      const item = {
-        quizId: data.quizzes[i].quizId,
-        name: data.quizzes[i].name,
-      };
-      arr.push(item);
-    }
-  }
+  // Filter quizzes by authUserId and map to a new array
+  const arr = data.quizzes
+    .filter(quiz => quiz.authUserId === authUserId)
+    .map(quiz => ({
+      quizId: quiz.quizId,
+      name: quiz.name,
+    }));
 
   return {
     quizzes: arr,
@@ -421,12 +417,12 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
  * @param {number} quizId - The ID of the quiz to start a session for
  * @param {string} token - The user's authentication token
  * @param {number} autoStartNum - The number of players that will automatically start the quiz
- * @returns {SessionStartReturn} - The ID of the new session
+ * @returns {SessionId} - The ID of the new session
  */
 export function adminQuizSessionStart(
   quizId: number,
   token: string,
-  autoStartNum: number): SessionStartReturn {
+  autoStartNum: number): SessionId {
   const data: Data = getData();
 
   if (token === '') {
