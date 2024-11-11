@@ -1,4 +1,3 @@
-
 import express, { json, Request, Response } from 'express';
 import { echo } from './newecho';
 import morgan from 'morgan';
@@ -39,6 +38,7 @@ import {
   QuestionIdObject,
   QuizID,
   AuthLoginRes,
+  ErrorResponse
 } from './interfaces';
 
 // Set up web app
@@ -342,25 +342,24 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
 
 // PUT request for adminQuizDescription
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId as string);
-  const token = req.body.token as string;
-  const description = req.body.description;
+  const quizId: number = parseInt(req.params.quizId as string);
+  const token: string = req.body.token;
+  const description: string = req.body.description;
 
-  const result = adminQuizDescriptionUpdate(token, quizId, description);
-  if ('error' in result) {
+  try {
+    adminQuizDescriptionUpdate(token, quizId, description);
     saveData();
-    if (result.error === 'Token is invalid') {
-      return res.status(401).json(result);
-    } else if (result.error === 'Quiz ID does not refer to a valid quiz.' ||
-      result.error === 'Quiz ID does not refer to a quiz that this user owns.'
-    ) {
-      return res.status(403).json(result);
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    if ((error as Error).message.includes('401')) {
+      return res.status(401).json({ error: (error as Error).message });
+    } else if ((error as Error).message.includes('403')) {
+      return res.status(403).json({ error: (error as Error).message });
     } else {
-      return res.status(400).json(result);
+      return res.status(400).json({ error: (error as Error).message });
     }
   }
-  saveData();
-  return res.status(200).json({});
 });
 
 // DELETE Request for adminQuizQuestionDelete
@@ -693,6 +692,28 @@ app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
     }
   }
 });
+
+app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId, 10);
+  const token = req.headers.token as string;
+  const { description } = req.body.description;
+
+  try {
+    adminQuizDescriptionUpdate(token, quizId, description);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();  
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.startsWith('403')) {
+      return res.status(403).json({ error: error.message });
+    } else if (error.message.startsWith('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+});
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
