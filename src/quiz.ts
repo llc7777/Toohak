@@ -497,8 +497,8 @@ export function adminQuizSessionView(
 ): QuizSessionsResponse {
   // Error checking using helper function
   adminQuizSessionViewErrorChecking(quizId, token);
-
-  const data = getData();
+  
+  const data: Data = getData();
 
   // Filter sessions for the quiz
   const activeSessions: number[] = [];
