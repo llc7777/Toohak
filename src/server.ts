@@ -187,17 +187,19 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // adiminUserPasswordUpdate PUT request
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const { token, oldPassword, newPassword } = req.body;
-  const result = adminUserPasswordUpdate(token, oldPassword, newPassword);
 
-  if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
+  try {
+    const result: object = adminUserPasswordUpdate(token, oldPassword, newPassword);
     saveData();
-    return res.status(401).json(result);
-  } else if ('error' in result) {
+    return res.status(200).json(result);
+  } catch (e) {
     saveData();
-    return res.status(400).json(result);
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // routes for quiz
@@ -531,6 +533,27 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
 * ===========================================================================
 */
 
+// user routes
+
+// V2 adiminUserPasswordUpdate PUT request
+app.put('/v2/admin/user/password', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+  const { oldPassword, newPassword } = req.body;
+
+  try {
+    const result: object = adminUserPasswordUpdate(token, oldPassword, newPassword);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
 // adminUserDetails GET request. Gets the details of the admin (non-password)
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
@@ -566,6 +589,7 @@ app.put('/v2/admin/user/details', (req: Request, res: Response) => {
 });
 
 // auth routes
+
 // V2 adminAuthLogout POST request
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
   const token = req.headers.token as string;
