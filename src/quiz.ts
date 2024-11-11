@@ -24,7 +24,7 @@ import {
   QuizInfoDetailed,
   QuizID,
   Session,
-  SessionStartReturn,
+  SessionId,
   QuizInfoSimpleArray,
 } from './interfaces';
 
@@ -415,12 +415,12 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
  * @param {number} quizId - The ID of the quiz to start a session for
  * @param {string} token - The user's authentication token
  * @param {number} autoStartNum - The number of players that will automatically start the quiz
- * @returns {SessionStartReturn} - The ID of the new session
+ * @returns {SessionId} - The ID of the new session
  */
 export function adminQuizSessionStart(
   quizId: number,
   token: string,
-  autoStartNum: number): SessionStartReturn {
+  autoStartNum: number): SessionId {
   const data: Data = getData();
 
   if (token === '') {

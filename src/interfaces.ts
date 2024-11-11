@@ -132,7 +132,7 @@ export interface Session {
   messages: Message[],
 }
 
-export interface SessionStartReturn {
+export interface SessionId {
   sessionId: number,
 }
 
