@@ -182,4 +182,3 @@ export interface AuthLoginRes {
   email: string;
   password: string;
 }
-

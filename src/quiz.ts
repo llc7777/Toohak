@@ -320,7 +320,7 @@ export function adminQuizDescriptionUpdate(
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
-    throw new Error('403 - Quiz ID does not refer to a valid quiz');
+    throw new Error('400 - Quiz ID does not refer to a valid quiz');
   }
 
   if (quiz.authUserId !== user.authUserId) {

@@ -38,7 +38,6 @@ import {
   QuestionIdObject,
   QuizID,
   AuthLoginRes,
-  ErrorResponse
 } from './interfaces';
 
 // Set up web app
@@ -716,14 +715,14 @@ app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId, 10);
   const token = req.headers.token as string;
-  const { description } = req.body.description;
+  const { description } = req.body;
 
   try {
     adminQuizDescriptionUpdate(token, quizId, description);
     saveData();
     return res.status(200).json({});
   } catch (error) {
-    saveData();  
+    saveData();
     if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
     } else if (error.message.startsWith('403')) {

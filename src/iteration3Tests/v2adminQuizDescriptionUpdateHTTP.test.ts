@@ -1,11 +1,9 @@
 import request from 'sync-request-curl';
-import config from '../config.json';
+import { port, url } from '../config.json';
 import { Quiz } from '../interfaces';
 
-const port: string = config.port;
-const url: string = config.url;
-const SERVER_URL: string = `${url}:${port}`;
-const TIMEOUT_MS: number = 5 * 1000;
+const SERVER_URL = `${url}:${port}`;
+const TIMEOUT_MS = 5 * 1000;
 
 const requestAdminQuizDescription = (
   quizId: number,
@@ -47,12 +45,14 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/description', () => {
 
   describe('Error cases', () => {
     test('401: Empty token', () => {
-      const response = requestAdminQuizDescription(quiz.quizId, '', { description: 'Updated description' });
+      const response = requestAdminQuizDescription(quiz.quizId, '',
+        { description: 'Updated description' });
       expect(response.statusCode).toBe(401);
     });
 
     test('401: Invalid token', () => {
-      const response = requestAdminQuizDescription(quiz.quizId, 'invalidToken', { description: 'Updated description' });
+      const response = requestAdminQuizDescription(quiz.quizId, 'invalidToken',
+        { description: 'Updated description' });
       expect(response.statusCode).toBe(401);
     });
 
@@ -68,32 +68,37 @@ describe('HTTP tests for /v2/admin/quiz/{quizId}/description', () => {
       });
       const newToken = JSON.parse(newUserRes.body.toString()).token;
 
-      const response = requestAdminQuizDescription(quiz.quizId, newToken, { description: 'Updated description' });
+      const response = requestAdminQuizDescription(quiz.quizId, newToken,
+        { description: 'Updated description' });
       expect(response.statusCode).toBe(403);
     });
 
     test('400: Nonexistent quiz ID', () => {
-      const invalidQuizId = quiz.quizId + 999; 
-      const response = requestAdminQuizDescription(invalidQuizId, token, { description: 'Updated description' });
+      const invalidQuizId = quiz.quizId + 999;
+      const response = requestAdminQuizDescription(invalidQuizId, token,
+        { description: 'Updated description' });
       expect(response.statusCode).toBe(400);
     });
 
     test('400: Description exceeds 100 characters', () => {
       const longDescription = 'A'.repeat(101);
-      const response = requestAdminQuizDescription(quiz.quizId, token, { description: longDescription });
+      const response = requestAdminQuizDescription(quiz.quizId, token,
+        { description: longDescription });
       expect(response.statusCode).toBe(400);
     });
   });
 
   describe('Successful cases', () => {
     test('200: Successfully update description', () => {
-      const response = requestAdminQuizDescription(quiz.quizId, token, { description: 'Updated description' });
+      const response = requestAdminQuizDescription(quiz.quizId, token,
+        { description: 'Updated description' });
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body.toString())).toEqual({});
     });
 
     test('200: Successfully update to empty description', () => {
-      const response = requestAdminQuizDescription(quiz.quizId, token, { description: '' });
+      const response = requestAdminQuizDescription(quiz.quizId, token,
+        { description: '' });
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body.toString())).toEqual({});
     });
