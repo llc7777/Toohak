@@ -1,4 +1,3 @@
-
 import { getData } from './dataStore';
 import {
   validQuizName,
