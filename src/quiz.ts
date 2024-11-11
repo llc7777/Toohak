@@ -319,7 +319,7 @@ export function adminQuizDescriptionUpdate(
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
-    throw new Error('400 - Quiz ID does not refer to a valid quiz');
+    throw new Error('403 - Quiz ID does not refer to a valid quiz');
   }
 
   if (quiz.authUserId !== user.authUserId) {
@@ -329,12 +329,12 @@ export function adminQuizDescriptionUpdate(
   if (description.length > 100) {
     throw new Error('400 - Description is more than 100 characters in length');
   }
-
   quiz.description = description;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   return {};
 }
+
 
 /**
 Updates the description of the relevant quiz
