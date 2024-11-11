@@ -1,24 +1,22 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
+import { Token, ErrorResponse } from '../interfaces';
 
-const SERVER_URL = `${url}:${port}`;
-const TIMEOUT_MS = 5 * 1000;
+const SERVER_URL: string = `${url}:${port}`;
+const TIMEOUT_MS: number = 5 * 1000;
 
 // Error object
-const ERROR = { error: expect.any(String) };
+const ERROR: ErrorResponse = { error: expect.any(String) };
 
 // user token
-let token = {};
+let token: string = '';
 
 // clear the database before each test and register a user
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
@@ -28,7 +26,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(res.body.toString()).token;
 });
 
 describe('Test for PUT /v1/admin/user/password', () => {
@@ -162,7 +160,7 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for empty token', () => {
-    const emptyToken = '';
+    const emptyToken: string = '';
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
@@ -176,8 +174,8 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = createToken(invalidToken);
+    const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid: string = createToken(invalidToken);
 
     const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
       json: {
