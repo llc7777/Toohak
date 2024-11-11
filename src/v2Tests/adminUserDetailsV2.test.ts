@@ -1,7 +1,7 @@
 import request from 'sync-request-curl';
-import config from './config.json';
-import { decodeToken, createToken } from './helper';
-import { UserInfo, ErrorResponse, AuthResponse } from './interfaces';
+import config from '../config.json';
+import { decodeToken, createToken } from '../helper';
+import { UserInfo, ErrorResponse, AuthResponse } from '../interfaces';
 
 const port = config.port;
 const url = config.url;

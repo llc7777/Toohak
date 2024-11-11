@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
-import config from './config.json';
-import { AnswerOptionsReq, Quiz } from './interfaces';
+import config from '../config.json';
+import { AnswerOptionsReq, Quiz } from '../interfaces';
 
 const port: string = config.port;
 const url: string = config.url;
