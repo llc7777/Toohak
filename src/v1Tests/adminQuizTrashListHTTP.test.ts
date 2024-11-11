@@ -70,7 +70,6 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
         }
       ]
     });
-
   });
 
   test('should return array of quizzes if quizzes are removed', () => {
@@ -138,7 +137,6 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
         }
       ]
     });
-
   });
 
   // Test for error cases
