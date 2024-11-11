@@ -25,6 +25,7 @@ import {
   QuizID,
   Session,
   SessionStartReturn,
+  QuizInfoSimpleArray,
 } from './interfaces';
 
 /**
@@ -32,14 +33,12 @@ import {
  * @param {string} token of user
  * @returns {object} - An object containing a list of quizzes created by the user
  */
-export function adminQuizList(token: string) {
+export function adminQuizList(token: string): QuizInfoSimpleArray {
   const data: Data = getData();
-  const arr = [];
+
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('Token is empty');
   }
 
   // decode the token and get the authUserId and sessionId
@@ -49,21 +48,18 @@ export function adminQuizList(token: string) {
   // verify user with the sessionId and authUserId
   const userExists = findUserFromToken(tokenData);
 
+  // If the token is invalid, throw an error
   if (!userExists) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('Token is invalid');
   }
 
-  for (let i = 0; i < data.quizzes.length; i++) {
-    if (data.quizzes[i].authUserId === authUserId) {
-      const item = {
-        quizId: data.quizzes[i].quizId,
-        name: data.quizzes[i].name,
-      };
-      arr.push(item);
-    }
-  }
+  // Filter quizzes by authUserId and map to a new array
+  const arr = data.quizzes
+    .filter(quiz => quiz.authUserId === authUserId)
+    .map(quiz => ({
+      quizId: quiz.quizId,
+      name: quiz.name,
+    }));
 
   return {
     quizzes: arr,

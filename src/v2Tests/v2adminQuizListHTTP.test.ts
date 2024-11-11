@@ -29,24 +29,27 @@ beforeEach(() => {
   token = JSON.parse(res.body.toString()).token;
 });
 
-describe('Test for GET /v1/admin/quiz/list', () => {
+describe('Test for GET /v2/admin/quiz/list', () => {
   // Test for successful cases
   test('should return empty array if quiz is not generated', () => {
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ quizzes: [] });
   });
 
   test('should return one quiz if  one quiz is generated', () => {
-    request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v2/admin/quiz', {
+      headers: { token },
       json: {
-        token, name: 'quiz1', description: 'description1'
+        name: 'quiz1', description: 'description1'
       },
       timeout: TIMEOUT_MS
     });
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
@@ -61,27 +64,31 @@ describe('Test for GET /v1/admin/quiz/list', () => {
   });
 
   test('should return array of quizzes if quizzes are generated', () => {
-    request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v2/admin/quiz', {
+      headers: { token },
       json: {
-        token, name: 'quiz1', description: 'description1'
+        name: 'quiz1', description: 'description1'
       },
       timeout: TIMEOUT_MS
     });
 
-    request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v2/admin/quiz', {
+      headers: { token },
       json: {
-        token, name: 'quiz2', description: 'description2'
+        name: 'quiz2', description: 'description2'
       },
       timeout: TIMEOUT_MS
     });
 
-    request('POST', SERVER_URL + '/v1/admin/quiz', {
+    request('POST', SERVER_URL + '/v2/admin/quiz', {
+      headers: { token },
       json:
-        { token, name: 'quiz3', description: 'description3' },
+                { name: 'quiz3', description: 'description3' },
       timeout: TIMEOUT_MS
     });
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + token, {
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
@@ -106,7 +113,7 @@ describe('Test for GET /v1/admin/quiz/list', () => {
   test('error for empty token', () => {
     const emptyToken: string = '';
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + emptyToken, {
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/list' + emptyToken, {
       timeout: TIMEOUT_MS
     });
 
@@ -118,9 +125,9 @@ describe('Test for GET /v1/admin/quiz/list', () => {
     const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
     const encodedInvalid: string = createToken(invalidToken);
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/list?token=' + encodedInvalid, {
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/list' + encodedInvalid, {
       json:
-        { token: encodedInvalid },
+                { token: encodedInvalid },
       timeout: TIMEOUT_MS
     });
 
