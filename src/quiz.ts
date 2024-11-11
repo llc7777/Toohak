@@ -11,6 +11,8 @@ import {
   adminQuizInfoErrorChecking,
   adminQuizRemoveErrorChecking,
   adminQuizTransferErrorChecking,
+  findQuizInTrash,
+  generateRandomSessionId,
 } from './helper';
 import {
   ErrorResponse,
@@ -21,6 +23,8 @@ import {
   QuizInfo,
   QuizInfoDetailed,
   QuizID,
+  Session,
+  SessionStartReturn,
 } from './interfaces';
 
 /**
@@ -408,4 +412,80 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
   quiz.timeLastEdited = (Math.floor(new Date().getTime() / 1000)) + 1;
 
   return {};
+}
+
+/**
+ * Start a new quiz session
+ * @param {number} quizId - The ID of the quiz to start a session for
+ * @param {string} token - The user's authentication token
+ * @param {number} autoStartNum - The number of players that will automatically start the quiz
+ * @returns {SessionStartReturn} - The ID of the new session
+ */
+export function adminQuizSessionStart(
+  quizId: number,
+  token: string,
+  autoStartNum: number): SessionStartReturn {
+  const data: Data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenData: Token = decodeToken(token);
+
+  const user: User = findUserFromToken(tokenData);
+
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz = findQuizFromQuizId(quizId);
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+
+  if (autoStartNum > 50) {
+    throw new Error('400 - autoStartNum should be less than 50');
+  }
+
+  // Check if there are more than 10 active sessions for this quiz
+  const nonEndedSessionsCount: number = data.sessions.filter(
+    session => session.state !== 'END' &&
+      session.metaData.quizId === quizId).length;
+
+  if (nonEndedSessionsCount >= 10) {
+    throw new Error('400 - There are more than 10 active sessions for this quiz');
+  }
+
+  if (quiz.questions.length === 0) {
+    throw new Error('400 - Quiz does not have any questions');
+  }
+
+  // Check if the quiz is in the trash
+  const quizInTrash: Quiz = findQuizInTrash(quizId);
+
+  if (quizInTrash) {
+    throw new Error('400 - Quiz is in trash');
+  }
+
+  // Generate a random session ID
+  const sessionId: number = generateRandomSessionId();
+
+  // Create a new session
+  const session: Session = {
+    autoStartNum,
+    sessionId,
+    state: 'LOBBY',
+    atQuestion: 0,
+    players: [],
+    metaData: quiz,
+    messages: [],
+  };
+
+  // Add the session to the data
+  data.sessions.push(session);
+
+  // Return the session ID
+  return { sessionId };
 }
