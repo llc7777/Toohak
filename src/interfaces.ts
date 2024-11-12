@@ -88,12 +88,15 @@ export interface AnswerOptions {
 }
 
 export interface QuestionInfo {
-  questionId: number;
-  question: string;
-  timeLimit: number;
-  thumbnailUrl: string;
-  points: number;
-  answerOptions: AnswerOptions[];
+  questionId: number,
+  question: string,
+  timeLimit: number,
+  thumbnailUrl: string,
+  points: number,
+  answerOptions: AnswerOptions[],
+  playersCorrect: string[],
+  averageAnswerTime: number,
+  percentCorrect: number,
 }
 
 export interface QuestionCreateReq {
@@ -108,18 +111,6 @@ export interface sessionPlayer {
   name: string,
   playerId: number,
   score: number,
-}
-
-export interface SessionQuestions {
-  questionId: number,
-  question: string,
-  timeLimit: number,
-  thumbnailUrl: string,
-  points: number,
-  answerOptions: AnswerOptions[],
-  playersCorrect: string[],
-  averageAnswerTime: number,
-  percentCorrect: number,
 }
 
 export interface Session {
