@@ -11,7 +11,6 @@ let questionId: number;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout });
-
   const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
