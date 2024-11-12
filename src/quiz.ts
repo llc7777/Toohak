@@ -216,7 +216,6 @@ export function adminQuizInfo(
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
   if (detailed) {
-
     return {
       quizId: quiz.quizId,
       name: quiz.name,
@@ -413,14 +412,11 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
   return {};
 }
 
-/////////////////////////////
+/// //////////////////////////
 // Iteration 3 New Functions
-/////////////////////////////
-
+/// //////////////////////////
 
 export function adminQuizThumbnailUpdate(quizId: number, token: string, thumbnailUrl: string) {
-  const data: Data = getData();
-
   // Error checking for 401s
   if (token === '') {
     throw new Error('401 - Token is empty');

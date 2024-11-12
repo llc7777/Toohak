@@ -452,7 +452,6 @@ export function countDownAndStartGame(session: Session) {
   }, duration * 1000);
 }
 
-
 export function checkUrlIsValid(url: string) {
   const validFileTypes = /\.(jpg|jpeg|png)$/i;
   const validProtocol = /^https?:\/\//;
