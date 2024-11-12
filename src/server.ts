@@ -295,31 +295,38 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const quizId = parseInt(req.params.quizId as string);
   const questionId = parseInt(req.params.questionId as string);
   const token = req.body.token as string;
-  const { question, answerOptions, timeLimit, points } = req.body.questionBody;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const updateResult = adminQuizQuestionUpdate(quizId,
-    questionId,
-    token,
-    question,
-    timeLimit,
-    points,
-    answerOptions);
-  if ('error' in updateResult) {
+  try {
+    const updateResult = adminQuizQuestionUpdate(
+      quizId,
+      questionId,
+      token,
+      question,
+      timeLimit,
+      points,
+      answerOptions,
+      thumbnailUrl
+    );
+
     saveData();
-    if (updateResult.error === 'No such quiz exists' ||
-      updateResult.error === 'User does not own the quiz'
-    ) {
-      return res.status(403).json(updateResult);
-    } else {
-      return res.status(400).json(updateResult);
+    return res.status(200).json(updateResult);
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
     }
   }
-
-  return res.status(200).json(updateResult);
 });
 
 // adminQuizRestore POST request

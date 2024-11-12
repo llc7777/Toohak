@@ -315,7 +315,7 @@ describe('Test for PUT /v1/admin/quiz/{quizId}/question/{questionId}', () => {
           timeout: TIMEOUT_MS,
         });
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(403);
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 

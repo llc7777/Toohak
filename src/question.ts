@@ -250,11 +250,11 @@ export function adminQuizQuestionUpdate(
   }
 
   if (question.length < 5 || question.length > 50) {
-    throw new Error('400 - Question must be between 5 to 50 characters');
+    throw new Error('400 - Question must be between 5 and 50 characters');
   }
 
   if (answerOptions.length < 2 || answerOptions.length > 6) {
-    throw new Error('400 - Question must have between 2 to 6 answers');
+    throw new Error('400 - Question must have between 2 and 6 answers');
   }
 
   if (timeLimit <= 0) {
