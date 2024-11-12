@@ -193,3 +193,52 @@ export interface QuizSessionsResponse {
   activeSessions: number[];
   inactiveSessions: number[];
 }
+
+export interface QuizSessionStatusResponse {
+  state: string;
+  atQuestion: number;
+  players: string[];
+  metadata: Metadata;
+}
+
+interface Metadata {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: Question[];
+  timeLimit: number;
+  thumbnailUrl: string;
+}
+
+interface Question {
+  questionId: number;
+  question: string;
+  timeLimit: number;
+  thumbnailUrl: string;
+  points: number;
+  answerOptions: AnswerOption[];
+}
+
+export interface AnswerOption {
+  answerId: number;
+  answer: string;
+  colour: string;
+  correct: boolean;
+}
+
+// export interface Player {
+//   name: string;
+// }
+
+// export interface QuizSession {
+//   sessionId: number;
+//   state: SessionState;
+//   atQuestion: number;
+//   players: Player[];
+//   metadata: Metadata;
+// }
+
+
