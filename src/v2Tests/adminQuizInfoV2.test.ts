@@ -29,12 +29,12 @@ function adminQuizCreateWrapper(
   name: string,
   description: string
 ) {
-  const quizRes = request('POST', SERVER_URL + '/v2/admin/quiz', {
+  const quizRes = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: {
+      token,
       name,
       description,
-    },
-    headers: { token },
+    }
   });
   const quiz = JSON.parse(quizRes.body.toString());
   return quiz.quizId;
