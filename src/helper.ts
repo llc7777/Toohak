@@ -437,6 +437,43 @@ export function adminQuizSessionViewErrorChecking(
   }
 }
 
+export function adminQuizSessionStatusErrorChecking(
+  quizId: number, sessionId: number, token: string
+): void {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz not found');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+
+  const session = findSession(quizId, sessionId);
+  if (!session) {
+    throw new Error('400 - Session does not exist for this quiz');
+  }
+}
+
+export function findSession(quizId: number, sessionId: number) {
+  const data = getData();
+  return data.sessions.find(
+    session => session.sessionId === sessionId &&
+    session.metaData.quizId === quizId
+  );
+}
+
 export function countDownAndStartGame(session: Session) {
   session.state = 'QUESTION_COUNTDOWN';
   const duration = session.metaData.timeLimit;
