@@ -215,6 +215,38 @@ describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
     });
     expect(result.statusCode).toStrictEqual(401);
   });
+
+  test('returns error when trying to delete a quiz that has a session not in end state', () => {
+
+    adminQuizQuestionCreateWrapper(userToken, quizId, {
+      question: 'What is two plus two',
+      timeLimit: 5,
+      points: 5,
+      answerOptions: [
+        {
+          answer: 'Four',
+          correct: true,
+        },
+        {
+          answer: 'Five',
+          correct: false,
+        }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg',
+    });
+    sessionCreateWrapper(userToken, quizId, 3);
+
+    const resultRes = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`, {
+      json: {
+        userEmail: emailToTransferTo
+      },
+      headers: { token: userToken },
+      timeout: TIMEOUT_MS
+    });
+    const resultBody = JSON.parse(resultRes.body.toString());
+    expect(resultRes.statusCode).toStrictEqual(400);
+    expect(resultBody).toStrictEqual({ error: expect.any(String) });
+  });
 });
 
 describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
