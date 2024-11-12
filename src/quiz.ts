@@ -413,7 +413,10 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
   return {};
 }
 
+/////////////////////////////
 // Iteration 3 New Functions
+/////////////////////////////
+
 
 export function adminQuizThumbnailUpdate(quizId: number, token: string, thumbnailUrl: string) {
   const data: Data = getData();
@@ -476,6 +479,14 @@ export function adminQuizSessionStart(
     throw new Error('401 - Token is invalid');
   }
 
+  // Check if the quiz is in the trash
+  const quizInTrash: Quiz = findQuizInTrash(quizId);
+
+  // Throw an error if the quiz is in the trash
+  if (quizInTrash) {
+    throw new Error('400 - Quiz is in trash');
+  }
+
   // Find the quiz with the given quiz ID
   const quiz = findQuizFromQuizId(quizId);
 
@@ -507,14 +518,6 @@ export function adminQuizSessionStart(
   // Throw an error if the quiz does not have any questions
   if (quiz.questions.length === 0) {
     throw new Error('400 - Quiz does not have any questions');
-  }
-
-  // Check if the quiz is in the trash
-  const quizInTrash: Quiz = findQuizInTrash(quizId);
-
-  // Throw an error if the quiz is in the trash
-  if (quizInTrash) {
-    throw new Error('400 - Quiz is in trash');
   }
 
   // Generate a random session ID
