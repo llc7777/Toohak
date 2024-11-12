@@ -158,7 +158,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
     const quizId = adminQuizCreateWrapper(
       userToken, 'A basic quiz', 'Just a normal quiz'
     );
-    
+
     adminQuizQuestionCreateWrapper(userToken, quizId, {
       question: 'What is two plus two',
       timeLimit: 5,
@@ -176,7 +176,6 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
       thumbnailUrl: 'http://google.com/some/image/path.jpg',
     });
     sessionCreateWrapper(userToken, quizId, 3);
-
 
     const resultRes = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}/`, {
       headers: { token: userToken },
