@@ -600,10 +600,13 @@ export function adminQuizSessionUpdate(
   if (action === 'NEXT_QUESTION') {
     if (session.state === 'LOBBY') {
       countDownAndStartGame(session);
+      session.atQuestion++;
     } else if (session.state === 'ANSWER_SHOW') {
       countDownAndStartGame(session);
+      session.atQuestion++;
     } else if (session.state === 'QUIZ_CLOSE') {
       countDownAndStartGame(session);
+      session.atQuestion++;
     }
   } else if (action === 'SKIP_COUNTDOWN' && session.state === 'QUESTION_COUNTDOWN') {
     session.state = 'QUESTION_OPEN';
