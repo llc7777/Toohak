@@ -15,6 +15,7 @@ import {
   generateRandomSessionId,
   countDownAndStartGame,
   adminQuizSessionViewErrorChecking,
+  checkUrlIsValid,
 } from './helper';
 import {
   ErrorResponse,
@@ -158,7 +159,7 @@ export function adminQuizCreate(
     description,
     questions: [],
     timeLimit: 0,
-    thumbnailUrl: '',
+    thumbnailUrl: 'http://naver.com/some/image/path.jpg',
   };
 
   data.quizzes.push(newQuiz);
@@ -212,6 +213,9 @@ export function adminQuizInfo(
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
   if (detailed) {
+
+    console.log(quiz);
+
     return {
       quizId: quiz.quizId,
       name: quiz.name,
@@ -406,6 +410,44 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
   return {};
 }
 
+// Iteration 3 New Functions
+
+export function adminQuizThumbnailUpdate(quizId: number, token: string, thumbnailUrl: string) {
+  const data: Data = getData();
+
+  // Error checking for 401s
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenData: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenData);
+
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  // Find the quiz with the given quiz ID
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
+
+  // Throw an error if the quiz does not exist
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+
+  // Check if the thumbnail URL is valid and throw an error if it is not
+  checkUrlIsValid(thumbnailUrl);
+
+  // Update the thumbnail URL
+  quiz.thumbnailUrl = thumbnailUrl;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  return {};
+}
+
 /**
  * Start a new quiz session
  * @param {number} quizId - The ID of the quiz to start a session for
@@ -419,24 +461,32 @@ export function adminQuizSessionStart(
   autoStartNum: number): SessionId {
   const data: Data = getData();
 
+  // Error checking for 401s
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
 
   const tokenData: Token = decodeToken(token);
-
   const user: User = findUserFromToken(tokenData);
 
   if (!user) {
     throw new Error('401 - Token is invalid');
   }
 
+  // Find the quiz with the given quiz ID
   const quiz = findQuizFromQuizId(quizId);
 
+  // Throw an error if the quiz does not exist
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
+
+  // Throw an error if the user does not own the quiz
   if (quiz.authUserId !== user.authUserId) {
     throw new Error('403 - User does not own the quiz');
   }
 
+  // Throw an error if autoStartNum is greater than 50
   if (autoStartNum > 50) {
     throw new Error('400 - autoStartNum should be less than 50');
   }
@@ -446,10 +496,12 @@ export function adminQuizSessionStart(
     session => session.state !== 'END' &&
       session.metaData.quizId === quizId).length;
 
+  // Throw an error if there are more than 10 active sessions for this quiz
   if (nonEndedSessionsCount >= 10) {
     throw new Error('400 - There are more than 10 active sessions for this quiz');
   }
 
+  // Throw an error if the quiz does not have any questions
   if (quiz.questions.length === 0) {
     throw new Error('400 - Quiz does not have any questions');
   }
@@ -457,6 +509,7 @@ export function adminQuizSessionStart(
   // Check if the quiz is in the trash
   const quizInTrash: Quiz = findQuizInTrash(quizId);
 
+  // Throw an error if the quiz is in the trash
   if (quizInTrash) {
     throw new Error('400 - Quiz is in trash');
   }
@@ -494,35 +547,41 @@ export function adminQuizSessionUpdate(
   quizId: number, sessionId: number, token: string, action: string): object {
   const data: Data = getData();
 
+  // Error checking for 401s
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
 
   const tokenData: Token = decodeToken(token);
-
   const user: User = findUserFromToken(tokenData);
 
   if (!user) {
     throw new Error('401 - Token is invalid');
   }
 
+  // Find the quiz with the given quiz ID
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
 
+  // Throw an error if the quiz does not exist
   if (!quiz) {
     throw new Error('403 - Quiz does not exist');
   }
 
+  // Throw an error if the user does not own the quiz
   if (quiz.authUserId !== user.authUserId) {
     throw new Error('403 - User does not own the quiz');
   }
 
+  // Find the session with the given session ID and quiz ID
   const session = data.sessions.find(session => session.sessionId === sessionId &&
     session.metaData.quizId === quizId);
 
+  // Throw an error if the session does not exist
   if (!session) {
     throw new Error('400 - Valid session does not exist');
   }
 
+  // Array of valid action commands
   const actionCommand = [
     'NEXT_QUESTION',
     'SKIP_COUNTDOWN',
@@ -530,6 +589,7 @@ export function adminQuizSessionUpdate(
     'GO_TO_FINAL_RESULTS',
     'END'];
 
+  // Check if the action is valid
   if (!actionCommand.includes(action)) {
     throw new Error('400 - Invalid action');
   }
