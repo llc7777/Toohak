@@ -388,21 +388,6 @@ export function adminQuizTransferErrorChecking(
   }
 }
 
-export function countDownAndStartGame(session: Session) {
-  session.state = 'QUESTION_COUNTDOWN';
-  const duration = session.metaData.timeLimit;
-
-  // Start the countdown and open the question
-  setTimeout(() => {
-    session.state = 'QUESTION_OPEN';
-  }, 3000);
-
-  // Close the question after the duration
-  setTimeout(() => {
-    session.state = 'QUESTION_CLOSED';
-  }, duration * 1000);
-}
-
 export function adminQuizSessionViewErrorChecking(
   quizId: number, token: string
 ): void {
@@ -424,5 +409,34 @@ export function adminQuizSessionViewErrorChecking(
 
   if (quiz.authUserId !== user.authUserId) {
     throw new Error('403 - User does not own the quiz');
+  }
+}
+
+export function countDownAndStartGame(session: Session) {
+  session.state = 'QUESTION_COUNTDOWN';
+  const duration = session.metaData.timeLimit;
+
+  // Start the countdown and open the question
+  setTimeout(() => {
+    session.state = 'QUESTION_OPEN';
+  }, 3000);
+
+  // Close the question after the duration
+  setTimeout(() => {
+    session.state = 'QUESTION_CLOSED';
+  }, duration * 1000);
+}
+
+
+export function checkUrlIsValid(url: string) {
+  const validFileTypes = /\.(jpg|jpeg|png)$/i;
+  const validProtocol = /^https?:\/\//i;
+
+  if (validFileTypes.test(url)) {
+    throw new Error('400 - Invalid file type');
+  }
+
+  if (validProtocol.test(url)) {
+    throw new Error('400 - Invalid URL');
   }
 }
