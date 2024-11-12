@@ -121,7 +121,10 @@ export function adminQuizQuestionCreate(
     timeLimit: timeLimit,
     thumbnailUrl: '',
     points: points,
-    answerOptions: answerOptions
+    answerOptions: answerOptions,
+    playersCorrect: [],
+    averageAnswerTime: 0,
+    percentCorrect: 0,
   };
 
   const data = getData();
@@ -190,7 +193,11 @@ export function adminQuizQuestionDuplicate(
     timeLimit: question.timeLimit,
     thumbnailUrl: question.thumbnailUrl,
     points: question.points,
-    answerOptions: question.answerOptions
+    answerOptions: question.answerOptions,
+    playersCorrect: question.playersCorrect,
+    averageAnswerTime: 0,
+    percentCorrect: 0,
+
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].timeLimit += question.timeLimit;
@@ -284,6 +291,9 @@ export function adminQuizQuestionUpdate(
     thumbnailUrl,
     points,
     answerOptions,
+    playersCorrect: [],
+    averageAnswerTime: 0,
+    percentCorrect: 0,
   };
   quiz.questions[questionIndex] = updatedQuestion;
   quiz.timeLimit += timeLimit;
