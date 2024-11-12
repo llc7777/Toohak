@@ -279,7 +279,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
   try {
-    adminQuizRemove(token, quizid);
+    adminQuizRemove(token, quizid, 'v1');
     saveData();
     return res.status(200).json({});
   } catch (err) {
@@ -297,31 +297,38 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const quizId = parseInt(req.params.quizId as string);
   const questionId = parseInt(req.params.questionId as string);
   const token = req.body.token as string;
-  const { question, answerOptions, timeLimit, points } = req.body.questionBody;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
     return res.status(401).json({ error: 'Token is empty or invalid.' });
   }
 
-  const updateResult = adminQuizQuestionUpdate(quizId,
-    questionId,
-    token,
-    question,
-    timeLimit,
-    points,
-    answerOptions);
-  if ('error' in updateResult) {
+  try {
+    const updateResult = adminQuizQuestionUpdate(
+      quizId,
+      questionId,
+      token,
+      question,
+      timeLimit,
+      points,
+      answerOptions,
+      thumbnailUrl
+    );
+
     saveData();
-    if (updateResult.error === 'No such quiz exists' ||
-      updateResult.error === 'User does not own the quiz'
-    ) {
-      return res.status(403).json(updateResult);
-    } else {
-      return res.status(400).json(updateResult);
+    return res.status(200).json(updateResult);
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
     }
   }
-
-  return res.status(200).json(updateResult);
 });
 
 // adminQuizRestore POST request
@@ -872,6 +879,57 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
       return res.status(403).json({ error: error.message });
     } else if (error.message.startsWith('400')) {
       return res.status(400).json({ error: error.message });
+    }
+  }
+});
+
+// V2 PUT request for adminQuizQuestionUpdate
+app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string, 10);
+  const questionId = parseInt(req.params.questionId as string, 10);
+  const token = req.headers.token as string;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
+
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  try {
+    const result = adminQuizQuestionUpdate(quizId, questionId, token, question,
+      timeLimit, points, answerOptions, thumbnailUrl);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    const errorMessage = error.message as string;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
+    }
+  }
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+
+  try {
+    adminQuizRemove(token, quizid, 'v2');
+    saveData();
+    return res.status(200).json({});
+  } catch (err) {
+    saveData();
+    if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    } else if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
     }
   }
 });

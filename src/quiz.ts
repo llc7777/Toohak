@@ -173,8 +173,11 @@ export function adminQuizCreate(
  * @param {integer} quizId Id of quiz
  * @returns
  */
-export function adminQuizRemove(token: string, quizId: number): object | ErrorResponse {
-  adminQuizRemoveErrorChecking(token, quizId);
+export function adminQuizRemove(
+  token: string,
+  quizId: number,
+  version: string): object | ErrorResponse {
+  adminQuizRemoveErrorChecking(token, quizId, version);
 
   const data: Data = getData();
 
