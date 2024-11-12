@@ -479,7 +479,7 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const email = req.body.userEmail;
 
   try {
-    adminQuizTransfer(token, email, quizId);
+    adminQuizTransfer(token, email, quizId, 'v1');
     saveData();
     return res.status(200).json({});
   } catch (err) {
@@ -911,6 +911,26 @@ app.delete('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
   }
 });
 
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.headers.token as string;
+  const email = req.body.userEmail;
+
+  try {
+    adminQuizTransfer(token, email, quizId, 'v2');
+    saveData();
+    return res.status(200).json({});
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
+  }
+});
 // V2 adminQuizQuestionDelete DELETE request
 app.delete('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string);
