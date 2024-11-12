@@ -14,6 +14,7 @@ import {
   findQuizInTrash,
   generateRandomSessionId,
   countDownAndStartGame,
+  adminQuizSessionViewErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -27,6 +28,7 @@ import {
   Session,
   SessionId,
   QuizInfoSimpleArray,
+  QuizSessionsResponse,
 } from './interfaces';
 
 /**
@@ -72,15 +74,12 @@ export function adminQuizList(token: string): QuizInfoSimpleArray {
  * @param {string} token of user
  * @returns {object} - An object containing quizzes in trash
  */
-export function adminQuizTrashList(token: string) {
-  const data = getData();
-  const arr = [];
+export function adminQuizTrashList(token: string): QuizInfoSimpleArray {
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('401 - Token is empty');
   }
 
   const tokenData = decodeToken(token);
@@ -90,20 +89,16 @@ export function adminQuizTrashList(token: string) {
   const userExists = findUserFromToken(tokenData);
 
   if (!userExists) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('401 - Token is invalid');
   }
 
-  for (let i = 0; i < data.trash.length; i++) {
-    if (data.trash[i].authUserId === authUserId) {
-      const item = {
-        quizId: data.trash[i].quizId,
-        name: data.trash[i].name,
-      };
-      arr.push(item);
-    }
-  }
+  // Find quizzes in trash for the logged in user
+  const arr = data.trash
+    .filter(trashItem => trashItem.authUserId === authUserId)
+    .map(trashItem => ({
+      quizId: trashItem.quizId,
+      name: trashItem.name,
+    }));
 
   return { quizzes: arr };
 }
@@ -569,4 +564,43 @@ export function adminQuizSessionUpdate(
   }
 
   return {};
+}
+
+/** Retrieves active and inactive sessions for a specific quiz based on the quiz ID.
+*
+* @param { number } quizId - The ID of the quiz
+* @param { string } token - The authorization token of the user
+* @returns { QuizSessionsResponse } - An object containing arrays of active and inactive session IDs
+*/
+export function adminQuizSessionView(
+  quizId: number, token: string
+): QuizSessionsResponse {
+  // Error checking using helper function
+  adminQuizSessionViewErrorChecking(quizId, token);
+
+  const data: Data = getData();
+
+  // Filter sessions for the quiz
+  const activeSessions: number[] = [];
+  const inactiveSessions: number[] = [];
+
+  data.sessions.forEach((session) => {
+    if (session.metaData.quizId === quizId) {
+      if (session.state !== 'END') {
+        activeSessions.push(session.sessionId);
+      } else {
+        inactiveSessions.push(session.sessionId);
+      }
+    }
+  });
+
+  // Sort sessions in ascending order
+  activeSessions.sort((a, b) => a - b);
+  inactiveSessions.sort((a, b) => a - b);
+
+  // Return the session data
+  return {
+    activeSessions,
+    inactiveSessions,
+  };
 }

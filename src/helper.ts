@@ -402,3 +402,27 @@ export function countDownAndStartGame(session: Session) {
     session.state = 'QUESTION_CLOSED';
   }, duration * 1000);
 }
+
+export function adminQuizSessionViewErrorChecking(
+  quizId: number, token: string
+): void {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz not found');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+}

@@ -188,3 +188,8 @@ export interface AuthLoginRes {
   email: string;
   password: string;
 }
+
+export interface QuizSessionsResponse {
+  activeSessions: number[];
+  inactiveSessions: number[];
+}

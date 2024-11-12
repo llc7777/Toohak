@@ -29,12 +29,13 @@ beforeEach(() => {
   token = JSON.parse(res.body.toString()).token;
 });
 
-describe('Test for PUT /v1/admin/user/password', () => {
+describe('Test for PUT /v2/admin/user/password', () => {
   // Test for successful cases
   test('has the correct return and has it updated the password', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
       },
       timeout: TIMEOUT_MS
     });
@@ -55,16 +56,18 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('has updated successfully several times', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
       },
       timeout: TIMEOUT_MS
     });
 
-    request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
+        oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
       },
       timeout: TIMEOUT_MS
     });
@@ -83,9 +86,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
 
   // Test for error cases
   test('error for invalid old password', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
+        oldPassword: 'Aeropass2', newPassword: 'Aeropass3'
       },
       timeout: TIMEOUT_MS
     });
@@ -95,9 +99,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for new password same as old password', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropass1'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass1'
       },
       timeout: TIMEOUT_MS
     });
@@ -107,16 +112,18 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for new password has been already used before by the user', () => {
-    request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
       },
       timeout: TIMEOUT_MS
     });
 
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass2', newPassword: 'Aeropass1'
+        oldPassword: 'Aeropass2', newPassword: 'Aeropass1'
       },
       timeout: TIMEOUT_MS
     });
@@ -126,9 +133,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for new password is less than 8 characters', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropas'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropas'
       },
       timeout: TIMEOUT_MS
     });
@@ -138,9 +146,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
   });
 
   test('error for new password does not contain at least one letter and one number', () => {
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: 'Aeropass'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass'
       },
       timeout: TIMEOUT_MS
     });
@@ -148,9 +157,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
 
-    const res2 = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res2 = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token },
       json: {
-        token, oldPassword: 'Aeropass1', newPassword: '12345678'
+        oldPassword: 'Aeropass1', newPassword: '12345678'
       },
       timeout: TIMEOUT_MS
     });
@@ -162,9 +172,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
   test('error for empty token', () => {
     const emptyToken: string = '';
 
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token: emptyToken },
       json: {
-        token: emptyToken, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
       },
       timeout: TIMEOUT_MS
     });
@@ -177,9 +188,10 @@ describe('Test for PUT /v1/admin/user/password', () => {
     const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
     const encodedInvalid: string = createToken(invalidToken);
 
-    const res = request('PUT', SERVER_URL + '/v1/admin/user/password', {
+    const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+      headers: { token: encodedInvalid },
       json: {
-        token: encodedInvalid, oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
+        oldPassword: 'Aeropass1', newPassword: 'Aeropass2'
       },
       timeout: TIMEOUT_MS
     });
