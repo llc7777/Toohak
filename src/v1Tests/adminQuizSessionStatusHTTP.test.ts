@@ -1,7 +1,7 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
-import { ErrorResponse, AuthResponse, QuizID } from '../interfaces';
+import { ErrorResponse, AuthResponse, QuizID, AnswerOptionsReq } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -49,6 +49,31 @@ const quizCreate = (
   return JSON.parse(res.body.toString());
 };
 
+// Function to create a question
+const requestAdminQuestionCreate = (quizId: number, token: string,
+  body: {
+  questionBody: {
+    question: string,
+    timeLimit: number,
+    points: number,
+    answerOptions: AnswerOptionsReq[],
+    thumbnailUrl: string
+  }
+}) => {
+  return request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
+    json: {
+      questionBody: {
+        question: body.questionBody.question,
+        timeLimit: body.questionBody.timeLimit,
+        points: body.questionBody.points,
+        answerOptions: body.questionBody.answerOptions,
+        thumbnailUrl: body.questionBody.thumbnailUrl
+      }
+    },
+    headers: { token }
+  });
+};
+
 // Function to start a quiz session
 const startQuizSession = (quizId: number, autoStartNum: number) => {
   return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
@@ -93,6 +118,26 @@ beforeEach(() => {
   const createQuiz = quizCreate(token, 'Quiz 1', 'Quiz 1 description');
   quizId = createQuiz.quizId;
 
+  // Create a question
+  requestAdminQuestionCreate(quizId, token, {
+    questionBody: {
+      question: 'What is two plus two?',
+      timeLimit: 4,
+      points: 5,
+      answerOptions: [
+        {
+          answer: 'Four',
+          correct: true
+        },
+        {
+          answer: 'Five',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg'
+    }
+  });
+
   // Start a quiz session
   const startSessionRes = startQuizSession(quizId, 2);
   sessionId = JSON.parse(startSessionRes.body.toString()).sessionId;
@@ -109,7 +154,7 @@ describe('/v1/admin/quiz/{quizId}/session/{sessionId}', () => {
       expect(body).toEqual({
         state: expect.any(String),
         atQuestion: expect.any(Number),
-        players: expect.arrayContaining([expect.any(String)]),
+        players: [],
         metadata: {
           quizId: quizId,
           name: expect.any(String), // 'Quiz 1'
@@ -117,28 +162,52 @@ describe('/v1/admin/quiz/{quizId}/session/{sessionId}', () => {
           timeLastEdited: expect.any(Number),
           description: expect.any(String), // 'Quiz 1 description'
           numQuestions: expect.any(Number),
-          questions: expect.arrayContaining([
+          questions: [
             {
               questionId: expect.any(Number),
               question: expect.any(String),
               timeLimit: expect.any(Number),
               thumbnailUrl: expect.any(String),
               points: expect.any(Number),
-              answerOptions: expect.arrayContaining([
+              answerOptions: [
                 {
                   answerId: expect.any(Number),
                   answer: expect.any(String),
                   colour: expect.any(String),
                   correct: expect.any(Boolean),
                 },
-              ]),
+                {
+                  answerId: expect.any(Number),
+                  answer: expect.any(String),
+                  colour: expect.any(String),
+                  correct: expect.any(Boolean),
+                },
+              ],
             },
-          ]),
+          ],
           timeLimit: expect.any(Number),
           thumbnailUrl: expect.any(String),
         },
       });
     });
+
+    // test('Players are returned in ascending order', () => {
+    //   // Add players in non-alphabetical order to the session
+    //   const playerNames = ['Charlie', 'Alice', 'Bob'];
+    //   playerNames.forEach(playerName => {
+    //     request('POST', `${SERVER_URL}/v1/player/join`, {
+    //       json: { sessionId, playerName },
+    //       timeout: TIMEOUT_MS,
+    //     });
+    //   });
+
+    //   const res = getSessionStatus(quizId, sessionId, token);
+
+    //   expect(res.statusCode).toStrictEqual(200);
+    //   const body = JSON.parse(res.body.toString());
+
+    //   expect(body.players).toStrictEqual(['Alice', 'Bob', 'Charlie']);
+    // });
   });
 
   describe('Error cases', () => {
@@ -168,8 +237,7 @@ describe('/v1/admin/quiz/{quizId}/session/{sessionId}', () => {
       expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
-    test.only('Session does not exist', () => {
-      console.log(quizId);
+    test('Session does not exist', () => {
       const invalidSessionId = sessionId + 1;
       const res = getSessionStatus(quizId, invalidSessionId, token);
 
