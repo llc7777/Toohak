@@ -12,84 +12,83 @@ let quizId: number;
 let emailToTransferTo: string;
 
 function adminAuthRegisterWrapper(
-    email: string,
-    password: string,
-    nameFirst: string,
-    nameLast: string
-  ): string {
-    const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-      json: {
-        email,
-        password,
-        nameFirst,
-        nameLast,
-      }
-    });
-    return JSON.parse(userTokenRes.body.toString()).token;
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): string {
+  const userTokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email,
+      password,
+      nameFirst,
+      nameLast,
+    }
+  });
+  return JSON.parse(userTokenRes.body.toString()).token;
 }
 
 function adminQuizCreateWrapper(
-    token: string,
-    name: string,
-    description: string
-  ) {
-    const quizRes = request('POST', SERVER_URL + '/v2/admin/quiz', {
-      json: {
-        name,
-        description,
-      },
-      headers: { token },
-    });
-    return JSON.parse(quizRes.body.toString()).quizId;
-  }
-  
+  token: string,
+  name: string,
+  description: string
+) {
+  const quizRes = request('POST', SERVER_URL + '/v2/admin/quiz', {
+    json: {
+      name,
+      description,
+    },
+    headers: { token },
+  });
+  return JSON.parse(quizRes.body.toString()).quizId;
+}
+
 function adminQuizQuestionCreateWrapper(
-    token: string,
-    quizId: number,
-    questionBody: {
+  token: string,
+  quizId: number,
+  questionBody: {
       question: string,
       timeLimit: number,
       points: number,
       answerOptions: AnswerOptionsReq[]
       thumbnailUrl: string,
     }
-  ) {
-    request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/question`, {
-      json: { questionBody },
-      headers: { token },
-    });
-  }
-  
-  function sessionCreateWrapper(
-    token: string,
-    quizId: number,
-    autoStartNum: number
-  ) {
-    request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/session/start`, {
-      json: {
-        autoStartNum,
-      },
-      headers: { token },
-    });
-  }
-    
+) {
+  request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/question`, {
+    json: { questionBody },
+    headers: { token },
+  });
+}
+
+function sessionCreateWrapper(
+  token: string,
+  quizId: number,
+  autoStartNum: number
+) {
+  request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/session/start`, {
+    json: {
+      autoStartNum,
+    },
+    headers: { token },
+  });
+}
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
   // Create a user. This user is Jake Renzella
   userToken = adminAuthRegisterWrapper(
-    'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella',
-  )
+    'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
+  );
 
   // Create a quiz. This quiz is called 'Basic quiz'
   quizId = adminQuizCreateWrapper(userToken,
     'Basic quiz', 'Just a normal quiz'
-  )
+  );
 
   userToken2 = adminAuthRegisterWrapper(
-    'hayden.smith@gmail.com', 'password123', 'Hayden', 'Smith',
-  )
+    'hayden.smith@gmail.com', 'password123', 'Hayden', 'Smith'
+  );
   emailToTransferTo = 'hayden.smith@gmail.com';
 });
 
@@ -116,7 +115,7 @@ describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
     // Create a user Andrew Taylor. Note, that Andrew owns NO quizzes
     const userToken3 = adminAuthRegisterWrapper(
       'andrew.taylor@gmail.com', 'password123', 'Andrew', 'Talyor'
-    )
+    );
     expect(userToken3).toStrictEqual(expect.any(String));
 
     const result = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`, {
@@ -168,8 +167,8 @@ describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
     ' owns a quiz with the given quiz name', () => {
     // Create a quiz that is owned by Hayden Smith
     const quizId2 = adminQuizCreateWrapper(
-      userToken2, 'Basic quiz', 'An even more normal quiz',
-    )
+      userToken2, 'Basic quiz', 'An even more normal quiz'
+    );
     expect(quizId2).toStrictEqual(expect.any(Number));
 
     const result = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`, {
@@ -206,7 +205,7 @@ describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
       json: {
         userEmail: emailToTransferTo
       },
-      headers: { token: ''},
+      headers: { token: '' },
       timeout: TIMEOUT_MS
     });
 
@@ -217,7 +216,6 @@ describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
   });
 
   test('returns error when trying to delete a quiz that has a session not in end state', () => {
-
     adminQuizQuestionCreateWrapper(userToken, quizId, {
       question: 'What is two plus two',
       timeLimit: 5,
@@ -308,8 +306,8 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     const quizId2 = adminQuizCreateWrapper(
       userToken,
       'A difficult quiz',
-      'A very challenging quiz',
-    )
+      'A very challenging quiz'
+    );
 
     // Transfer the second quiz to Hayden Smith
     const result2 = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId2}/transfer`, {

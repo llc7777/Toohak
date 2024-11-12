@@ -345,7 +345,7 @@ export function adminQuizTransfer(
   token: string,
   userEmail: string,
   quizId: number,
-  version: string,
+  version: string
 ): object | ErrorResponse {
   adminQuizTransferErrorChecking(token, userEmail, quizId, version);
 
