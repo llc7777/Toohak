@@ -622,11 +622,14 @@ export function adminQuizSessionUpdate(
   } else if (action === 'GO_TO_FINAL_RESULTS') {
     if (session.state === 'ANSWER_SHOW') {
       session.state = 'FINAL_RESULTS';
+      session.atQuestion = 0;
     } else if (session.state === 'QUESTION_CLOSE') {
       session.state = 'FINAL_RESULTS';
+      session.atQuestion = 0;
     }
   } else if (action === 'END') {
     session.state = 'END';
+    session.atQuestion = 0;
   } else {
     throw new Error('400 - Action cannot be applied to the current state');
   }
@@ -693,7 +696,7 @@ export function adminQuizSessionStatus(
   const response: QuizSessionStatusResponse = {
     state: session.state,
     atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' ||
-    session.state === 'END'
+      session.state === 'END'
       ? 0
       : session.atQuestion,
     players: session.players.map(player => player.name).sort(), // in ascending order
