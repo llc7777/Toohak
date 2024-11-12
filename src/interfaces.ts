@@ -231,5 +231,3 @@ export interface AnswerOption {
 //   players: Player[];
 //   metadata: Metadata;
 // }
-
-

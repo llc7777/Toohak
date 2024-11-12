@@ -2,7 +2,6 @@ import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
 import { ErrorResponse, AuthResponse, QuizID } from '../interfaces';
-import { only } from 'node:test';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;

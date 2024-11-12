@@ -452,7 +452,6 @@ export function adminQuizSessionViewErrorChecking(
   }
 }
 
-
 export function adminQuizSessionStatusErrorChecking(
   quizId: number, sessionId: number, token: string
 ): void {
@@ -478,7 +477,7 @@ export function adminQuizSessionStatusErrorChecking(
 
   const session = findSession(quizId, sessionId);
   if (!session) {
-    throw new Error ('400 - Session does not exist for this quiz');
+    throw new Error('400 - Session does not exist for this quiz');
   }
 }
 

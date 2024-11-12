@@ -623,7 +623,10 @@ export function adminQuizSessionStatus(
 
   const response: QuizSessionStatusResponse = {
     state: session.state,
-    atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' || session.state === 'END' ? 0 : session.atQuestion,
+    atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' ||
+    session.state === 'END'
+      ? 0
+      : session.atQuestion,
     players: session.players.map(player => player.name).sort(), // in ascending order
     metadata: {
       quizId: session.metaData.quizId,
@@ -639,13 +642,13 @@ export function adminQuizSessionStatus(
       //   timeLimit: question.timeLimit,
       //   thumbnailUrl: question.thumbnailUrl,
       //   points: question.points,
-        // answerOptions: question.answerOptions
-        // .map(option => ({
-        //   answerId: option.answerId,
-        //   answer: option.answer,
-        //   colour: option.colour,
-        //   correct: option.correct,
-        // })),
+      // answerOptions: question.answerOptions
+      // .map(option => ({
+      //   answerId: option.answerId,
+      //   answer: option.answer,
+      //   colour: option.colour,
+      //   correct: option.correct,
+      // })),
       // })),
       timeLimit: session.metaData.timeLimit,
       thumbnailUrl: session.metaData.thumbnailUrl,
