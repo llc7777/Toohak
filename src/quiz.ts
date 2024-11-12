@@ -15,6 +15,8 @@ import {
   generateRandomSessionId,
   countDownAndStartGame,
   adminQuizSessionViewErrorChecking,
+  adminQuizSessionStatusErrorChecking,
+  findSession,
   checkUrlIsValid,
 } from './helper';
 import {
@@ -30,6 +32,7 @@ import {
   SessionId,
   QuizInfoSimpleArray,
   QuizSessionsResponse,
+  QuizSessionStatusResponse,
 } from './interfaces';
 
 /**
@@ -668,4 +671,56 @@ export function adminQuizSessionView(
     activeSessions,
     inactiveSessions,
   };
+}
+
+/**
+ * Retrieves the status of a quiz session for a given quiz ID and session ID.
+ *
+ * @param {number} quizId - The unique identifier of the quiz.
+ * @param {number} sessionId - The unique identifier of the quiz session.
+ * @param {string} token - The authentication token of the user.
+ *
+ * @returns {QuizSessionStatusResponse} - The detailed status of the quiz session.
+ */
+export function adminQuizSessionStatus(
+  quizId: number, sessionId: number, token: string
+): QuizSessionStatusResponse {
+  // Helper function for error checking
+  adminQuizSessionStatusErrorChecking(quizId, sessionId, token);
+
+  const session = findSession(quizId, sessionId);
+
+  const response: QuizSessionStatusResponse = {
+    state: session.state,
+    atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' ||
+    session.state === 'END'
+      ? 0
+      : session.atQuestion,
+    players: session.players.map(player => player.name).sort(), // in ascending order
+    metadata: {
+      quizId: session.metaData.quizId,
+      name: session.metaData.name,
+      timeCreated: session.metaData.timeCreated,
+      timeLastEdited: session.metaData.timeLastEdited,
+      description: session.metaData.description,
+      numQuestions: session.metaData.questions.length,
+      questions: session.metaData.questions.map(question => ({
+        questionId: question.questionId,
+        question: question.question,
+        timeLimit: question.timeLimit,
+        thumbnailUrl: question.thumbnailUrl,
+        points: question.points,
+        answerOptions: question.answerOptions.map(option => ({
+          answerId: option.answerId,
+          answer: option.answer,
+          colour: option.colour,
+          correct: option.correct,
+        })),
+      })),
+      timeLimit: session.metaData.timeLimit,
+      thumbnailUrl: session.metaData.thumbnailUrl,
+    }
+  };
+
+  return response;
 }
