@@ -376,27 +376,28 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   }
 });
 
-// DELETE Request for adminQuizQuestionDelete
+// DELETE request for adminQuizQuestionDelete
 app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId as string);
-  const questionId = parseInt(req.params.questionId as string);
-  const token = req.query.token as string;
+  const quizId: number = parseInt(req.params.quizId as string);
+  const questionId: number = parseInt(req.params.questionId as string);
+  const token: string = req.query.token as string;
 
-  const result = adminQuizQuestionDelete(token, quizId, questionId);
-
-  if ('error' in result) {
+  try {
+    adminQuizQuestionDelete(token, quizId, questionId);
     saveData();
-    if (result.error === 'Token is invalid') {
-      return res.status(401).json(result);
-    } else if (result.error === 'Quiz ID does not refer to a valid quiz.' ||
-      result.error === 'User does not own the quiz.') {
-      return res.status(403).json(result);
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
     } else {
-      return res.status(400).json(result);
+      return res.status(400).json({ error: errorMessage });
     }
   }
-  saveData();
-  return res.status(200).json({});
 });
 
 // routes for other
@@ -927,6 +928,29 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
       return res.status(401).json({ error: err.message });
     } else {
       return res.status(403).json({ error: err.message });
+    }
+  }
+});
+// V2 adminQuizQuestionDelete DELETE request
+app.delete('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.headers.token as string;
+
+  try {
+    adminQuizQuestionDelete(token, quizId, questionId);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
     }
   }
 });
