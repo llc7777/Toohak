@@ -179,8 +179,6 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
 
     const res = updateQuizSession('NEXT_QUESTION', sessionId, token, wrongQuizId);
 
-    console.log(JSON.parse(res.body.toString()));
-
     expect(res.statusCode).toStrictEqual(403);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
