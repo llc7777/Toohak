@@ -7,6 +7,7 @@ import {
   Quiz,
   Data,
   QuestionInfo,
+  Session,
 } from './interfaces';
 
 // Helper function for adminAuthRegister
@@ -385,6 +386,21 @@ export function adminQuizTransferErrorChecking(
   if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
     throw new Error('400 - This user already owns a quiz with the same name');
   }
+}
+
+export function countDownAndStartGame(session: Session) {
+  session.state = 'QUESTION_COUNTDOWN';
+  const duration = session.metaData.timeLimit;
+
+  // Start the countdown and open the question
+  setTimeout(() => {
+    session.state = 'QUESTION_OPEN';
+  }, 3000);
+
+  // Close the question after the duration
+  setTimeout(() => {
+    session.state = 'QUESTION_CLOSED';
+  }, duration * 1000);
 }
 
 export function adminQuizSessionViewErrorChecking(
