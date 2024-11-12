@@ -448,13 +448,13 @@ export function countDownAndStartGame(session: Session) {
 
 export function checkUrlIsValid(url: string) {
   const validFileTypes = /\.(jpg|jpeg|png)$/i;
-  const validProtocol = /^https?:\/\//i;
+  const validProtocol = /^https?:\/\//;
 
-  if (validFileTypes.test(url)) {
+  if (!validFileTypes.test(url)) {
     throw new Error('400 - Invalid file type');
   }
 
-  if (validProtocol.test(url)) {
+  if (!validProtocol.test(url)) {
     throw new Error('400 - Invalid URL');
   }
 }
