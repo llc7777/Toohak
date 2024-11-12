@@ -1,5 +1,6 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
+import { AnswerOptionsReq } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -43,19 +44,27 @@ function adminQuizQuestionCreateWrapper(
     question: string,
     timeLimit: number,
     points: number,
-    answerOptions: [
-      {
-        answer: string,
-        correct: boolean,
-      }
-    ],
+    answerOptions: AnswerOptionsReq[]
     thumbnailUrl: string,
   }
 ) {
   const questionRes = request('POST', SERVER_URL +  `/v2/admin/quiz/${quizId}/question`, {
     json: { questionBody },
     headers: { token },
-  })
+  });
+}
+
+function sessionCreateWrapper(
+  token: string,
+  quizId: number,
+  autoStartNum: number,
+) {
+  request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/session/start`, {
+    json: {
+      autoStartNum,
+    },
+    headers: { token },
+  });
 }
 
 beforeEach(() => {
@@ -149,22 +158,33 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
     const quizId = adminQuizCreateWrapper(
       userToken, 'A basic quiz', 'Just a normal quiz'
     );
-  //   token: string,
-  // quizId: number,
-  // questionBody: {
-  //   question: string,
-  //   timeLimit: number,
-  //   points: number,
-  //   answerOptions: [
-  //     {
-  //       answer: string,
-  //       correct: boolean,
-  //     }
-  //   ],
-  //   thumbnailUrl: string,
-  // }
+    
+    adminQuizQuestionCreateWrapper(userToken, quizId, {
+      question: 'What is two plus two',
+      timeLimit: 5,
+      points: 5,
+      answerOptions: [
+        {
+          answer: 'Four',
+          correct: true,
+        },
+        {
+          answer: 'Five',
+          correct: false,
+        }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg',
+    });
+    sessionCreateWrapper(userToken, quizId, 3);
 
-    adminQuizQuestionCreateWrapper(userToken, quizId, ) 
+
+    const resultRes = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}/`, {
+      headers: { token: userToken },
+      timeout: TIMEOUT_MS
+    });
+    const resultBody = JSON.parse(resultRes.body.toString());
+    expect(resultRes.statusCode).toStrictEqual(400);
+    expect(resultBody).toStrictEqual( {error: expect.any(String)} );
   })
 
   // SUCCESS CASE
@@ -178,7 +198,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
       userToken, 'A basic quiz', 'Just a normal quiz'
     );
 
-    const resultRes = request('DELETE', SERVER_URL + `/2/admin/quiz/${quizId}/`, {
+    const resultRes = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}/`, {
       headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
