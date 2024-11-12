@@ -313,6 +313,7 @@ export function adminQuizQuestionUpdate(
     averageAnswerTime: 0,
     percentCorrect: 0,
   };
+
   quiz.questions[questionIndex] = updatedQuestion;
   quiz.timeLimit += timeLimit;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);

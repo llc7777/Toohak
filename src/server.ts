@@ -859,7 +859,7 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   }
 });
 
-// PUT request for adminQuizQuestionUpdate in V2
+// V2 PUT request for adminQuizQuestionUpdate
 app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId as string, 10);
   const questionId = parseInt(req.params.questionId as string, 10);

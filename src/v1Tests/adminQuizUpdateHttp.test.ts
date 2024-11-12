@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 
