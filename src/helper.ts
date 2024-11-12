@@ -470,13 +470,13 @@ export function findSession(quizId: number, sessionId: number) {
   const data = getData();
   return data.sessions.find(
     session => session.sessionId === sessionId &&
-    session.metaData.quizId === quizId
+      session.metaData.quizId === quizId
   );
 }
 
 export function countDownAndStartGame(session: Session) {
   session.state = 'QUESTION_COUNTDOWN';
-  const index: number = session.autoStartNum;
+  const index: number = session.atQuestion;
   const duration: number = session.metaData.questions[index].timeLimit;
 
   // Start the countdown and open the question
