@@ -344,8 +344,9 @@ Updates the description of the relevant quiz
 export function adminQuizTransfer(
   token: string,
   userEmail: string,
+  version: string,
   quizId: number): object | ErrorResponse {
-  adminQuizTransferErrorChecking(token, userEmail, quizId);
+  adminQuizTransferErrorChecking(token, userEmail, quizId, version);
 
   const data: Data = getData();
 
