@@ -76,7 +76,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('returns error when trying to delete quiz with invalid token', () => {
 
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -95,7 +95,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('returns error when trying to delete quiz with empty token', () => {
 
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -115,7 +115,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('returns error when trying to delete a quiz that user does not own', () => {
 
     const userToken1 = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -138,7 +138,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   // ERROR CASE
   test('returns error when trying to delete a quiz that does not exist', () => {
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const result = request('DELETE', SERVER_URL +
@@ -152,7 +152,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
 
   test('returns error when trying to delete a quiz that has a session not in end state', () => {
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -190,7 +190,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('correct return type for deleting a quiz', () => {
 
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -210,7 +210,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('correct status code when deleting a quiz', () => {
 
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -218,7 +218,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
     );
 
     const result = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}/`, {
-      qs: { token: userToken },
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
     expect(result.statusCode).toStrictEqual(200);
@@ -228,7 +228,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
   test('successfully deletes a quiz and moves it to trash', () => {
 
     const userToken = adminAuthRegisterWrapper(
-      'jake.renzella', 'password123', 'Jake', 'Renzella'
+      'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella'
     );
 
     const quizId = adminQuizCreateWrapper(
@@ -236,7 +236,7 @@ describe('DELETE /v2/admin/quiz/:quizId/', () => {
     );
 
     const result = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}/`, {
-      qs: { token: userToken },
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
