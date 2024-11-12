@@ -70,8 +70,6 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
 
         const res = updateQuizThumbnailRequest(quizId, token, mainThumbnail);
 
-        console.log(res.body.toString());
-
         expect(res.statusCode).toStrictEqual(200);
         expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
