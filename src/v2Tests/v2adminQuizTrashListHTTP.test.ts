@@ -29,11 +29,11 @@ beforeEach(() => {
   token = JSON.parse(res.body.toString()).token;
 });
 
-describe('Test for GET /v1/admin/quiz/trash', () => {
+describe('Test for GET /v2/admin/quiz/trash', () => {
   // Test for successful cases
   test('should return empty array if quiz is not removed', () => {
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-      qs: { token },
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
@@ -56,8 +56,8 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-      qs: { token },
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
@@ -115,8 +115,8 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
       timeout: TIMEOUT_MS
     });
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-      qs: { token },
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+      headers: { token },
       timeout: TIMEOUT_MS
     });
 
@@ -143,8 +143,8 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
   test('error for empty token', () => {
     const emptyToken: string = '';
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-      qs: { token: emptyToken },
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+      headers: { token: emptyToken },
       timeout: TIMEOUT_MS
     });
 
@@ -156,8 +156,8 @@ describe('Test for GET /v1/admin/quiz/trash', () => {
     const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
     const encodedInvalid: string = createToken(invalidToken);
 
-    const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-      qs: { token: encodedInvalid },
+    const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+      headers: { token: encodedInvalid },
       timeout: TIMEOUT_MS
     });
 
