@@ -176,6 +176,17 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
+export function quizHasSessionNotInEnd(quizId: number) {
+  const data: Data = getData();
+
+  for (const session of data.sessions) {
+    if (session.metaData.quizId === quizId && session.state !== 'END') {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Function Error Checking
 export function adminAuthLoginErrorChecking(email: string, password: string) {
   const data = getData();
@@ -266,7 +277,8 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
 
 export function adminQuizRemoveErrorChecking(
   token: string,
-  quizId: number
+  quizId: number,
+  version: string
 ) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
@@ -285,6 +297,12 @@ export function adminQuizRemoveErrorChecking(
   const quiz: Quiz = data.quizzes[quizIndex];
   if (quiz.authUserId !== tokenObj.authUserId) {
     throw new Error('403 - Quiz does not exist or user does not own the quiz');
+  }
+
+  if (version === 'v2') {
+    if (quizHasSessionNotInEnd(quizId)) {
+      throw new Error('400 - Quiz has a session that is not in active state');
+    }
   }
 }
 
