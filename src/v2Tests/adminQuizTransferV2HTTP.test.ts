@@ -78,22 +78,22 @@ beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
   // Create a user. This user is Jake Renzella
-  const userToken = adminAuthRegisterWrapper(
+  userToken = adminAuthRegisterWrapper(
     'jake.renzella@gmail.com', 'password123', 'Jake', 'Renzella',
   )
 
   // Create a quiz. This quiz is called 'Basic quiz'
-  const quizId = adminQuizCreateWrapper(userToken,
+  quizId = adminQuizCreateWrapper(userToken,
     'Basic quiz', 'Just a normal quiz'
   )
 
-  const userToken2 = adminAuthRegisterWrapper(
+  userToken2 = adminAuthRegisterWrapper(
     'hayden.smith@gmail.com', 'password123', 'Hayden', 'Smith',
   )
   emailToTransferTo = 'hayden.smith@gmail.com';
 });
 
-describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
+describe('POST /v2/admin/quiz/:quizid/transfer ERROR cases', () => {
   test('returns an error when trying to transfer a quiz ' +
     'to an email that does not correspond to any user', () => {
     const nonExistentEmail = 'idontexist@gmail.com';
@@ -114,16 +114,6 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
   test('returns an error when trying to transfer a quiz when the logged in user' +
     ' does not own the quiz', () => {
     // Create a user Andrew Taylor. Note, that Andrew owns NO quizzes
-    const userTokenRes3 = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-      json: {
-        email: 'andrew.taylor@gmail.com',
-        password: 'password123',
-        nameFirst: 'Andrew',
-        nameLast: 'Taylor',
-      }
-    });
-    userToken = JSON.parse(userTokenRes3.body.toString()).token;
-
     const userToken3 = adminAuthRegisterWrapper(
       'andrew.taylor@gmail.com', 'password123', 'Andrew', 'Talyor'
     )
@@ -184,9 +174,9 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
 
     const result = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`, {
       json: {
-        token: userToken,
         userEmail: emailToTransferTo,
       },
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
     expect(JSON.parse(result.body.toString())).toStrictEqual({
@@ -229,11 +219,11 @@ describe('POST /v1/admin/quiz/:quizid/transfer ERROR cases', () => {
 
 describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
   test('successfully transfers a single quiz to a user', () => {
-    const result = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`, {
+    const result = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`, {
       json: {
         userEmail: emailToTransferTo
       },
-      headers: { userToken },
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
@@ -268,8 +258,8 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
     expect(JSON.parse(result.body.toString())).toStrictEqual({ });
 
     // List the quizzes that Hayden Smith owns after transferring to him
-    let quizListRes = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-      headers: { userToken2 },
+    let quizListRes = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+      headers: { token: userToken2 },
       timeout: TIMEOUT_MS
     });
 
@@ -294,7 +284,7 @@ describe('POST /v1/admin/quiz/:quizid/transfer SUCCESS cases', () => {
       json: {
         userEmail: emailToTransferTo,
       },
-      headers: { userToken },
+      headers: { token: userToken },
       timeout: TIMEOUT_MS
     });
 
