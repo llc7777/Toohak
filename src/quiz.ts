@@ -159,7 +159,7 @@ export function adminQuizCreate(
     description,
     questions: [],
     timeLimit: 0,
-    thumbnailUrl: 'http://naver.com/some/image/path.jpg',
+    thumbnailUrl: '',
   };
 
   data.quizzes.push(newQuiz);
@@ -216,8 +216,6 @@ export function adminQuizInfo(
   const quiz: Quiz = findQuizFromQuizId(quizId);
 
   if (detailed) {
-
-    console.log(quiz);
 
     return {
       quizId: quiz.quizId,
