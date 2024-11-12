@@ -23,9 +23,10 @@ beforeEach(() => {
   });
   token = JSON.parse(tokenRes.body.toString()).token;
 
-  const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
-    json: { token, name: 'quiz1', description: 'description1' },
-    timeout
+  const quizRes = request('POST', `${SERVER_URL}/v2/admin/quiz`, {
+    json: { name: 'quiz1', description: 'random description' },
+    headers: { token },
+    timeout: timeout
   });
   quiz = JSON.parse(quizRes.body.toString());
 
