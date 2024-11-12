@@ -1,45 +1,36 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
+import { Quiz } from '../interfaces';
 
-const SERVER_URL = `${url}:${port}`;
-const TIMEOUT_MS = 5000;
-const ERROR_RESPONSE = { error: expect.any(String) };
+const SERVER_URL: string = `${url}:${port}`;
+const timeout: number = 5 * 1000;
 
+let quiz: Quiz;
 let token: string;
-let quizId: number;
 let questionId: number;
 
 beforeEach(() => {
-  // Clear data
-  request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
+  request('DELETE', SERVER_URL + '/v1/clear', { timeout });
 
-  // Register user and obtain token
-  const registerRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+  const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
-      email: 'testuser@gmail.com',
-      password: 'testPassword123',
-      nameFirst: 'Test',
-      nameLast: 'User',
+      email: 'Aerospace@gmail.com',
+      password: 'Aeropass1',
+      nameFirst: 'Leo',
+      nameLast: 'Kim'
     },
-    timeout: TIMEOUT_MS,
+    timeout
   });
-  token = JSON.parse(registerRes.body.toString()).token;
+  token = JSON.parse(tokenRes.body.toString()).token;
 
-  // Create a quiz
   const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
-    json: {
-      token,
-      name: 'Sample Quiz',
-      description: 'Sample Description',
-    },
-    timeout: TIMEOUT_MS,
+    json: { token, name: 'quiz1', description: 'description1' },
+    timeout
   });
-  quizId = JSON.parse(quizRes.body.toString()).quizId;
+  quiz = JSON.parse(quizRes.body.toString());
 
-  // Add a question to the quiz
-  const questionRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
+  const questionRes = request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
     json: {
-      token,
       questionBody: {
         question: 'What is the largest planet?',
         timeLimit: 10,
@@ -48,87 +39,106 @@ beforeEach(() => {
           { answer: 'Jupiter', correct: true },
           { answer: 'Earth', correct: false },
         ],
-      },
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      }
     },
-    timeout: TIMEOUT_MS,
+    headers: { token },
+    timeout
   });
   questionId = JSON.parse(questionRes.body.toString()).questionId;
 });
 
-describe('DELETE /v2/admin/quiz/{quizId}/question/{questionId}', () => {
-  test('Successfully deletes a question with no active sessions', () => {
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId}`, {
-      json: { token },
-      timeout: TIMEOUT_MS,
+describe('DELETE /v2/admin/quiz/{quizId}/question/{questionId} Tests', () => {
+  test('200: Successfully deletes a question with no active sessions', () => {
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId}`, {
+      headers: { token },
+      timeout
     });
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({});
   });
 
-  test('Error 400 if question does not exist in quiz', () => {
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId + 999}`, {
-      json: { token },
-      timeout: TIMEOUT_MS,
-    });
-
-    expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR_RESPONSE);
-  });
-
-  test('Error 400 if there is an active session for the quiz', () => {
-    request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
-      json: { token },
-      timeout: TIMEOUT_MS,
-    });
-
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId}`, {
-      json: { token },
-      timeout: TIMEOUT_MS,
-    });
-
-    expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR_RESPONSE);
-  });
-
-  test('Error 401 if token is empty or invalid', () => {
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId}`, {
-      json: { token: '' },
-      timeout: TIMEOUT_MS,
+  test('401: Error for empty token', () => {
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId}`, {
+      headers: { token: '' },
+      timeout
     });
 
     expect(res.statusCode).toBe(401);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR_RESPONSE);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
   });
 
-  test('Error 403 if user does not own the quiz', () => {
-    const secondUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+  test('401: Error for invalid token', () => {
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId}`, {
+      headers: { token: 'invalidtoken' },
+      timeout
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('400: Error for non-existent question ID', () => {
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId + 999}`, {
+      headers: { token },
+      timeout
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('403: Error for non-existent quiz ID', () => {
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId + 999}/question/${questionId}`, {
+      headers: { token },
+      timeout
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('403: Error for valid token but incorrect owner', () => {
+    const secondUserRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
-        email: 'seconduser@gmail.com',
-        password: 'testPassword456',
-        nameFirst: 'Second',
-        nameLast: 'User',
+        email: 'otheruser@gmail.com',
+        password: 'Password1',
+        nameFirst: 'Jane',
+        nameLast: 'Doe'
       },
-      timeout: TIMEOUT_MS,
+      timeout
     });
-    const secondUserToken = JSON.parse(secondUserRes.body.toString()).token;
+    const secondToken = JSON.parse(secondUserRes.body.toString()).token;
 
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId}/question/${questionId}`, {
-      json: { token: secondUserToken },
-      timeout: TIMEOUT_MS,
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId}`, {
+      headers: { token: secondToken },
+      timeout
     });
 
     expect(res.statusCode).toBe(403);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR_RESPONSE);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
   });
 
-  test('Error 403 if quiz does not exist', () => {
-    const res = request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quizId + 999}/question/${questionId}`, {
-      json: { token },
-      timeout: TIMEOUT_MS,
+  test('400: Error when there is an active session for the quiz', () => {
+    request('POST', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/start`, {
+      headers: { token },
+      timeout
     });
 
-    expect(res.statusCode).toBe(403);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR_RESPONSE);
+    const res =
+    request('DELETE', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question/${questionId}`, {
+      headers: { token },
+      timeout
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
   });
 });
