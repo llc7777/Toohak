@@ -39,41 +39,50 @@ let questionId: number;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
-  const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+
+  const tokenRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
-      email: 'testuser@gmail.com',
-      password: 'Testpass1',
-      nameFirst: 'Test',
-      nameLast: 'User'
+      email: 'aero@mail.com',
+      password: 'Aeropass1',
+      nameFirst: 'Jason',
+      nameLast: 'Chandra'
     },
     timeout: timeout
   });
   token = JSON.parse(tokenRes.body.toString()).token;
 
-  const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
-    json: { token, name: 'Sample Quiz', description: 'Sample Description' },
+  const quizRes = request('POST', `${SERVER_URL}/v2/admin/quiz`, {
+    json: { name: 'quiz1', description: 'random description' },
+    headers: { token },
     timeout: timeout
   });
   quiz = JSON.parse(quizRes.body.toString());
 
-  const questionRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/question`, {
+  const questionRes = request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
+    headers: { token },
     json: {
-      token,
       questionBody: {
-        question: 'What is the largest mammal?',
+        question: 'What is the largest mammal in the world?',
         timeLimit: 4,
         points: 5,
         answerOptions: [
-          { answer: 'Blue Whale', correct: true },
-          { answer: 'Elephant', correct: false }
-        ]
+          {
+            answer: 'Whale',
+            correct: true
+          },
+          {
+            answer: 'Frog',
+            correct: false
+          }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
       }
     },
     timeout: timeout
   });
+
   questionId = JSON.parse(questionRes.body.toString()).questionId;
 });
-
 describe('PUT /v2/admin/quiz/{quizId}/question/{questionId}', () => {
   test('200: successfully updates a question', () => {
     const response = requestAdminQuestionUpdate(quiz.quizId, questionId, token, {
