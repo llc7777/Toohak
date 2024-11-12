@@ -48,6 +48,7 @@ let data = {
 		],
     sessions: [
       {
+		autoStartNum: -1,
         sessionId: -1,
         state: 'string',
         atQuestion: -1,
