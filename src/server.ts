@@ -24,6 +24,7 @@ import {
   adminQuizSessionUpdate,
   adminQuizSessionView,
   adminQuizSessionStatus,
+  adminQuizThumbnailUpdate,
 } from './quiz';
 import {
   adminQuizQuestionCreate,
@@ -44,6 +45,7 @@ import {
   AuthLoginRes,
   SessionId,
   QuizInfoSimpleArray,
+  ErrorResponse,
 } from './interfaces';
 
 // Set up web app
@@ -517,6 +519,28 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   }
 });
 
+// V1 adminQuizThumbnailUpdate PUT request
+app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const token: string = req.headers.token as string;
+  const thumbnailUrl: string = req.body.thumbnailUrl;
+
+  try {
+    const result: object | ErrorResponse = adminQuizThumbnailUpdate(quizId, token, thumbnailUrl);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else if (e.message.includes('403')) {
+      return res.status(403).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
 // V1 adminQuizSessionStart POST request
 app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
   const quizId: number = parseInt(req.params.quizid as string);
@@ -524,7 +548,7 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const autoStartNum: number = req.body.autoStartNum as number;
 
   try {
-    const result: SessionId = adminQuizSessionStart(quizId, token, autoStartNum);
+    const result: SessionId | ErrorResponse = adminQuizSessionStart(quizId, token, autoStartNum);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
@@ -547,7 +571,7 @@ app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   const action: string = req.body.action as string;
 
   try {
-    const result: object = adminQuizSessionUpdate(quizId, sessionId, token, action);
+    const result: object | ErrorResponse = adminQuizSessionUpdate(quizId, sessionId, token, action);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
