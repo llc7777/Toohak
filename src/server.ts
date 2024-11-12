@@ -21,6 +21,7 @@ import {
   adminQuizRestore,
   adminQuizTransfer,
   adminQuizSessionStart,
+  adminQuizSessionUpdate,
 } from './quiz';
 import {
   adminQuizQuestionCreate,
@@ -511,6 +512,29 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
 
   try {
     const result: SessionId = adminQuizSessionStart(quizId, token, autoStartNum);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else if (e.message.includes('403')) {
+      return res.status(403).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
+// V1 adminQuizSessionUpdate PUT request
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const sessionId: number = parseInt(req.params.sessionid as string);
+  const token: string = req.headers.token as string;
+  const action: string = req.body.action as string;
+
+  try {
+    const result: object = adminQuizSessionUpdate(quizId, sessionId, token, action);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
