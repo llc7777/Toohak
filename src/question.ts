@@ -327,19 +327,21 @@ export function adminQuizQuestionUpdate(
 }
 
 /**
- * Deletes a question from a quiz if the user is authenticated and owns the quiz.
- * @param {string} token - The authentication token of the user
- * @param {number} quizId - The ID of the quiz from which the question will be deleted
- * @param {number} questionId - The ID of the question to be deleted
- * @returns {object | ErrorResponse} - An empty object on success or an error message on failure
+ * Deletes a question from a quiz if the user is authenticated, owns the quiz,
+ * and there are no active sessions.
+ *
+ * @param {string} token - The user's authentication token
+ * @param {number} quizId - The ID of the quiz from which the question is to be deleted
+ * @param {number} questionId - The ID of the question to delete
+ * @returns {object | ErrorResponse} - An empty object on success, or an error message on failure
  */
 export function adminQuizQuestionDelete(
   token: string,
   quizId: number,
   questionId: number
-): object | ErrorResponse {
+): object {
   if (!encodedTokenExists(token) || token.length === 0) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   const tokenData: Token = decodeToken(token);
@@ -347,16 +349,24 @@ export function adminQuizQuestionDelete(
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    throw new Error('403 - Quiz ID does not refer to a valid quiz.');
   }
 
   if (quiz.authUserId !== user.authUserId) {
-    return { error: 'User does not own the quiz.' };
+    throw new Error('403 - User does not own the quiz.');
   }
 
   const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
   if (questionIndex === -1) {
-    return { error: 'Question ID does not refer to a valid question.' };
+    throw new Error('400 - Question ID does not refer to a valid question within this quiz.');
+  }
+
+  const data = getData();
+  const activeSession = data.sessions.find(
+    session => session.metaData.quizId === quizId && session.state !== 'END'
+  );
+  if (activeSession) {
+    throw new Error('400 - Cannot delete question while there is an active session for this quiz.');
   }
 
   quiz.questions.splice(questionIndex, 1);
