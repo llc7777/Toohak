@@ -277,7 +277,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
   try {
-    adminQuizRemove(token, quizid);
+    adminQuizRemove(token, quizid, 'v1');
     saveData();
     return res.status(200).json({});
   } catch (err) {
@@ -878,6 +878,27 @@ app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
       return res.status(403).json({ error: errorMessage });
     } else if (errorMessage.includes('400')) {
       return res.status(400).json({ error: errorMessage });
+    }
+  }
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+
+  try {
+    adminQuizRemove(token, quizid, 'v2');
+    saveData();
+    return res.status(200).json({});
+  } catch (err) {
+    saveData();
+    if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    } else if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
     }
   }
 });
