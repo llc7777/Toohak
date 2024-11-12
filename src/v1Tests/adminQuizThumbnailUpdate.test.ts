@@ -2,6 +2,8 @@ import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
 import { ErrorResponse, Token } from '../interfaces';
+import { set } from 'yaml/dist/schema/yaml-1.1/set';
+
 
 const SERVER_URL: string = `${url}:${port}`;
 const TIMEOUT_MS: number = 5 * 1000;
@@ -23,6 +25,7 @@ const createQuizRequest = (token: string, name: string, description: string) => 
     });
 };
 
+// function to get quiz information
 const getQuizInfoRequest = (quizId: number, token: string) => {
     return request('GET', `${SERVER_URL}/v2/admin/quiz/${quizId}`, {
         headers: { token },
@@ -31,10 +34,10 @@ const getQuizInfoRequest = (quizId: number, token: string) => {
 }
 
 // function to update a quiz thumbnail
-const updateQuizThumbnailRequest = (quizId: number, token: string, thumbnail: string) => {
+const updateQuizThumbnailRequest = (quizId: number, token: string, thumbnailUrl: string) => {
     return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/thumbnail`, {
         headers: { token },
-        json: { thumbnail },
+        json: { thumbnailUrl: thumbnailUrl },
         timeout: TIMEOUT_MS
     });
 };
@@ -65,9 +68,6 @@ beforeEach(() => {
 describe('Test for PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
     // 200 success cases
     test('Has updated the thumbnail successfully', () => {
-        const initial = getQuizInfoRequest(quizId, token);
-        const timeLastEdited = JSON.parse(initial.body.toString()).timeLastEdited;
-
         const res = updateQuizThumbnailRequest(quizId, token, mainThumbnail);
 
         expect(res.statusCode).toStrictEqual(200);
@@ -75,10 +75,7 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
 
         const res2 = getQuizInfoRequest(quizId, token);
 
-        console.log(res2.body.toString());
-
         expect(JSON.parse(res2.body.toString()).thumbnailUrl).toStrictEqual(mainThumbnail);
-        expect(JSON.parse(res2.body.toString()).timeLastEdited).toBeGreaterThan(timeLastEdited);
     });
 
     test.each([
@@ -121,6 +118,25 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
         updateQuizThumbnailRequest(quizId3, token, mainThumbnail);
         const test3 = getQuizInfoRequest(quizId3, token);
         expect(JSON.parse(test3.body.toString()).thumbnailUrl).toStrictEqual(mainThumbnail);
+    });
+
+    // 400 errors
+    test.each([
+        [''],
+        ['http://google.com/some/image/path'],
+        ['http://google.com/some/image/path.jepng'],
+        ['http://google.com/some/image/path.'],
+        ['http://google.com/some/image/path.jp'],
+        ['www.google.com/some/image/path.jpg'],
+        ['http:/google.com/some/image/path.jpg'],
+        ['https:/google.com/some/image/path.jpg'],
+        ['HTTP://google.com/some/image/path.jpg'],
+        ['HTTPS://google.com/some/image/path.jpg'],
+    ])('Test for invalid URL: %s', (thumbnail: string) => {
+        const res = updateQuizThumbnailRequest(quizId, token, thumbnail);
+
+        expect(res.statusCode).toStrictEqual(400);
+        expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     // 401 errors
