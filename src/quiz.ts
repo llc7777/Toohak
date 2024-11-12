@@ -182,7 +182,6 @@ export function adminQuizRemove(
   token: string,
   quizId: number,
   version: string): object | ErrorResponse {
-
   adminQuizRemoveErrorChecking(token, quizId, version);
 
   const data: Data = getData();

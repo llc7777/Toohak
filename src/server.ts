@@ -829,7 +829,7 @@ app.delete('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
     } else if (err.message.includes('403')) {
       return res.status(403).json({ error: err.message });
     } else if (err.message.includes('400')) {
-      return res.status(400).json( { error: err.message });
+      return res.status(400).json({ error: err.message });
     }
   }
 });
