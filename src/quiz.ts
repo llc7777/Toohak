@@ -346,8 +346,10 @@ Updates the description of the relevant quiz
 export function adminQuizTransfer(
   token: string,
   userEmail: string,
-  quizId: number): object | ErrorResponse {
-  adminQuizTransferErrorChecking(token, userEmail, quizId);
+  quizId: number,
+  version: string
+): object | ErrorResponse {
+  adminQuizTransferErrorChecking(token, userEmail, quizId, version);
 
   const data: Data = getData();
 

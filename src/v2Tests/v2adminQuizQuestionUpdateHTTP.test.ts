@@ -93,6 +93,23 @@ describe('PUT /v2/admin/quiz/{quizId}/question/{questionId}', () => {
   });
 
   describe('Error cases', () => {
+    test('401: invalid token', () => {
+      const response = requestAdminQuestionUpdate(quiz.quizId, questionId, 'invalidToken', {
+        questionBody: {
+          question: 'What is the largest animal?',
+          timeLimit: 5,
+          points: 6,
+          answerOptions: [
+            { answer: 'Blue Whale', correct: true },
+            { answer: 'Whale Shark', correct: false }
+          ],
+          thumbnailUrl: 'https://example.com/image.jpg'
+        }
+      });
+      expect(response.statusCode).toBe(401);
+      expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
+    });
+
     test('400: invalid question length', () => {
       const response = requestAdminQuestionUpdate(quiz.quizId, questionId, token, {
         questionBody: {

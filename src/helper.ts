@@ -378,7 +378,8 @@ export function adminQuizMoveQuestionErrorChecking(
 export function adminQuizTransferErrorChecking(
   token: string,
   userEmail: string,
-  quizId: number
+  quizId: number,
+  version: string
 ) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
@@ -403,6 +404,12 @@ export function adminQuizTransferErrorChecking(
 
   if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
     throw new Error('400 - This user already owns a quiz with the same name');
+  }
+
+  if (version === 'v2') {
+    if (quizHasSessionNotInEnd(quizId)) {
+      throw new Error('400 - Quiz has a session that is not in active state');
+    }
   }
 }
 
