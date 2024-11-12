@@ -439,7 +439,8 @@ export function adminQuizSessionViewErrorChecking(
 
 export function countDownAndStartGame(session: Session) {
   session.state = 'QUESTION_COUNTDOWN';
-  const duration = session.metaData.timeLimit;
+  const index: number = session.autoStartNum;
+  const duration: number = session.metaData.questions[index].timeLimit;
 
   // Start the countdown and open the question
   setTimeout(() => {
