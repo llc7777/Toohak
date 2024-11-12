@@ -852,6 +852,36 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   }
 });
 
+// PUT request for adminQuizQuestionUpdate in V2
+app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string, 10);
+  const questionId = parseInt(req.params.questionId as string, 10);
+  const token = req.headers.token as string;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
+
+  if (!token || token.length === 0 || !encodedTokenExists(token)) {
+    return res.status(401).json({ error: 'Token is empty or invalid.' });
+  }
+
+  try {
+    const result = adminQuizQuestionUpdate(quizId, questionId, token, question,
+      timeLimit, points, answerOptions, thumbnailUrl);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    const errorMessage = error.message as string;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
+    }
+  }
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

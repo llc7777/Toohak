@@ -208,7 +208,8 @@ export function adminQuizQuestionDuplicate(
  * @param {AnswerOptions[]} answerOptions - An array of answer options.
  * @param {number} timeLimit - The time limit for answering the question.
  * @param {number} points - The points awarded for the question.
- * @returns {Object | ErrorResponse} - An empty object on success or an error message on failure.
+ * @param {string} [thumbnailUrl] - The URL of the question thumbnail.
+ * @returns {} - An empty object on success.
  */
 export function adminQuizQuestionUpdate(
   quizId: number,
@@ -219,44 +220,48 @@ export function adminQuizQuestionUpdate(
   points: number,
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
-): object | ErrorResponse {
+): object {
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
 
+  if (!user) {
+    throw new Error('401 - Token is empty or invalid.');
+  }
+
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return { error: 'No such quiz exists' };
+    throw new Error('403 - No such quiz exists');
   }
 
   if (quiz.authUserId !== user.authUserId) {
-    return { error: 'User does not own the quiz' };
+    throw new Error('403 - User does not own the quiz');
   }
 
   const questionIndex: number = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
-    return { error: 'No such question exists' };
+    throw new Error('403 - No such question exists');
   }
 
   if (question.length < 5 || question.length > 50) {
-    return { error: 'Question must be between 5 to 50 characters' };
+    throw new Error('400 - Question must be between 5 to 50 characters');
   }
 
   if (answerOptions.length < 2 || answerOptions.length > 6) {
-    return { error: 'Question must have between 2 to 6 answers' };
+    throw new Error('400 - Question must have between 2 to 6 answers');
   }
 
   if (timeLimit <= 0) {
-    return { error: 'Time limit must be a positive number' };
+    throw new Error('400 - Time limit must be a positive number');
   }
 
   const totalTime = quiz.questions.reduce((total, q) => total + q.timeLimit, 0) -
                     quiz.questions[questionIndex].timeLimit + timeLimit;
   if (totalTime > 180) {
-    return { error: 'Total time limit across quiz must not exceed 3 minutes' };
+    throw new Error('400 - Total time limit across quiz must not exceed 3 minutes');
   }
 
   if (points < 1 || points > 10) {
-    return { error: 'Points awarded must be between 1 and 10 points' };
+    throw new Error('400 - Points awarded must be between 1 and 10 points');
   }
 
   const answerSet = new Set(answerOptions.map(option => option.answer));
@@ -264,15 +269,28 @@ export function adminQuizQuestionUpdate(
     option.answer.length >= 1 && option.answer.length <= 30
   );
   if (!allAnswersValid) {
-    return { error: 'Answers must be between 1 and 30 characters long' };
+    throw new Error('400 - Answers must be between 1 and 30 characters long');
   }
+
   if (answerSet.size !== answerOptions.length) {
-    return { error: 'Answers must have no duplicates of one another' };
+    throw new Error('400 - Answers must have no duplicates of one another');
   }
 
   const hasCorrectAnswer = answerOptions.some(option => option.correct);
   if (!hasCorrectAnswer) {
-    return { error: 'There must be at least one correct answer' };
+    throw new Error('400 - There must be at least one correct answer');
+  }
+
+  if (thumbnailUrl && (
+    thumbnailUrl === '' ||
+    (!thumbnailUrl.startsWith('http://') && !thumbnailUrl.startsWith('https://')) ||
+    (!thumbnailUrl.toLowerCase().endsWith('.jpg') &&
+     !thumbnailUrl.toLowerCase().endsWith('.jpeg') &&
+     !thumbnailUrl.toLowerCase().endsWith('.png'))
+  )) {
+    throw new Error(
+      '400 - ThumbnailUrl must begin with http:// or https:// and end with .jpg, .jpeg, or .png'
+    );
   }
 
   quiz.timeLimit -= quiz.questions[questionIndex].timeLimit;
@@ -281,7 +299,7 @@ export function adminQuizQuestionUpdate(
     questionId,
     question,
     timeLimit,
-    thumbnailUrl,
+    thumbnailUrl: thumbnailUrl || quiz.questions[questionIndex].thumbnailUrl,
     points,
     answerOptions,
   };

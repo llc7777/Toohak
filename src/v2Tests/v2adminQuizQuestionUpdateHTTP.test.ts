@@ -1,5 +1,5 @@
 import request from 'sync-request-curl';
-import {port, url} from '../config.json';
+import { port, url } from '../config.json';
 import { AnswerOptionsReq, Quiz } from '../interfaces';
 
 const SERVER_URL: string = `${url}:${port}`;
