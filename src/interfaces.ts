@@ -97,6 +97,13 @@ export interface QuestionInfo {
   playersCorrect: string[],
   averageAnswerTime: number,
   percentCorrect: number,
+  timeOpened: number,
+  playersAnswered: playerAnswerInfo[];
+}
+
+export interface playerAnswerInfo {
+  playerId: string,
+  timeAnswered: number,
 }
 
 export interface QuestionCreateReq {

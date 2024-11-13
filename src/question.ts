@@ -119,12 +119,14 @@ export function adminQuizQuestionCreate(
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
-    thumbnailUrl: '',
+    thumbnailUrl: 'http://google.com/some/image/path.jpg',
     points: points,
     answerOptions: answerOptions,
     playersCorrect: [],
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: [],
   };
 
   const data = getData();
@@ -197,6 +199,8 @@ export function adminQuizQuestionDuplicate(
     playersCorrect: question.playersCorrect,
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: question.playersAnswered,
 
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
@@ -228,12 +232,12 @@ export function adminQuizQuestionUpdate(
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
 ): object {
-  const tokenData: Token = decodeToken(token);
-  const user: User | null = findUserFromToken(tokenData);
-
-  if (!user) {
+  if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid.');
   }
+
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
@@ -312,6 +316,8 @@ export function adminQuizQuestionUpdate(
     playersCorrect: [],
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: [],
   };
 
   quiz.questions[questionIndex] = updatedQuestion;

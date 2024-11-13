@@ -515,6 +515,7 @@ export function countDownTillQuestionStart(
   // Start the countdown and open the question
   skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
+    session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
     countDownTillQuestionClose(session, timeLimitTimer);
   }, 3000);
 }

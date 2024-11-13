@@ -38,7 +38,6 @@ import {
   adminQuizQuestionDelete
 } from './question';
 import { clear, emptyTrash } from './other';
-import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
@@ -303,10 +302,6 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const questionId = parseInt(req.params.questionId as string);
   const token = req.body.token as string;
   const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
-
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
 
   try {
     const updateResult = adminQuizQuestionUpdate(
@@ -623,14 +618,12 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId', (req: Request, res: Respons
 app.post('/v1/player/join', (req: Request, res: Response) => {
   const playerName: string = req.body.playerName;
   const sessionId: number = req.body.sessionId;
-  console.log(sessionId);
   try {
     const result = playerJoin(sessionId, playerName);
     saveData();
     res.status(200).json(result);
   } catch (error) {
     saveData();
-    console.log(error.message);
     return res.status(400).json({ error: error.message });
   }
 });
@@ -940,10 +933,6 @@ app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const questionId = parseInt(req.params.questionId as string, 10);
   const token = req.headers.token as string;
   const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
-
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
 
   try {
     const result = adminQuizQuestionUpdate(quizId, questionId, token, question,

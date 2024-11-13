@@ -188,6 +188,7 @@ export function adminQuizSessionUpdate(
     } else if (action === 'SKIP_COUNTDOWN') {
       clearTimeout(skipCountdownTimer);
       session.state = 'QUESTION_OPEN';
+      session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
       // After clear timeout, start new timer for question close
       countDownTillQuestionClose(session, timeLimitTimer);
     } else {
@@ -360,7 +361,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   session.players.push({
     playerId: playerId,
     name: playerName,
-    score: 0
+    score: 0,
   });
 
   if (session.players.length === session.autoStartNum) {
