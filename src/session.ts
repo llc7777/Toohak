@@ -184,7 +184,7 @@ export function adminQuizSessionUpdate(
     }
   } else if (session.state === 'QUESTION_COUNTDOWN') {
     if (action === 'END') {
-      session.state = 'END'
+      session.state = 'END';
     } else if (action === 'SKIP_COUNTDOWN') {
       clearTimeout(skipCountdownTimer);
       session.state = 'QUESTION_OPEN';
@@ -227,8 +227,7 @@ export function adminQuizSessionUpdate(
     } else {
       throw new Error('400 - Action cannot be applied to the current state');
     }
-  }
-  else if (session.state === 'FINAL_RESULTS') {
+  } else if (session.state === 'FINAL_RESULTS') {
     if (action === 'END') {
       session.state = 'END';
     } else {

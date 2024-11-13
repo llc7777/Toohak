@@ -515,7 +515,7 @@ export function countDownTillQuestionStart(
   // Start the countdown and open the question
   skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
-    countDownTillQuestionClose(session, timeLimitTimer)
+    countDownTillQuestionClose(session, timeLimitTimer);
   }, 3000);
 }
 
@@ -528,7 +528,7 @@ export function countDownTillQuestionClose(
 
   timeLimitTimer = setTimeout(() => {
     session.state = 'QUESTION_CLOSE';
-  }, duration * 1000)
+  }, duration * 1000);
 }
 
 export function checkUrlIsValid(url: string) {

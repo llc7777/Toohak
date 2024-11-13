@@ -2,7 +2,6 @@ import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken, sleep } from '../helper';
 import { ErrorResponse, Token } from '../interfaces';
-import { get } from 'http';
 
 const SERVER_URL: string = `${url}:${port}`;
 const TIMEOUT_MS: number = 5 * 1000;
@@ -347,7 +346,6 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     const res = getQuizSessionStatus();
     expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
   });
-
 
   // error cases
 

@@ -224,5 +224,4 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
     expect(res2.statusCode).toStrictEqual(403);
     expect(JSON.parse(res2.body.toString())).toStrictEqual(ERROR);
   });
-
 });
