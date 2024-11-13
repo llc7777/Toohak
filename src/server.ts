@@ -304,10 +304,6 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const token = req.body.token as string;
   const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
 
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
-
   try {
     const updateResult = adminQuizQuestionUpdate(
       quizId,
@@ -938,10 +934,6 @@ app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const questionId = parseInt(req.params.questionId as string, 10);
   const token = req.headers.token as string;
   const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
-
-  if (!token || token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
 
   try {
     const result = adminQuizQuestionUpdate(quizId, questionId, token, question,

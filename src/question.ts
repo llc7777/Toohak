@@ -232,12 +232,13 @@ export function adminQuizQuestionUpdate(
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
 ): object {
-  const tokenData: Token = decodeToken(token);
-  const user: User | null = findUserFromToken(tokenData);
 
-  if (!user) {
+  if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid.');
   }
+
+  const tokenData: Token = decodeToken(token);
+  const user: User | null = findUserFromToken(tokenData);
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
