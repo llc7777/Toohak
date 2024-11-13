@@ -1,7 +1,7 @@
 
 import { getData } from './dataStore';
 import { emptyTrashErrorChecking } from './helper';
-import { Data, ErrorResponse } from './interfaces';
+import { Data } from './interfaces';
 
 /**
  * Reset the state of the application back to the start.
