@@ -500,6 +500,13 @@ export function findSession(quizId: number, sessionId: number) {
   );
 }
 
+export function findSessionFromSessionId(sessionId: number) {
+  const data = getData();
+  return data.sessions.find(
+    session => session.sessionId === sessionId
+  );
+}
+
 export function countDownAndStartGame(session: Session) {
   session.state = 'QUESTION_COUNTDOWN';
   const duration = session.metaData.timeLimit;
