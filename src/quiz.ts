@@ -13,12 +13,14 @@ import {
   adminQuizTransferErrorChecking,
   findQuizInTrash,
   generateRandomSessionId,
-  countDownAndStartGame,
   adminQuizSessionViewErrorChecking,
   adminQuizSessionStatusErrorChecking,
   findSession,
   checkUrlIsValid,
+  countDownTillQuestionStart,
+  countDownTillQuestionClose,
 } from './helper';
+
 import {
   ErrorResponse,
   User,
@@ -599,42 +601,70 @@ export function adminQuizSessionUpdate(
     throw new Error('400 - Invalid action');
   }
 
-  let skipCountdownTimer;
-  let timeLimitTImer;
+  let skipCountdownTimer: ReturnType<typeof setTimeout>;
+  let timeLimitTimer: ReturnType<typeof setTimeout>;
 
-  // When the action is NEXT_QUESTION
-  if (action === 'NEXT_QUESTION') {
-    if (session.state === 'LOBBY') {
-      countDownAndStartGame(session);
-      session.atQuestion++;
-    } else if (session.state === 'ANSWER_SHOW') {
-      countDownAndStartGame(session);
-      session.atQuestion++;
-    } else if (session.state === 'QUIZ_CLOSE') {
-      countDownAndStartGame(session);
-      session.atQuestion++;
+  if (session.state === 'LOBBY') {
+    if (action === 'END') {
+      session.state = 'END';
+    } else if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
     }
-  } else if (action === 'SKIP_COUNTDOWN' && session.state === 'QUESTION_COUNTDOWN') {
-    session.state = 'QUESTION_OPEN';
-  } else if (action === 'GO_TO_ANSWER') {
-    if (session.state === 'QUESTION_OPEN') {
+  } else if (session.state === 'QUESTION_COUNTDOWN') {
+    if (action === 'END') {
+      session.state = 'END'
+    } else if (action === 'SKIP_COUNTDOWN') {
+      clearTimeout(skipCountdownTimer);
+      session.state = 'QUESTION_OPEN';
+      // After clear timeout, start new timer for question close
+      countDownTillQuestionClose(session, timeLimitTimer);
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  } else if (session.state === 'QUESTION_OPEN') {
+    if (action === 'END') {
+      clearTimeout(timeLimitTimer);
+      session.state = 'END';
+    } else if (action === 'GO_TO_ANSWER') {
+      clearTimeout(timeLimitTimer);
       session.state = 'ANSWER_SHOW';
-    } else if (session.state === 'QUESTION_CLOSE') {
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  } else if (session.state === 'QUESTION_CLOSE') {
+    if (action === 'GO_TO_ANSWER') {
       session.state = 'ANSWER_SHOW';
-    }
-  } else if (action === 'GO_TO_FINAL_RESULTS') {
-    if (session.state === 'ANSWER_SHOW') {
+    } else if (action === 'END') {
+      session.state = 'END';
+    } else if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = 'FINAL_RESULTS';
-      session.atQuestion = 0;
-    } else if (session.state === 'QUESTION_CLOSE') {
-      session.state = 'FINAL_RESULTS';
-      session.atQuestion = 0;
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
     }
-  } else if (action === 'END') {
-    session.state = 'END';
-    session.atQuestion = 0;
-  } else {
-    throw new Error('400 - Action cannot be applied to the current state');
+  } else if (session.state === 'ANSWER_SHOW') {
+    if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = 'FINAL_RESULTS';
+    } else if (action === 'END') {
+      session.state = 'END';
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  }
+  else if (session.state === 'FINAL_RESULTS') {
+    if (action === 'END') {
+      session.state = 'END';
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
   }
 
   return {};
