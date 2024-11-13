@@ -325,7 +325,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   session.players.push({
     playerId: playerId,
     name: playerName,
-    score: 0
+    score: 0,
   });
 
   return { playerId };

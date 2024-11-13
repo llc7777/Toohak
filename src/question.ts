@@ -126,6 +126,7 @@ export function adminQuizQuestionCreate(
     averageAnswerTime: 0,
     percentCorrect: 0,
     timeOpened: 0,
+    playersAnswered: [],
   };
 
   const data = getData();
@@ -199,6 +200,7 @@ export function adminQuizQuestionDuplicate(
     averageAnswerTime: 0,
     percentCorrect: 0,
     timeOpened: 0,
+    playersAnswered: question.playersAnswered,
 
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
@@ -315,6 +317,7 @@ export function adminQuizQuestionUpdate(
     averageAnswerTime: 0,
     percentCorrect: 0,
     timeOpened: 0,
+    playersAnswered: [],
   };
 
   quiz.questions[questionIndex] = updatedQuestion;
