@@ -146,8 +146,6 @@ beforeEach(() => {
 
   // Create active sessions
   const activeSessions = startQuizSession(quizId, 2);
-  console.log('Start Quiz Session Response:', JSON.parse(activeSessions.body.toString()));
-
   sessionId1 = JSON.parse(activeSessions.body.toString()).sessionId;
 
   // Create active sessions
@@ -163,7 +161,6 @@ describe('/v1/admin/quiz/{quizId}/sessions', () => {
 
       const res = getQuizSessions(token, quizId);
       const body = JSON.parse(res.body.toString());
-      console.log('Updated Get Quiz Sessions Response:', body);
 
       expect(body.activeSessions).toContain(sessionId1);
       expect(body.inactiveSessions).toContain(sessionId2);
