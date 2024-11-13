@@ -7,6 +7,7 @@ import {
   Quiz,
   Data,
   QuestionInfo,
+  Session,
 } from './interfaces';
 
 // Helper function for adminAuthRegister
@@ -176,6 +177,17 @@ export function getRandomColour() {
   return colours[randomIndex];
 }
 
+export function quizHasSessionNotInEnd(quizId: number) {
+  const data: Data = getData();
+
+  for (const session of data.sessions) {
+    if (session.metadata.quizId === quizId && session.state !== 'END') {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Function Error Checking
 export function adminAuthLoginErrorChecking(email: string, password: string) {
   const data = getData();
@@ -266,7 +278,8 @@ export function adminQuizInfoErrorChecking(token: string, quizId: number): void 
 
 export function adminQuizRemoveErrorChecking(
   token: string,
-  quizId: number
+  quizId: number,
+  version: string
 ) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
@@ -286,11 +299,49 @@ export function adminQuizRemoveErrorChecking(
   if (quiz.authUserId !== tokenObj.authUserId) {
     throw new Error('403 - Quiz does not exist or user does not own the quiz');
   }
+
+  if (version === 'v2') {
+    if (quizHasSessionNotInEnd(quizId)) {
+      throw new Error('400 - Quiz has a session that is not in active state');
+    }
+  }
 }
 
-export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
-  const data = getData();
+export function adminQuizRestoreErrorChecking(quizId: number, token: string): void {
+  const data: Data = getData();
 
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    throw new Error('400 - Quiz ID does not refer to a quiz in the trash.');
+  }
+
+  const quiz = data.trash[quizIndex];
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    throw new Error('400 - Quiz name is already used by another active quiz.');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - You do not own quiz ID, or quiz does not exist');
+  }
+}
+
+export function emptyTrashErrorChecking(token: string, quizIds: number[]): void {
+  const data = getData();
+  console.log('quizIds:', quizIds);
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
@@ -306,20 +357,14 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   }
 
   for (const quizId of quizIds) {
-    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+    const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
+
+    if (!quizInTrash) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
 
-    for (const quizId of quizIds) {
-      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
-
-      if (!quizInTrash) {
-        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
-      }
-
-      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
-        throw new Error('403 - You do not own quiz ID');
-      }
+    if (quizInTrash.authUserId !== user.authUserId) {
+      throw new Error('403 - You do not own quiz ID');
     }
   }
 }
@@ -359,7 +404,8 @@ export function adminQuizMoveQuestionErrorChecking(
 export function adminQuizTransferErrorChecking(
   token: string,
   userEmail: string,
-  quizId: number
+  quizId: number,
+  version: string
 ) {
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid');
@@ -384,6 +430,12 @@ export function adminQuizTransferErrorChecking(
 
   if (userHasQuizWithSameName(userToTransferTo.authUserId, quizId)) {
     throw new Error('400 - This user already owns a quiz with the same name');
+  }
+
+  if (version === 'v2') {
+    if (quizHasSessionNotInEnd(quizId)) {
+      throw new Error('400 - Quiz has a session that is not in active state');
+    }
   }
 }
 
@@ -410,3 +462,88 @@ export function adminQuizSessionViewErrorChecking(
     throw new Error('403 - User does not own the quiz');
   }
 }
+
+export function adminQuizSessionStatusErrorChecking(
+  quizId: number, sessionId: number, token: string
+): void {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz not found');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+
+  const session = findSession(quizId, sessionId);
+  if (!session) {
+    throw new Error('400 - Session does not exist for this quiz');
+  }
+}
+
+export function findSession(quizId: number, sessionId: number) {
+  const data = getData();
+  return data.sessions.find(
+    session => session.sessionId === sessionId &&
+      session.metadata.quizId === quizId
+  );
+}
+
+export function findSessionFromSessionId(sessionId: number) {
+  const data = getData();
+  return data.sessions.find(
+    session => session.sessionId === sessionId
+  );
+}
+
+export function countDownTillQuestionStart(
+  session: Session,
+  skipCountdownTimer: ReturnType<typeof setTimeout>,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
+  // Start the countdown and open the question
+  skipCountdownTimer = setTimeout(() => {
+    session.state = 'QUESTION_OPEN';
+    session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
+    countDownTillQuestionClose(session, timeLimitTimer);
+  }, 3000);
+}
+
+export function countDownTillQuestionClose(
+  session: Session,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
+  const index: number = session.atQuestion;
+  const duration: number = session.metadata.questions[index].timeLimit;
+
+  timeLimitTimer = setTimeout(() => {
+    session.state = 'QUESTION_CLOSE';
+  }, duration * 1000);
+}
+
+export function checkUrlIsValid(url: string) {
+  const validFileTypes = /\.(jpg|jpeg|png)$/i;
+  const validProtocol = /^https?:\/\//;
+
+  if (!validFileTypes.test(url)) {
+    throw new Error('400 - Invalid file type');
+  }
+
+  if (!validProtocol.test(url)) {
+    throw new Error('400 - Invalid URL');
+  }
+}
+
+// Helper function to delay execution for session update tests
+export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));

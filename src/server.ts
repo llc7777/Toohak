@@ -20,9 +20,16 @@ import {
   adminQuizTrashList,
   adminQuizRestore,
   adminQuizTransfer,
-  adminQuizSessionStart,
-  adminQuizSessionView,
+
+  adminQuizThumbnailUpdate,
 } from './quiz';
+import {
+  adminQuizSessionStart,
+  adminQuizSessionUpdate,
+  adminQuizSessionView,
+  adminQuizSessionStatus,
+  playerJoin,
+} from './session';
 import {
   adminQuizQuestionCreate,
   adminQuizMoveQuestion,
@@ -31,7 +38,6 @@ import {
   adminQuizQuestionDelete
 } from './question';
 import { clear, emptyTrash } from './other';
-import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
@@ -42,6 +48,7 @@ import {
   AuthLoginRes,
   SessionId,
   QuizInfoSimpleArray,
+  ErrorResponse,
 } from './interfaces';
 
 // Set up web app
@@ -239,15 +246,16 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 // adminQuizTrashList GET request
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const result = adminQuizTrashList(token);
+  const token: string = req.query.token as string;
 
-  if ('error' in result) {
+  try {
+    const result: QuizInfoSimpleArray = adminQuizTrashList(token);
     saveData();
-    return res.status(401).json(result);
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
   }
-  saveData();
-  return res.status(200).json(result);
 });
 
 // adminQuizInfo GET request. Gets info for a quiz
@@ -275,7 +283,7 @@ app.delete('/v1/admin/quiz/:quizId', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
   try {
-    adminQuizRemove(token, quizid);
+    adminQuizRemove(token, quizid, 'v1');
     saveData();
     return res.status(200).json({});
   } catch (err) {
@@ -293,31 +301,34 @@ app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Respo
   const quizId = parseInt(req.params.quizId as string);
   const questionId = parseInt(req.params.questionId as string);
   const token = req.body.token as string;
-  const { question, answerOptions, timeLimit, points } = req.body.questionBody;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
 
-  if (token.length === 0 || !encodedTokenExists(token)) {
-    return res.status(401).json({ error: 'Token is empty or invalid.' });
-  }
+  try {
+    const updateResult = adminQuizQuestionUpdate(
+      quizId,
+      questionId,
+      token,
+      question,
+      timeLimit,
+      points,
+      answerOptions,
+      thumbnailUrl
+    );
 
-  const updateResult = adminQuizQuestionUpdate(quizId,
-    questionId,
-    token,
-    question,
-    timeLimit,
-    points,
-    answerOptions);
-  if ('error' in updateResult) {
     saveData();
-    if (updateResult.error === 'No such quiz exists' ||
-      updateResult.error === 'User does not own the quiz'
-    ) {
-      return res.status(403).json(updateResult);
-    } else {
-      return res.status(400).json(updateResult);
+    return res.status(200).json(updateResult);
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
     }
   }
-
-  return res.status(200).json(updateResult);
 });
 
 // adminQuizRestore POST request
@@ -325,24 +336,19 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const { token } = req.body;
 
-  const result = adminQuizRestore(quizid, token);
-
-  if ('error' in result) {
-    if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
-      saveData();
-      return res.status(401).json(result);
-    } else if (result.error === 'You do not own quiz ID, or quiz does not exist' ||
-      result.error === 'Quiz ID does not refer to a quiz in the trash.'
-    ) {
-      saveData();
-      return res.status(403).json(result);
-    } else if ('error' in result) {
-      saveData();
-      return res.status(400).json(result);
+  try {
+    const result = adminQuizRestore(quizid, token);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
     }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // PUT request for adminQuizDescription
@@ -367,27 +373,28 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   }
 });
 
-// DELETE Request for adminQuizQuestionDelete
+// DELETE request for adminQuizQuestionDelete
 app.delete('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId as string);
-  const questionId = parseInt(req.params.questionId as string);
-  const token = req.query.token as string;
+  const quizId: number = parseInt(req.params.quizId as string);
+  const questionId: number = parseInt(req.params.questionId as string);
+  const token: string = req.query.token as string;
 
-  const result = adminQuizQuestionDelete(token, quizId, questionId);
-
-  if ('error' in result) {
+  try {
+    adminQuizQuestionDelete(token, quizId, questionId);
     saveData();
-    if (result.error === 'Token is invalid') {
-      return res.status(401).json(result);
-    } else if (result.error === 'Quiz ID does not refer to a valid quiz.' ||
-      result.error === 'User does not own the quiz.') {
-      return res.status(403).json(result);
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
     } else {
-      return res.status(400).json(result);
+      return res.status(400).json({ error: errorMessage });
     }
   }
-  saveData();
-  return res.status(200).json({});
 });
 
 // routes for other
@@ -469,7 +476,7 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const email = req.body.userEmail;
 
   try {
-    adminQuizTransfer(token, email, quizId);
+    adminQuizTransfer(token, email, quizId, 'v1');
     saveData();
     return res.status(200).json({});
   } catch (err) {
@@ -506,6 +513,28 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   }
 });
 
+// V1 adminQuizThumbnailUpdate PUT request
+app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const token: string = req.headers.token as string;
+  const thumbnailUrl: string = req.body.thumbnailUrl;
+
+  try {
+    const result: object | ErrorResponse = adminQuizThumbnailUpdate(quizId, token, thumbnailUrl);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else if (e.message.includes('403')) {
+      return res.status(403).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
 // V1 adminQuizSessionStart POST request
 app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
   const quizId: number = parseInt(req.params.quizid as string);
@@ -513,7 +542,30 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const autoStartNum: number = req.body.autoStartNum as number;
 
   try {
-    const result: SessionId = adminQuizSessionStart(quizId, token, autoStartNum);
+    const result: SessionId | ErrorResponse = adminQuizSessionStart(quizId, token, autoStartNum);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    if (e.message.includes('401')) {
+      return res.status(401).json({ error: e.message });
+    } else if (e.message.includes('403')) {
+      return res.status(403).json({ error: e.message });
+    } else {
+      return res.status(400).json({ error: e.message });
+    }
+  }
+});
+
+// V1 adminQuizSessionUpdate PUT request
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizid as string);
+  const sessionId: number = parseInt(req.params.sessionid as string);
+  const token: string = req.headers.token as string;
+  const action: string = req.body.action as string;
+
+  try {
+    const result: object | ErrorResponse = adminQuizSessionUpdate(quizId, sessionId, token, action);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
@@ -541,6 +593,38 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
       return res.status(401).json({ error: error.message });
     }
     return res.status(403).json({ error: error.message });
+  }
+});
+
+// v1 adminQuizSessionStatus GET request
+app.get('/v1/admin/quiz/:quizId/session/:sessionId', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizId as string);
+  const sessionId: number = parseInt(req.params.sessionId as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizSessionStatus(quizId, sessionId, token);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+});
+
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const playerName: string = req.body.playerName;
+  const sessionId: number = req.body.sessionId;
+  try {
+    const result = playerJoin(sessionId, playerName);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message });
   }
 });
 
@@ -623,12 +707,26 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 
 // quiz routes
 
-// adminQuizList GET request
+// V2 adminQuizList GET request
 app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
 
   try {
     const result: QuizInfoSimpleArray = adminQuizList(token);
+    saveData();
+    return res.status(200).json(result);
+  } catch (e) {
+    saveData();
+    return res.status(401).json({ error: e.message });
+  }
+});
+
+// V2 adminQuizTrashList GET request
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token: string = req.headers.token as string;
+
+  try {
+    const result: QuizInfoSimpleArray = adminQuizTrashList(token);
     saveData();
     return res.status(200).json(result);
   } catch (e) {
@@ -656,9 +754,29 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   }
 });
 
+// adminQuizRestore POST request
+app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const quizid: number = parseInt(req.params.quizId as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizRestore(quizid, token);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+});
+
 app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token: string = req.headers.token as string;
-  const quizIds: string = req.query.quizIds as string;
+  const quizIds = req.query.quizIds as string;
 
   try {
     const parsedQuizIds: number[] = JSON.parse(quizIds);
@@ -667,13 +785,9 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
     res.status(200).json(result);
   } catch (error) {
     saveData();
-
-    if (error.message.includes('Token')) {
+    if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
-    } else if (
-      error.message === 'You do not own quiz ID' ||
-      error.message === 'This quiz does not exist.'
-    ) {
+    } else if (error.message.includes('403')) {
       return res.status(403).json({ error: error.message });
     }
     return res.status(400).json({ error: error.message });
@@ -809,6 +923,97 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
       return res.status(403).json({ error: error.message });
     } else if (error.message.startsWith('400')) {
       return res.status(400).json({ error: error.message });
+    }
+  }
+});
+
+// V2 PUT request for adminQuizQuestionUpdate
+app.put('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string, 10);
+  const questionId = parseInt(req.params.questionId as string, 10);
+  const token = req.headers.token as string;
+  const { question, answerOptions, timeLimit, points, thumbnailUrl } = req.body.questionBody;
+
+  try {
+    const result = adminQuizQuestionUpdate(quizId, questionId, token, question,
+      timeLimit, points, answerOptions, thumbnailUrl);
+    saveData();
+    return res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    const errorMessage = error.message as string;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
+    }
+  }
+});
+
+// adminQuizDelete DELETE request
+app.delete('/v2/admin/quiz/:quizId', (req: Request, res: Response) => {
+  const quizid = parseInt(req.params.quizId as string);
+  const token = req.headers.token as string;
+
+  try {
+    adminQuizRemove(token, quizid, 'v2');
+    saveData();
+    return res.status(200).json({});
+  } catch (err) {
+    saveData();
+    if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else if (err.message.includes('403')) {
+      return res.status(403).json({ error: err.message });
+    } else if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+});
+
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid as string);
+  const token = req.headers.token as string;
+  const email = req.body.userEmail;
+
+  try {
+    adminQuizTransfer(token, email, quizId, 'v2');
+    saveData();
+    return res.status(200).json({});
+  } catch (err) {
+    saveData();
+    if (err.message.includes('400')) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes('401')) {
+      return res.status(401).json({ error: err.message });
+    } else {
+      return res.status(403).json({ error: err.message });
+    }
+  }
+});
+// V2 adminQuizQuestionDelete DELETE request
+app.delete('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId as string);
+  const questionId = parseInt(req.params.questionId as string);
+  const token = req.headers.token as string;
+
+  try {
+    adminQuizQuestionDelete(token, quizId, questionId);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    const errorMessage = (error as Error).message;
+
+    if (errorMessage.includes('401')) {
+      return res.status(401).json({ error: errorMessage });
+    } else if (errorMessage.includes('403')) {
+      return res.status(403).json({ error: errorMessage });
+    } else if (errorMessage.includes('400')) {
+      return res.status(400).json({ error: errorMessage });
     }
   }
 });

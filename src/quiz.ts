@@ -11,10 +11,10 @@ import {
   adminQuizInfoErrorChecking,
   adminQuizRemoveErrorChecking,
   adminQuizTransferErrorChecking,
-  findQuizInTrash,
-  generateRandomSessionId,
-  adminQuizSessionViewErrorChecking,
+  checkUrlIsValid,
+  adminQuizRestoreErrorChecking,
 } from './helper';
+
 import {
   ErrorResponse,
   User,
@@ -24,10 +24,7 @@ import {
   QuizInfo,
   QuizInfoDetailed,
   QuizID,
-  Session,
-  SessionId,
   QuizInfoSimpleArray,
-  QuizSessionsResponse,
 } from './interfaces';
 
 /**
@@ -73,15 +70,12 @@ export function adminQuizList(token: string): QuizInfoSimpleArray {
  * @param {string} token of user
  * @returns {object} - An object containing quizzes in trash
  */
-export function adminQuizTrashList(token: string) {
-  const data = getData();
-  const arr = [];
+export function adminQuizTrashList(token: string): QuizInfoSimpleArray {
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('401 - Token is empty');
   }
 
   const tokenData = decodeToken(token);
@@ -91,20 +85,16 @@ export function adminQuizTrashList(token: string) {
   const userExists = findUserFromToken(tokenData);
 
   if (!userExists) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('401 - Token is invalid');
   }
 
-  for (let i = 0; i < data.trash.length; i++) {
-    if (data.trash[i].authUserId === authUserId) {
-      const item = {
-        quizId: data.trash[i].quizId,
-        name: data.trash[i].name,
-      };
-      arr.push(item);
-    }
-  }
+  // Find quizzes in trash for the logged in user
+  const arr = data.trash
+    .filter(trashItem => trashItem.authUserId === authUserId)
+    .map(trashItem => ({
+      quizId: trashItem.quizId,
+      name: trashItem.name,
+    }));
 
   return { quizzes: arr };
 }
@@ -178,8 +168,11 @@ export function adminQuizCreate(
  * @param {integer} quizId Id of quiz
  * @returns
  */
-export function adminQuizRemove(token: string, quizId: number): object | ErrorResponse {
-  adminQuizRemoveErrorChecking(token, quizId);
+export function adminQuizRemove(
+  token: string,
+  quizId: number,
+  version: string): object | ErrorResponse {
+  adminQuizRemoveErrorChecking(token, quizId, version);
 
   const data: Data = getData();
 
@@ -347,8 +340,10 @@ Updates the description of the relevant quiz
 export function adminQuizTransfer(
   token: string,
   userEmail: string,
-  quizId: number): object | ErrorResponse {
-  adminQuizTransferErrorChecking(token, userEmail, quizId);
+  quizId: number,
+  version: string
+): object | ErrorResponse {
+  adminQuizTransferErrorChecking(token, userEmail, quizId, version);
 
   const data: Data = getData();
 
@@ -367,42 +362,11 @@ export function adminQuizTransfer(
  * @returns {Object} empty object on success
  */
 export function adminQuizRestore(quizId: number, token: string): object | ErrorResponse {
+  // Error checking
+  adminQuizRestoreErrorChecking(quizId, token);
   const data = getData();
-
-  if (token === '') {
-    return { error: 'Token is empty' };
-  }
-
-  const tokenObj = decodeToken(token);
-
-  const user = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'Token is invalid' };
-  }
-
-  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quizInQuizzes) {
-    return { error: 'This is an active quiz not in the trash' };
-  }
-
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
-
-  if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to a quiz in the trash.' };
-  }
-
   const quiz = data.trash[quizIndex];
-
-  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
-
-  if (activeQuiz) {
-    return { error: 'Quiz name is already used by another active quiz.' };
-  }
-
-  if (quiz.authUserId !== user.authUserId) {
-    return { error: 'You do not own quiz ID, or quiz does not exist' };
-  }
 
   data.quizzes.push(quiz);
   data.trash.splice(quizIndex, 1);
@@ -412,118 +376,40 @@ export function adminQuizRestore(quizId: number, token: string): object | ErrorR
   return {};
 }
 
-/**
- * Start a new quiz session
- * @param {number} quizId - The ID of the quiz to start a session for
- * @param {string} token - The user's authentication token
- * @param {number} autoStartNum - The number of players that will automatically start the quiz
- * @returns {SessionId} - The ID of the new session
- */
-export function adminQuizSessionStart(
-  quizId: number,
-  token: string,
-  autoStartNum: number): SessionId {
-  const data: Data = getData();
+/// //////////////////////////
+// Iteration 3 New Functions
+/// //////////////////////////
 
+export function adminQuizThumbnailUpdate(quizId: number, token: string, thumbnailUrl: string) {
+  // Error checking for 401s
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
 
   const tokenData: Token = decodeToken(token);
-
   const user: User = findUserFromToken(tokenData);
 
   if (!user) {
     throw new Error('401 - Token is invalid');
   }
 
-  const quiz = findQuizFromQuizId(quizId);
+  // Find the quiz with the given quiz ID
+  const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
 
+  // Throw an error if the quiz does not exist
+  if (!quiz) {
+    throw new Error('403 - Quiz does not exist');
+  }
   if (quiz.authUserId !== user.authUserId) {
     throw new Error('403 - User does not own the quiz');
   }
 
-  if (autoStartNum > 50) {
-    throw new Error('400 - autoStartNum should be less than 50');
-  }
+  // Check if the thumbnail URL is valid and throw an error if it is not
+  checkUrlIsValid(thumbnailUrl);
 
-  // Check if there are more than 10 active sessions for this quiz
-  const nonEndedSessionsCount: number = data.sessions.filter(
-    session => session.state !== 'END' &&
-      session.metaData.quizId === quizId).length;
+  // Update the thumbnail URL
+  quiz.thumbnailUrl = thumbnailUrl;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
-  if (nonEndedSessionsCount >= 10) {
-    throw new Error('400 - There are more than 10 active sessions for this quiz');
-  }
-
-  if (quiz.questions.length === 0) {
-    throw new Error('400 - Quiz does not have any questions');
-  }
-
-  // Check if the quiz is in the trash
-  const quizInTrash: Quiz = findQuizInTrash(quizId);
-
-  if (quizInTrash) {
-    throw new Error('400 - Quiz is in trash');
-  }
-
-  // Generate a random session ID
-  const sessionId: number = generateRandomSessionId();
-
-  // Create a new session
-  const session: Session = {
-    autoStartNum,
-    sessionId,
-    state: 'LOBBY',
-    atQuestion: 0,
-    players: [],
-    metaData: quiz,
-    messages: [],
-  };
-
-  // Add the session to the data
-  data.sessions.push(session);
-
-  // Return the session ID
-  return { sessionId };
-}
-
-/**
- * Retrieves active and inactive sessions for a specific quiz based on the quiz ID.
- *
- * @param {number} quizId - The ID of the quiz
- * @param {string} token - The authorization token of the user
- * @returns {QuizSessionsResponse} - An object containing arrays of active and inactive session IDs
- */
-export function adminQuizSessionView(
-  quizId: number, token: string
-): QuizSessionsResponse {
-  // Error checking using helper function
-  adminQuizSessionViewErrorChecking(quizId, token);
-
-  const data: Data = getData();
-
-  // Filter sessions for the quiz
-  const activeSessions: number[] = [];
-  const inactiveSessions: number[] = [];
-
-  data.sessions.forEach((session) => {
-    if (session.metaData.quizId === quizId) {
-      if (session.state !== 'END') {
-        activeSessions.push(session.sessionId);
-      } else {
-        inactiveSessions.push(session.sessionId);
-      }
-    }
-  });
-
-  // Sort sessions in ascending order
-  activeSessions.sort((a, b) => a - b);
-  inactiveSessions.sort((a, b) => a - b);
-
-  // Return the session data
-  return {
-    activeSessions,
-    inactiveSessions,
-  };
+  return {};
 }

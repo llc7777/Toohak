@@ -119,9 +119,14 @@ export function adminQuizQuestionCreate(
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
-    thumbnailUrl: '',
+    thumbnailUrl: 'http://google.com/some/image/path.jpg',
     points: points,
-    answerOptions: answerOptions
+    answerOptions: answerOptions,
+    playersCorrect: [],
+    averageAnswerTime: 0,
+    percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: [],
   };
 
   const data = getData();
@@ -190,7 +195,13 @@ export function adminQuizQuestionDuplicate(
     timeLimit: question.timeLimit,
     thumbnailUrl: question.thumbnailUrl,
     points: question.points,
-    answerOptions: question.answerOptions
+    answerOptions: question.answerOptions,
+    playersCorrect: question.playersCorrect,
+    averageAnswerTime: 0,
+    percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: question.playersAnswered,
+
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].timeLimit += question.timeLimit;
@@ -208,7 +219,8 @@ export function adminQuizQuestionDuplicate(
  * @param {AnswerOptions[]} answerOptions - An array of answer options.
  * @param {number} timeLimit - The time limit for answering the question.
  * @param {number} points - The points awarded for the question.
- * @returns {Object | ErrorResponse} - An empty object on success or an error message on failure.
+ * @param {string} [thumbnailUrl] - The URL of the question thumbnail.
+ * @returns {} - An empty object on success.
  */
 export function adminQuizQuestionUpdate(
   quizId: number,
@@ -219,44 +231,48 @@ export function adminQuizQuestionUpdate(
   points: number,
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
-): object | ErrorResponse {
+): object {
+  if (!encodedTokenExists(token) || token.length === 0) {
+    throw new Error('401 - Token is empty or invalid.');
+  }
+
   const tokenData: Token = decodeToken(token);
   const user: User | null = findUserFromToken(tokenData);
 
   const quiz = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return { error: 'No such quiz exists' };
+    throw new Error('403 - No such quiz exists');
   }
 
   if (quiz.authUserId !== user.authUserId) {
-    return { error: 'User does not own the quiz' };
+    throw new Error('403 - User does not own the quiz');
   }
 
   const questionIndex: number = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
-    return { error: 'No such question exists' };
+    throw new Error('403 - No such question exists');
   }
 
   if (question.length < 5 || question.length > 50) {
-    return { error: 'Question must be between 5 to 50 characters' };
+    throw new Error('400 - Question must be between 5 and 50 characters');
   }
 
   if (answerOptions.length < 2 || answerOptions.length > 6) {
-    return { error: 'Question must have between 2 to 6 answers' };
+    throw new Error('400 - Question must have between 2 and 6 answers');
   }
 
   if (timeLimit <= 0) {
-    return { error: 'Time limit must be a positive number' };
+    throw new Error('400 - Time limit must be a positive number');
   }
 
   const totalTime = quiz.questions.reduce((total, q) => total + q.timeLimit, 0) -
                     quiz.questions[questionIndex].timeLimit + timeLimit;
   if (totalTime > 180) {
-    return { error: 'Total time limit across quiz must not exceed 3 minutes' };
+    throw new Error('400 - Total time limit across quiz must not exceed 3 minutes');
   }
 
   if (points < 1 || points > 10) {
-    return { error: 'Points awarded must be between 1 and 10 points' };
+    throw new Error('400 - Points awarded must be between 1 and 10 points');
   }
 
   const answerSet = new Set(answerOptions.map(option => option.answer));
@@ -264,15 +280,28 @@ export function adminQuizQuestionUpdate(
     option.answer.length >= 1 && option.answer.length <= 30
   );
   if (!allAnswersValid) {
-    return { error: 'Answers must be between 1 and 30 characters long' };
+    throw new Error('400 - Answers must be between 1 and 30 characters long');
   }
+
   if (answerSet.size !== answerOptions.length) {
-    return { error: 'Answers must have no duplicates of one another' };
+    throw new Error('400 - Answers must have no duplicates of one another');
   }
 
   const hasCorrectAnswer = answerOptions.some(option => option.correct);
   if (!hasCorrectAnswer) {
-    return { error: 'There must be at least one correct answer' };
+    throw new Error('400 - There must be at least one correct answer');
+  }
+
+  if (thumbnailUrl && (
+    thumbnailUrl === '' ||
+    (!thumbnailUrl.startsWith('http://') && !thumbnailUrl.startsWith('https://')) ||
+    (!thumbnailUrl.toLowerCase().endsWith('.jpg') &&
+     !thumbnailUrl.toLowerCase().endsWith('.jpeg') &&
+     !thumbnailUrl.toLowerCase().endsWith('.png'))
+  )) {
+    throw new Error(
+      '400 - ThumbnailUrl must begin with http:// or https:// and end with .jpg, .jpeg, or .png'
+    );
   }
 
   quiz.timeLimit -= quiz.questions[questionIndex].timeLimit;
@@ -281,10 +310,16 @@ export function adminQuizQuestionUpdate(
     questionId,
     question,
     timeLimit,
-    thumbnailUrl,
+    thumbnailUrl: thumbnailUrl || quiz.questions[questionIndex].thumbnailUrl,
     points,
     answerOptions,
+    playersCorrect: [],
+    averageAnswerTime: 0,
+    percentCorrect: 0,
+    timeOpened: 0,
+    playersAnswered: [],
   };
+
   quiz.questions[questionIndex] = updatedQuestion;
   quiz.timeLimit += timeLimit;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
@@ -298,19 +333,21 @@ export function adminQuizQuestionUpdate(
 }
 
 /**
- * Deletes a question from a quiz if the user is authenticated and owns the quiz.
- * @param {string} token - The authentication token of the user
- * @param {number} quizId - The ID of the quiz from which the question will be deleted
- * @param {number} questionId - The ID of the question to be deleted
- * @returns {object | ErrorResponse} - An empty object on success or an error message on failure
+ * Deletes a question from a quiz if the user is authenticated, owns the quiz,
+ * and there are no active sessions.
+ *
+ * @param {string} token - The user's authentication token
+ * @param {number} quizId - The ID of the quiz from which the question is to be deleted
+ * @param {number} questionId - The ID of the question to delete
+ * @returns {object | ErrorResponse} - An empty object on success, or an error message on failure
  */
 export function adminQuizQuestionDelete(
   token: string,
   quizId: number,
   questionId: number
-): object | ErrorResponse {
+): object {
   if (!encodedTokenExists(token) || token.length === 0) {
-    return { error: 'Token is invalid' };
+    throw new Error('401 - Token is invalid');
   }
 
   const tokenData: Token = decodeToken(token);
@@ -318,16 +355,24 @@ export function adminQuizQuestionDelete(
 
   const quiz: Quiz | undefined = findQuizFromQuizId(quizId);
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    throw new Error('403 - Quiz ID does not refer to a valid quiz.');
   }
 
   if (quiz.authUserId !== user.authUserId) {
-    return { error: 'User does not own the quiz.' };
+    throw new Error('403 - User does not own the quiz.');
   }
 
   const questionIndex: number = getQuestionIndexFromQuestionId(questionId, quizId);
   if (questionIndex === -1) {
-    return { error: 'Question ID does not refer to a valid question.' };
+    throw new Error('400 - Question ID does not refer to a valid question within this quiz.');
+  }
+
+  const data = getData();
+  const activeSession = data.sessions.find(
+    session => session.metadata.quizId === quizId && session.state !== 'END'
+  );
+  if (activeSession) {
+    throw new Error('400 - Cannot delete question while there is an active session for this quiz.');
   }
 
   quiz.questions.splice(questionIndex, 1);

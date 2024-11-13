@@ -88,12 +88,22 @@ export interface AnswerOptions {
 }
 
 export interface QuestionInfo {
-  questionId: number;
-  question: string;
-  timeLimit: number;
-  thumbnailUrl: string;
-  points: number;
-  answerOptions: AnswerOptions[];
+  questionId: number,
+  question: string,
+  timeLimit: number,
+  thumbnailUrl: string,
+  points: number,
+  answerOptions: AnswerOptions[],
+  playersCorrect: string[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+  timeOpened: number,
+  playersAnswered: playerAnswerInfo[];
+}
+
+export interface playerAnswerInfo {
+  playerId: string,
+  timeAnswered: number,
 }
 
 export interface QuestionCreateReq {
@@ -110,30 +120,22 @@ export interface sessionPlayer {
   score: number,
 }
 
-export interface SessionQuestions {
-  questionId: number,
-  question: string,
-  timeLimit: number,
-  thumbnailUrl: string,
-  points: number,
-  answerOptions: AnswerOptions[],
-  playersCorrect: string[],
-  averageAnswerTime: number,
-  percentCorrect: number,
-}
-
 export interface Session {
   sessionId: number,
   autoStartNum: number,
   state: string,
   atQuestion: number,
   players: sessionPlayer[],
-  metaData: Quiz,
+  metadata: Quiz,
   messages: Message[],
 }
 
 export interface SessionId {
   sessionId: number,
+}
+
+export interface PlayerId {
+  playerId: number,
 }
 
 export interface Message {
@@ -193,3 +195,50 @@ export interface QuizSessionsResponse {
   activeSessions: number[];
   inactiveSessions: number[];
 }
+
+export interface QuizSessionStatusResponse {
+  state: string;
+  atQuestion: number;
+  players: string[];
+  metadata: Metadata;
+}
+
+interface Metadata {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: Question[];
+  timeLimit: number;
+  thumbnailUrl: string;
+}
+
+interface Question {
+  questionId: number;
+  question: string;
+  timeLimit: number;
+  thumbnailUrl: string;
+  points: number;
+  answerOptions: AnswerOption[];
+}
+
+export interface AnswerOption {
+  answerId: number;
+  answer: string;
+  colour: string;
+  correct: boolean;
+}
+
+// export interface Player {
+//   name: string;
+// }
+
+// export interface QuizSession {
+//   sessionId: number;
+//   state: SessionState;
+//   atQuestion: number;
+//   players: Player[];
+//   metadata: Metadata;
+// }
