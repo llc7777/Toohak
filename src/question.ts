@@ -232,7 +232,6 @@ export function adminQuizQuestionUpdate(
   answerOptions: AnswerOptions[],
   thumbnailUrl?: string
 ): object {
-
   if (!encodedTokenExists(token) || token.length === 0) {
     throw new Error('401 - Token is empty or invalid.');
   }
