@@ -1,24 +1,27 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
+import { AuthResponse, QuizID } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Helper function for creating quiz
-const quizCreate = (token, name, description) => {
-  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: { token, name, description },
+const quizCreate = (token: string, name: string, description: string): QuizID => {
+  const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
+    headers: { token },
+    json: { name, description },
     timeout: TIMEOUT_MS
   });
   return JSON.parse(res.body.toString());
 };
 
 // Helper function to register a user
-const registerUser = (email, password, nameFirst, nameLast) => {
+const registerUser = (email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): AuthResponse => {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: { email, password, nameFirst, nameLast },
     timeout: TIMEOUT_MS
@@ -27,9 +30,9 @@ const registerUser = (email, password, nameFirst, nameLast) => {
 };
 
 // Helper function to restore quiz from trash
-const restoreQuiz = (quizId, token) => {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
-    json: { token },
+const restoreQuiz = (quizId: number, token: string) => {
+  const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
+    headers: { token },
     timeout: TIMEOUT_MS
   });
   return {
@@ -39,18 +42,18 @@ const restoreQuiz = (quizId, token) => {
 };
 
 // Helper function to get the timeLastEdited timestamp from adminQuizInfo
-const quizInfo = (token, quizId) => {
-  const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-    qs: { token },
+const quizInfo = (token: string, quizId: number): number => {
+  const result = request('GET', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+    headers: { token },
     timeout: TIMEOUT_MS
   });
   return JSON.parse(result.body.toString()).timeLastEdited;
 };
 
-let token = {};
-let validQuizId = [];
+let token: string;
+let validQuizId: number;
 
-describe('POST /v1/admin/quiz/:quizId/restore', () => {
+describe('POST /v2/admin/quiz/:quizId/restore', () => {
   beforeEach(() => {
     request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
 
@@ -65,8 +68,8 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
     test('restore a quiz from trash', () => {
       const timeBefore = quizInfo(token, validQuizId);
 
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
-        qs: { token },
+      request('DELETE', SERVER_URL + `/v2/admin/quiz/${validQuizId}`, {
+        headers: { token },
         timeout: TIMEOUT_MS
       });
 
@@ -87,14 +90,14 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       const timeBeforeQuiz2 = quizInfo(token, quizId);
 
       // Delete the first quiz
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
-        qs: { token },
+      request('DELETE', SERVER_URL + `/v2/admin/quiz/${validQuizId}`, {
+        headers: { token },
         timeout: TIMEOUT_MS
       });
 
       // Delete the second quiz
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-        qs: { token },
+      request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+        headers: { token },
         timeout: TIMEOUT_MS
       });
 
@@ -127,7 +130,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
     validQuizId = quizCreateRes.quizId;
 
     request('DELETE', SERVER_URL + `/v1/admin/quiz/${validQuizId}`, {
-      qs: { token },
+      headers: { token },
       timeout: TIMEOUT_MS
     });
   });
@@ -151,7 +154,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
     });
 
     test('quiz IDs does not exist in trash', () => {
-      const invalidQuizId = validQuizId + '1';
+      const invalidQuizId = validQuizId + 1;
       const res = restoreQuiz(invalidQuizId, token);
 
       expect(res.statusCode).toStrictEqual(400);
@@ -174,8 +177,8 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       const userTokenRes2 = registerUser('different2@gmail.com', 'passss123', 'May', 'Lee');
       const userToken2 = userTokenRes2.token;
 
-      request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
-        qs: { token },
+      request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizId}`, {
+        headers: { token },
         timeout: TIMEOUT_MS
       });
       const res = restoreQuiz(quizId, userToken2);
@@ -184,13 +187,13 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
 
-    // test('quiz ID is an active quiz', () => {
-    //   const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
+    test('quiz ID is an active quiz', () => {
+      const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
 
-    //   const res = restoreQuiz(quizId1, token);
+      const res = restoreQuiz(quizId1, token);
 
-    //   expect(res.statusCode).toStrictEqual(400);
-    //   expect(res.body).toStrictEqual({ error: expect.any(String) });
-    // });
+      expect(res.statusCode).toStrictEqual(400);
+      expect(res.body).toStrictEqual({ error: expect.any(String) });
+    });
   });
 });

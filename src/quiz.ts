@@ -18,6 +18,7 @@ import {
   adminQuizSessionStatusErrorChecking,
   findSession,
   checkUrlIsValid,
+  adminQuizRestoreErrorChecking,
 } from './helper';
 import {
   ErrorResponse,
@@ -370,42 +371,11 @@ export function adminQuizTransfer(
  * @returns {Object} empty object on success
  */
 export function adminQuizRestore(quizId: number, token: string): object | ErrorResponse {
+  // Error checking
+  adminQuizRestoreErrorChecking(quizId, token);
   const data = getData();
-
-  if (token === '') {
-    return { error: 'Token is empty' };
-  }
-
-  const tokenObj = decodeToken(token);
-
-  const user = findUserFromToken(tokenObj);
-
-  if (!user) {
-    return { error: 'Token is invalid' };
-  }
-
-  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quizInQuizzes) {
-    return { error: 'This is an active quiz not in the trash' };
-  }
-
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
-
-  if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to a quiz in the trash.' };
-  }
-
   const quiz = data.trash[quizIndex];
-
-  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
-
-  if (activeQuiz) {
-    return { error: 'Quiz name is already used by another active quiz.' };
-  }
-
-  if (quiz.authUserId !== user.authUserId) {
-    return { error: 'You do not own quiz ID, or quiz does not exist' };
-  }
 
   data.quizzes.push(quiz);
   data.trash.splice(quizIndex, 1);
