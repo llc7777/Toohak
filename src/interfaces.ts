@@ -97,6 +97,7 @@ export interface QuestionInfo {
   playersCorrect: string[],
   averageAnswerTime: number,
   percentCorrect: number,
+  timeOpened: number,
 }
 
 export interface QuestionCreateReq {
@@ -111,6 +112,12 @@ export interface sessionPlayer {
   name: string,
   playerId: number,
   score: number,
+  timeAnswered: [
+    {
+      questionId: number,
+      timeAnswered: number,
+    }
+  ]
 }
 
 export interface Session {

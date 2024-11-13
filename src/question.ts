@@ -119,12 +119,13 @@ export function adminQuizQuestionCreate(
     questionId: newQuestionId,
     question: question,
     timeLimit: timeLimit,
-    thumbnailUrl: '',
+    thumbnailUrl: 'http://google.com/some/image/path.jpg',
     points: points,
     answerOptions: answerOptions,
     playersCorrect: [],
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
   };
 
   const data = getData();
@@ -197,6 +198,7 @@ export function adminQuizQuestionDuplicate(
     playersCorrect: question.playersCorrect,
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
 
   };
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
@@ -312,6 +314,7 @@ export function adminQuizQuestionUpdate(
     playersCorrect: [],
     averageAnswerTime: 0,
     percentCorrect: 0,
+    timeOpened: 0,
   };
 
   quiz.questions[questionIndex] = updatedQuestion;
