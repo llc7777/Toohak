@@ -320,24 +320,19 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const quizid = parseInt(req.params.quizId as string);
   const { token } = req.body;
 
-  const result = adminQuizRestore(quizid, token);
-
-  if ('error' in result) {
-    if (result.error === 'Token is empty' || result.error === 'Token is invalid') {
-      saveData();
-      return res.status(401).json(result);
-    } else if (result.error === 'You do not own quiz ID, or quiz does not exist' ||
-      result.error === 'Quiz ID does not refer to a quiz in the trash.'
-    ) {
-      saveData();
-      return res.status(403).json(result);
-    } else if ('error' in result) {
-      saveData();
-      return res.status(400).json(result);
+  try {
+    const result = adminQuizRestore(quizid, token);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
     }
+    return res.status(400).json({ error: error.message });
   }
-  saveData();
-  res.status(200).json(result);
 });
 
 // PUT request for adminQuizDescription
@@ -579,6 +574,26 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
     } else {
       return res.status(400).json({ error: e.message });
     }
+  }
+});
+
+// adminQuizRestore POST request
+app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const quizid: number = parseInt(req.params.quizId as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizRestore(quizid, token);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('403')) {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(400).json({ error: error.message });
   }
 });
 

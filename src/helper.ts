@@ -283,6 +283,38 @@ export function adminQuizRemoveErrorChecking(
   }
 }
 
+export function adminQuizRestoreErrorChecking(quizId: number, token: string): void {
+  const data: Data = getData();
+
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    throw new Error('400 - Quiz ID does not refer to a quiz in the trash.');
+  }
+
+  const quiz = data.trash[quizIndex];
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    throw new Error('400 - Quiz name is already used by another active quiz.');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - You do not own quiz ID, or quiz does not exist');
+  }
+}
+
 export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   const data = getData();
 
