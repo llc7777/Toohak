@@ -1,7 +1,7 @@
 
 import { getData } from './dataStore';
 import { emptyTrashErrorChecking } from './helper';
-import { ErrorResponse } from './interfaces';
+import { Data, ErrorResponse } from './interfaces';
 
 /**
  * Reset the state of the application back to the start.
@@ -26,7 +26,7 @@ export function clear() {
 export function emptyTrash(token: string, quizIds: number[]): object {
   emptyTrashErrorChecking(token, quizIds);
 
-  const data = getData();
+  const data: Data = getData();
   data.trash = data.trash.filter(quiz => !quizIds.includes(quiz.quizId));
 
   return {};
