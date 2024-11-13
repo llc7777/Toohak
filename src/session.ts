@@ -11,6 +11,9 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
+  totalPlayers,
+  findPlayerFromPlayerId,
+  findSessionFromPlayerId
 } from './helper';
 import {
   User,
@@ -357,7 +360,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
     throw new Error('400 - Player must have a unique name');
   }
 
-  const playerId = session.players.length + 1;
+  const playerId = totalPlayers() + 1;
   session.players.push({
     playerId: playerId,
     name: playerName,
@@ -369,4 +372,24 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   }
 
   return { playerId };
+}
+
+/** Gives player status from playerid
+ * 
+ * @param playerId 
+ * @returns 
+ */
+export function playerStatus(playerId: number) {
+  const player = findPlayerFromPlayerId(playerId);
+  const session = findSessionFromPlayerId(playerId);
+  // session id doesn't exist
+  if (!session) {
+    throw new Error('400 - Player Id does not exist');
+  }
+
+  return {
+    state: session.state,
+    numQuestions: player.score,
+    atQuestion: session.atQuestion
+  };
 }
