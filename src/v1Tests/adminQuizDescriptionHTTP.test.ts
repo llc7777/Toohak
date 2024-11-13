@@ -1,37 +1,43 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
+import { ErrorResponse, Token } from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
-const ERROR = { error: expect.any(String) };
+// Define an expected error response for tests
+const ERROR: ErrorResponse = { error: expect.any(String) };
 
-let token = {};
-const quizId = 1;
+// Declare variables to store user token and quiz ID
+let token: string = '';
+let quizId: number = 0;
 
+// Clear the database and register a user before each test
 beforeEach(() => {
+  // Clear the database
   request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
 
-  token = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+  // Register a new user and retrieve the token
+  const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
       nameFirst: 'Leo',
       nameLast: 'Kim'
     },
-    timeout: TIMEOUT_MS
+    timeout: TIMEOUT_MS,
   });
 
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(res.body.toString()).token;
 
-  request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+  // Create a quiz to obtain quizId
+  const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
     json: { token, name: 'quiz1', description: 'Initial description' },
     timeout: TIMEOUT_MS
   });
+
+  quizId = JSON.parse(quizRes.body.toString()).quizId;
 });
 
 describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
@@ -112,8 +118,8 @@ describe('Test for PUT v1/admin/quiz/:quizId/description', () => {
   });
 
   test('should return error for invalid token', () => {
-    const invalidToken = { sessionId: 1, authUserId: 1531 };
-    const encodedInvalid = createToken(invalidToken);
+    const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
+    const encodedInvalid: string = createToken(invalidToken);
 
     const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
       json: { token: encodedInvalid, description: 'Some description' },

@@ -19,7 +19,7 @@ import {
   adminUserDetailsUpdateErrorChecking,
   adminAuthLoginErrorChecking
 } from './helper';
-import { ErrorResponse, Token, User, UserInfo, AuthResponse } from './interfaces';
+import { ErrorResponse, Token, User, UserInfo, AuthResponse, Data } from './interfaces';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string) {
@@ -204,59 +204,45 @@ export function adminUserPasswordUpdate(
   newPassword: string
 ) {
   let checkOldPassword = false;
-  const data = getData();
+  const data: Data = getData();
 
   // Check if the token is empty
   if (token === '') {
-    return {
-      error: 'Token is empty',
-    };
+    throw new Error('401 - Token is empty');
   }
 
   // Find the user from the token
-  const tokenData = decodeToken(token);
+  const tokenData: Token = decodeToken(token);
 
   // Search through the data to check if the user exists
-  const userIndex = findUserIndexFromToken(tokenData);
+  const userIndex: number = findUserIndexFromToken(tokenData);
 
   if (userIndex === -1) {
-    return {
-      error: 'Token is invalid',
-    };
+    throw new Error('401 - Token is invalid');
   }
   // Search through the data to check if the old password is correct
   if (data.users[userIndex].password === oldPassword) {
     checkOldPassword = true;
   }
   // Search through the users old passwords to see if the new password has already been used
-  const alreadyUsedThisPassword = data.users[userIndex].oldPasswords.find(
+  const alreadyUsedThisPassword: string | null = data.users[userIndex].oldPasswords.find(
     (oldPassword: string) => oldPassword === newPassword);
 
   // Check password is right
   if (!checkOldPassword) {
-    return {
-      error: 'Old password is incorrect',
-    };
+    throw new Error('400 - Old password is incorrect');
     // Check new password is different to old password
   } else if (oldPassword === newPassword) {
-    return {
-      error: 'New password must be different from the old password',
-    };
+    throw new Error('400 - New password must be different from the old password');
     // Check new password is already used
   } else if (alreadyUsedThisPassword) {
-    return {
-      error: 'New password has already been used',
-    };
+    throw new Error('400 - New password has already been used');
     // Check new password is less than 8 characters
   } else if (newPassword.length < 8) {
-    return {
-      error: 'New password must be at least 8 characters long',
-    };
+    throw new Error('400 - New password must be at least 8 characters long');
     // Check new password does not contain at least one letter and one number
   } else if (!newPassword.match(/[a-zA-Z]/) || !newPassword.match(/[0-9]/)) {
-    return {
-      error: 'New password must contain at least one letter and one number',
-    };
+    throw new Error('400 - New password must contain at least one letter and one number');
   }
 
   // Update password and return empty object for indication of no error

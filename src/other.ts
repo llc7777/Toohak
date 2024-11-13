@@ -13,6 +13,7 @@ export function clear() {
   store.users = [];
   store.quizzes = [];
   store.trash = [];
+  store.sessions = [];
   return {};
 }
 
