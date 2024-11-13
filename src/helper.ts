@@ -339,9 +339,9 @@ export function adminQuizRestoreErrorChecking(quizId: number, token: string): vo
   }
 }
 
-export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
+export function emptyTrashErrorChecking(token: string, quizIds: number[]): void {
   const data = getData();
-
+  console.log('quizIds:', quizIds);
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
@@ -357,20 +357,14 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   }
 
   for (const quizId of quizIds) {
-    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+    const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
+
+    if (!quizInTrash) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
 
-    for (const quizId of quizIds) {
-      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
-
-      if (!quizInTrash) {
-        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
-      }
-
-      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
-        throw new Error('403 - You do not own quiz ID');
-      }
+    if (quizInTrash.authUserId !== user.authUserId) {
+      throw new Error('403 - You do not own quiz ID');
     }
   }
 }
