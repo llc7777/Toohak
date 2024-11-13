@@ -307,9 +307,41 @@ export function adminQuizRemoveErrorChecking(
   }
 }
 
-export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
-  const data = getData();
+export function adminQuizRestoreErrorChecking(quizId: number, token: string): void {
+  const data: Data = getData();
 
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  const tokenObj: Token = decodeToken(token);
+  const user: User = findUserFromToken(tokenObj);
+
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+
+  if (quizIndex === -1) {
+    throw new Error('400 - Quiz ID does not refer to a quiz in the trash.');
+  }
+
+  const quiz = data.trash[quizIndex];
+  const activeQuiz = data.quizzes.find(activeQuiz => activeQuiz.name === quiz.name);
+
+  if (activeQuiz) {
+    throw new Error('400 - Quiz name is already used by another active quiz.');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - You do not own quiz ID, or quiz does not exist');
+  }
+}
+
+export function emptyTrashErrorChecking(token: string, quizIds: number[]): void {
+  const data = getData();
+  console.log('quizIds:', quizIds);
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
@@ -325,20 +357,14 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]) {
   }
 
   for (const quizId of quizIds) {
-    if (data.quizzes.find(quiz => quiz.quizId === quizId)) {
+    const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
+
+    if (!quizInTrash) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
     }
 
-    for (const quizId of quizIds) {
-      const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
-
-      if (!quizInTrash) {
-        throw new Error('400 - One or more quiz IDs is not currently in the trash.');
-      }
-
-      if (quizInTrash && quizInTrash.authUserId !== user.authUserId) {
-        throw new Error('403 - You do not own quiz ID');
-      }
+    if (quizInTrash.authUserId !== user.authUserId) {
+      throw new Error('403 - You do not own quiz ID');
     }
   }
 }
