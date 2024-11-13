@@ -500,6 +500,13 @@ export function findSession(quizId: number, sessionId: number) {
   );
 }
 
+export function findSessionFromSessionId(sessionId: number) {
+  const data = getData();
+  return data.sessions.find(
+    session => session.sessionId === sessionId
+  );
+}
+
 export function countDownTillQuestionStart(
   session: Session,
   skipCountdownTimer: ReturnType<typeof setTimeout>,

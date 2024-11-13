@@ -10,6 +10,7 @@ import {
   adminQuizSessionStatusErrorChecking,
   findSession,
   countDownTillQuestionClose,
+  findSessionFromSessionId,
 } from './helper';
 import {
   User,
@@ -20,6 +21,7 @@ import {
   SessionId,
   QuizSessionsResponse,
   QuizSessionStatusResponse,
+  PlayerId
 } from './interfaces';
 
 /**
@@ -326,4 +328,43 @@ export function adminQuizSessionStatus(
   };
 
   return response;
+}
+
+/** Allows player to join session using session number and player name
+ *
+ * @param sessionId
+ * @param playerName
+ * @returns
+ */
+export function playerJoin(sessionId: number, playerName: string): PlayerId {
+  const validName = /^[a-zA-z0-9 ]+$/;
+  // invalid name
+  if (!validName.test(playerName)) {
+    throw new Error('400 - Invalid name');
+  }
+
+  const session = findSessionFromSessionId(sessionId);
+  // session id doesn't exist
+  if (!session) {
+    throw new Error('400 - Session Id does not refer to a valid session');
+  }
+  // session not in lobby
+  if (session.state !== 'LOBBY') {
+    throw new Error('400 - Session is not in lobby state');
+  }
+
+  // player needs unique name
+  const duplicateName = session.players.some(player => player.name === playerName);
+  if (duplicateName) {
+    throw new Error('400 - Player must have a unique name');
+  }
+
+  const playerId = session.players.length + 1;
+  session.players.push({
+    playerId: playerId,
+    name: playerName,
+    score: 0
+  });
+
+  return { playerId };
 }
