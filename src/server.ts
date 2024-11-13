@@ -38,7 +38,6 @@ import {
   adminQuizQuestionDelete
 } from './question';
 import { clear, emptyTrash } from './other';
-import { encodedTokenExists } from './helper';
 import { getData } from './dataStore';
 import {
   AdminUserDetailsUpdateRequest,
