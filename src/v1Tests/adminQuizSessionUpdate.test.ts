@@ -72,7 +72,7 @@ beforeEach(() => {
     json: {
       questionBody: {
         question: 'What is the largest mammal in the world?',
-        timeLimit: 2,
+        timeLimit: 1,
         points: 5,
         answerOptions: [
           {
@@ -100,18 +100,17 @@ jest.setTimeout(60000);
 
 describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   // successful cases
-  test('Update a session gives back right return value', async () => {
+  test('Update a LOBBY with NEXT_QUESTION', async () => {
     const res = updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+    expect(res.statusCode).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
     const res2 = getQuizSessionStatus();
-
     // get the duration of the question
     const duration = JSON.parse(res2.body.toString()).metadata.questions[0].timeLimit;
 
     // check if the state is changed to QUESTION_COUNTDOWN
     expect(JSON.parse(res2.body.toString()).state).toStrictEqual('QUESTION_COUNTDOWN');
-    expect(res.statusCode).toStrictEqual(200);
-    expect(JSON.parse(res.body.toString())).toStrictEqual({});
 
     // wait for the 3 seconds to question open
     await sleep(3000);
@@ -125,20 +124,229 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
 
     // check if the state is changed to QUESTION_CLOSED
     const res4 = getQuizSessionStatus();
-    expect(JSON.parse(res4.body.toString()).state).toStrictEqual('QUESTION_CLOSED');
+    expect(JSON.parse(res4.body.toString()).state).toStrictEqual('QUESTION_CLOSE');
   });
 
-  test('Update a session with SKIP_COUNTDOWN', async () => {
-    const res = updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
-    expect(res.statusCode).toStrictEqual(200);
+  test('Update a LOBBY with END', async () => {
+    updateQuizSession('END', sessionId, token, quizId);
 
-    const res2 = updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
-    expect(res2.statusCode).toStrictEqual(200);
+    // check if the state is changed to ENDED
+    const res = getQuizSessionStatus();
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
+  });
+
+  test('Update a QUESTION_COUNTDOWN with SKIP_COUNTDOWN', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+
+    await sleep(duration * 1000);
+
+    const res2 = getQuizSessionStatus();
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('QUESTION_CLOSE');
+  });
+
+  test('Update a QUESTION_COUNTDOWN with END', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('END', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
+  });
+
+  test('Update a QUESTION_OPEN with END', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    // in QUESTION_OPEN state
+
+    updateQuizSession('END', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
+  });
+
+  test('Update a QUESTION_OPEN with GO_TO_ANSWER', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    // in QUESTION_OPEN state
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('ANSWER_SHOW');
+  });
+
+  test('Update a ANSWER_SHOW with NEXT_QUESTION', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    // in ANSWER_SHOW state
+
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('QUESTION_COUNTDOWN');
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res2 = getQuizSessionStatus();
+    const duration = JSON.parse(res2.body.toString()).metadata.questions[0].timeLimit;
+
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+
+    await sleep(duration * 1000);
 
     const res3 = getQuizSessionStatus();
-
-    expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+    expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_CLOSE');
   });
+
+  test('Update a ANSWER_SHOW with GO_TO_FINAL_RESULTS', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    // in ANSWER_SHOW state
+
+    updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('FINAL_RESULTS');
+  });
+
+  test('Update a ANSWER_SHOW with END', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    // in ANSWER_SHOW state
+
+    updateQuizSession('END', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
+  });
+
+  test('Update a QUESTION_CLOSE with NEXT_QUESTION', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    await sleep(duration * 1000);
+
+    // Check if the state is changed to QUESTION_CLOSE
+    const res2 = getQuizSessionStatus();
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('QUESTION_CLOSE');
+
+    // in QUESTION_CLOSE state
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    const res3 = getQuizSessionStatus();
+    expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_COUNTDOWN');
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res4 = getQuizSessionStatus();
+    expect(JSON.parse(res4.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+
+    await sleep(duration * 1000);
+
+    const res5 = getQuizSessionStatus();
+    expect(JSON.parse(res5.body.toString()).state).toStrictEqual('QUESTION_CLOSE');
+  });
+
+  test('Update a QUESTION_CLOSE with END', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    await sleep(duration * 1000);
+
+    // in QUESTION_CLOSE state
+    updateQuizSession('END', sessionId, token, quizId);
+
+    const res2 = getQuizSessionStatus();
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('END');
+  });
+
+  test('Update a QUESTION_CLOSE with GO_TO_FINAL_RESULTS', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    await sleep(duration * 1000);
+
+    // in QUESTION_CLOSE state
+    updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+
+    const res2 = getQuizSessionStatus();
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('FINAL_RESULTS');
+  });
+
+  test('Update a QUESTION_CLOSE with GO_TO_ANSWER', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    await sleep(duration * 1000);
+
+    // in QUESTION_CLOSE state
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    const res2 = getQuizSessionStatus();
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('ANSWER_SHOW');
+  });
+
+  test('Update a FINAL_RESULTS with END', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+
+    // in FINAL_RESULTS state
+    updateQuizSession('END', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    expect(JSON.parse(res.body.toString()).state).toStrictEqual('END');
+  });
+
 
   // error cases
 
