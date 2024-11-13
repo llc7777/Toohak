@@ -126,7 +126,7 @@ export interface Session {
   state: string,
   atQuestion: number,
   players: sessionPlayer[],
-  metaData: Quiz,
+  metadata: Quiz,
   messages: Message[],
 }
 

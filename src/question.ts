@@ -369,7 +369,7 @@ export function adminQuizQuestionDelete(
 
   const data = getData();
   const activeSession = data.sessions.find(
-    session => session.metaData.quizId === quizId && session.state !== 'END'
+    session => session.metadata.quizId === quizId && session.state !== 'END'
   );
   if (activeSession) {
     throw new Error('400 - Cannot delete question while there is an active session for this quiz.');

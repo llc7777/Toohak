@@ -181,7 +181,7 @@ export function quizHasSessionNotInEnd(quizId: number) {
   const data: Data = getData();
 
   for (const session of data.sessions) {
-    if (session.metaData.quizId === quizId && session.state !== 'END') {
+    if (session.metadata.quizId === quizId && session.state !== 'END') {
       return true;
     }
   }
@@ -496,7 +496,7 @@ export function findSession(quizId: number, sessionId: number) {
   const data = getData();
   return data.sessions.find(
     session => session.sessionId === sessionId &&
-    session.metaData.quizId === quizId
+      session.metadata.quizId === quizId
   );
 }
 
@@ -507,18 +507,27 @@ export function findSessionFromSessionId(sessionId: number) {
   );
 }
 
-export function countDownAndStartGame(session: Session) {
-  session.state = 'QUESTION_COUNTDOWN';
-  const duration = session.metaData.timeLimit;
-
+export function countDownTillQuestionStart(
+  session: Session,
+  skipCountdownTimer: ReturnType<typeof setTimeout>,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
   // Start the countdown and open the question
-  setTimeout(() => {
+  skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
+    countDownTillQuestionClose(session, timeLimitTimer);
   }, 3000);
+}
 
-  // Close the question after the duration
-  setTimeout(() => {
-    session.state = 'QUESTION_CLOSED';
+export function countDownTillQuestionClose(
+  session: Session,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
+  const index: number = session.atQuestion;
+  const duration: number = session.metadata.questions[index].timeLimit;
+
+  timeLimitTimer = setTimeout(() => {
+    session.state = 'QUESTION_CLOSE';
   }, duration * 1000);
 }
 
@@ -534,3 +543,6 @@ export function checkUrlIsValid(url: string) {
     throw new Error('400 - Invalid URL');
   }
 }
+
+// Helper function to delay execution for session update tests
+export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));

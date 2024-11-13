@@ -5,10 +5,11 @@ import {
   findQuizFromQuizId,
   findQuizInTrash,
   generateRandomSessionId,
-  countDownAndStartGame,
+  countDownTillQuestionStart,
   adminQuizSessionViewErrorChecking,
   adminQuizSessionStatusErrorChecking,
   findSession,
+  countDownTillQuestionClose,
   findSessionFromSessionId,
 } from './helper';
 import {
@@ -77,7 +78,7 @@ export function adminQuizSessionStart(
   // Check if there are more than 10 active sessions for this quiz
   const nonEndedSessionsCount: number = data.sessions.filter(
     session => session.state !== 'END' &&
-        session.metaData.quizId === quizId).length;
+      session.metadata.quizId === quizId).length;
 
   // Throw an error if there are more than 10 active sessions for this quiz
   if (nonEndedSessionsCount >= 10) {
@@ -99,7 +100,7 @@ export function adminQuizSessionStart(
     state: 'LOBBY',
     atQuestion: 0,
     players: [],
-    metaData: quiz,
+    metadata: quiz,
     messages: [],
   };
 
@@ -111,13 +112,13 @@ export function adminQuizSessionStart(
 }
 
 /**
-   * Update the state of a quiz session
-   * @param {number} quizId - The ID of the quiz
-   * @param {number} sessionId - The ID of the session
-   * @param {string} token - The user's authentication token
-   * @param {string} action - The action to perform on the session
-   * @returns {object} - An empty object
-   */
+ * Update the state of a quiz session
+ * @param {number} quizId - The ID of the quiz
+ * @param {number} sessionId - The ID of the session
+ * @param {string} token - The user's authentication token
+ * @param {string} action - The action to perform on the session
+ * @returns {object} - An empty object
+ */
 export function adminQuizSessionUpdate(
   quizId: number, sessionId: number, token: string, action: string): object {
   const data: Data = getData();
@@ -149,7 +150,7 @@ export function adminQuizSessionUpdate(
 
   // Find the session with the given session ID and quiz ID
   const session = data.sessions.find(session => session.sessionId === sessionId &&
-      session.metaData.quizId === quizId);
+    session.metadata.quizId === quizId);
 
   // Throw an error if the session does not exist
   if (!session) {
@@ -169,33 +170,69 @@ export function adminQuizSessionUpdate(
     throw new Error('400 - Invalid action');
   }
 
-  // When the action is NEXT_QUESTION
-  if (action === 'NEXT_QUESTION') {
-    if (session.state === 'LOBBY') {
-      countDownAndStartGame(session);
-    } else if (session.state === 'ANSWER_SHOW') {
-      countDownAndStartGame(session);
-    } else if (session.state === 'QUIZ_CLOSE') {
-      countDownAndStartGame(session);
+  let skipCountdownTimer: ReturnType<typeof setTimeout>;
+  let timeLimitTimer: ReturnType<typeof setTimeout>;
+
+  if (session.state === 'LOBBY') {
+    if (action === 'END') {
+      session.state = 'END';
+    } else if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
     }
-  } else if (action === 'SKIP_COUNTDOWN' && session.state === 'QUESTION_COUNTDOWN') {
-    session.state = 'QUESTION_OPEN';
-  } else if (action === 'GO_TO_ANSWER') {
-    if (session.state === 'QUESTION_OPEN') {
+  } else if (session.state === 'QUESTION_COUNTDOWN') {
+    if (action === 'END') {
+      session.state = 'END';
+    } else if (action === 'SKIP_COUNTDOWN') {
+      clearTimeout(skipCountdownTimer);
+      session.state = 'QUESTION_OPEN';
+      // After clear timeout, start new timer for question close
+      countDownTillQuestionClose(session, timeLimitTimer);
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  } else if (session.state === 'QUESTION_OPEN') {
+    if (action === 'END') {
+      clearTimeout(timeLimitTimer);
+      session.state = 'END';
+    } else if (action === 'GO_TO_ANSWER') {
+      clearTimeout(timeLimitTimer);
       session.state = 'ANSWER_SHOW';
-    } else if (session.state === 'QUESTION_CLOSE') {
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  } else if (session.state === 'QUESTION_CLOSE') {
+    if (action === 'GO_TO_ANSWER') {
       session.state = 'ANSWER_SHOW';
-    }
-  } else if (action === 'GO_TO_FINAL_RESULTS') {
-    if (session.state === 'ANSWER_SHOW') {
+    } else if (action === 'END') {
+      session.state = 'END';
+    } else if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = 'FINAL_RESULTS';
-    } else if (session.state === 'QUESTION_CLOSE') {
-      session.state = 'FINAL_RESULTS';
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
     }
-  } else if (action === 'END') {
-    session.state = 'END';
-  } else {
-    throw new Error('400 - Action cannot be applied to the current state');
+  } else if (session.state === 'ANSWER_SHOW') {
+    if (action === 'NEXT_QUESTION') {
+      session.state = 'QUESTION_COUNTDOWN';
+      countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = 'FINAL_RESULTS';
+    } else if (action === 'END') {
+      session.state = 'END';
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
+  } else if (session.state === 'FINAL_RESULTS') {
+    if (action === 'END') {
+      session.state = 'END';
+    } else {
+      throw new Error('400 - Action cannot be applied to the current state');
+    }
   }
 
   return {};
@@ -220,7 +257,7 @@ export function adminQuizSessionView(
   const inactiveSessions: number[] = [];
 
   data.sessions.forEach((session) => {
-    if (session.metaData.quizId === quizId) {
+    if (session.metadata.quizId === quizId) {
       if (session.state !== 'END') {
         activeSessions.push(session.sessionId);
       } else {
@@ -256,7 +293,6 @@ export function adminQuizSessionStatus(
   adminQuizSessionStatusErrorChecking(quizId, sessionId, token);
 
   const session = findSession(quizId, sessionId);
-
   const response: QuizSessionStatusResponse = {
     state: session.state,
     atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' ||
@@ -265,13 +301,13 @@ export function adminQuizSessionStatus(
       : session.atQuestion,
     players: session.players.map(player => player.name).sort(), // in ascending order
     metadata: {
-      quizId: session.metaData.quizId,
-      name: session.metaData.name,
-      timeCreated: session.metaData.timeCreated,
-      timeLastEdited: session.metaData.timeLastEdited,
-      description: session.metaData.description,
-      numQuestions: session.metaData.questions.length,
-      questions: session.metaData.questions.map(question => ({
+      quizId: session.metadata.quizId,
+      name: session.metadata.name,
+      timeCreated: session.metadata.timeCreated,
+      timeLastEdited: session.metadata.timeLastEdited,
+      description: session.metadata.description,
+      numQuestions: session.metadata.questions.length,
+      questions: session.metadata.questions.map(question => ({
         questionId: question.questionId,
         question: question.question,
         timeLimit: question.timeLimit,
@@ -284,11 +320,10 @@ export function adminQuizSessionStatus(
           correct: option.correct,
         })),
       })),
-      timeLimit: session.metaData.timeLimit,
-      thumbnailUrl: session.metaData.thumbnailUrl,
+      timeLimit: session.metadata.timeLimit,
+      thumbnailUrl: session.metadata.thumbnailUrl,
     }
   };
-
   return response;
 }
 
@@ -327,6 +362,10 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
     name: playerName,
     score: 0,
   });
+
+  if (session.players.length === session.autoStartNum) {
+    session.state = 'QUESTION_COUNTDOWN';
+  }
 
   return { playerId };
 }
