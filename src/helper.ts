@@ -474,29 +474,29 @@ export function findSession(quizId: number, sessionId: number) {
   );
 }
 
-export function countDownAndStartGame(session: Session) {
-  session.state = 'QUESTION_COUNTDOWN';
-  const index: number = session.atQuestion;
-  const duration: number = session.metadata.questions[index].timeLimit;
-
-
+export function countDownTillQuestionStart(
+  session: Session,
+  skipCountdownTimer: ReturnType<typeof setTimeout>,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
   // Start the countdown and open the question
-  setTimeout(() => {
+  skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
-    setTimeout(() => {
-      session.state = 'QUESTION_CLOSED';
-    }, duration * 1000)
+    countDownTillQuestionClose(session, timeLimitTimer)
   }, 3000);
 }
 
-// export function countDownAndCloseGame(session: Session) {
+export function countDownTillQuestionClose(
+  session: Session,
+  timeLimitTimer: ReturnType<typeof setTimeout>
+) {
+  const index: number = session.atQuestion;
+  const duration: number = session.metadata.questions[index].timeLimit;
 
-
-//   // Close the question after the duration
-//   setTimeout(() => {
-//     session.state = 'QUESTION_CLOSED';
-//   }, duration * 1000 + 3000);
-// }
+  timeLimitTimer = setTimeout(() => {
+    session.state = 'QUESTION_CLOSE';
+  }, duration * 1000)
+}
 
 export function checkUrlIsValid(url: string) {
   const validFileTypes = /\.(jpg|jpeg|png)$/i;
@@ -511,4 +511,5 @@ export function checkUrlIsValid(url: string) {
   }
 }
 
+// Helper function to delay execution for session update tests
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
