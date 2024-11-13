@@ -479,16 +479,24 @@ export function countDownAndStartGame(session: Session) {
   const index: number = session.atQuestion;
   const duration: number = session.metadata.questions[index].timeLimit;
 
+
   // Start the countdown and open the question
   setTimeout(() => {
     session.state = 'QUESTION_OPEN';
+    setTimeout(() => {
+      session.state = 'QUESTION_CLOSED';
+    }, duration * 1000)
   }, 3000);
-
-  // Close the question after the duration
-  setTimeout(() => {
-    session.state = 'QUESTION_CLOSED';
-  }, duration * 1000);
 }
+
+// export function countDownAndCloseGame(session: Session) {
+
+
+//   // Close the question after the duration
+//   setTimeout(() => {
+//     session.state = 'QUESTION_CLOSED';
+//   }, duration * 1000 + 3000);
+// }
 
 export function checkUrlIsValid(url: string) {
   const validFileTypes = /\.(jpg|jpeg|png)$/i;

@@ -599,6 +599,9 @@ export function adminQuizSessionUpdate(
     throw new Error('400 - Invalid action');
   }
 
+  let skipCountdownTimer;
+  let timeLimitTImer;
+
   // When the action is NEXT_QUESTION
   if (action === 'NEXT_QUESTION') {
     if (session.state === 'LOBBY') {

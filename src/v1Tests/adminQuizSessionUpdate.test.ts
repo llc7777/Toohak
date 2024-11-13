@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
-import { createToken } from '../helper';
+import { createToken, sleep } from '../helper';
 import { ErrorResponse, Token } from '../interfaces';
 
 const SERVER_URL: string = `${url}:${port}`;
@@ -32,12 +32,13 @@ const updateQuizSession = (action: string, sessionId: number, token: string, qui
   });
 };
 
-// const getQuizSessionStatus = () => {
-//     return request('GET', `${SERVER_URL}/v1/quiz/${quizId}/session/${sessionId}`, {
-//         headers: { token },
-//         timeout: TIMEOUT_MS,
-//     });
-// };
+// function to get the status of a quiz session
+const getQuizSessionStatus = () => {
+  return request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+    headers: { token },
+    timeout: TIMEOUT_MS,
+  });
+};
 
 // clear the database before each test and set parameters for session start
 beforeEach(() => {
@@ -71,7 +72,7 @@ beforeEach(() => {
     json: {
       questionBody: {
         question: 'What is the largest mammal in the world?',
-        timeLimit: 4,
+        timeLimit: 2,
         points: 5,
         answerOptions: [
           {
@@ -94,18 +95,50 @@ beforeEach(() => {
   sessionId = JSON.parse(res4.body.toString()).sessionId;
 });
 
+// Set timeout for jest
+jest.setTimeout(60000);
+
 describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   // successful cases
-  // test('Update a session gives back right return value', () => {
-  //     const res = updateQuizSession('NEXT_QUESTION', sessionId);
+  test('Update a session gives back right return value', async () => {
+    const res = updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
 
-  //     expect(res.statusCode).toStrictEqual(200);
-  //     expect(JSON.parse(res.body.toString())).toStrictEqual({});
+    const res2 = getQuizSessionStatus();
 
-  //     const res2 = getQuizSessionStatus();
-  //     expect(res2.statusCode).toStrictEqual(200);
-  //     expect(JSON.parse(res2.body.toString())).state.toStrictEqual({
-  //     });
+    // get the duration of the question
+    const duration = JSON.parse(res2.body.toString()).metadata.questions[0].timeLimit;
+
+    // check if the state is changed to QUESTION_COUNTDOWN
+    expect(JSON.parse(res2.body.toString()).state).toStrictEqual('QUESTION_COUNTDOWN');
+    expect(res.statusCode).toStrictEqual(200);
+    expect(JSON.parse(res.body.toString())).toStrictEqual({});
+
+    // wait for the 3 seconds to question open
+    await sleep(3000);
+
+    // check if the state is changed to QUESTION_OPEN
+    const res3 = getQuizSessionStatus();
+    expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+
+    // wait for the duration of the question to question close
+    await sleep(duration * 1000);
+
+    // check if the state is changed to QUESTION_CLOSED
+    const res4 = getQuizSessionStatus();
+    expect(JSON.parse(res4.body.toString()).state).toStrictEqual('QUESTION_CLOSED');
+  });
+
+  test('Update a session with SKIP_COUNTDOWN', async () => {
+    const res = updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+    expect(res.statusCode).toStrictEqual(200);
+
+    const res2 = updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+    expect(res2.statusCode).toStrictEqual(200);
+
+    const res3 = getQuizSessionStatus();
+
+    expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_OPEN');
+  });
 
   // error cases
 
