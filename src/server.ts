@@ -623,14 +623,12 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId', (req: Request, res: Respons
 app.post('/v1/player/join', (req: Request, res: Response) => {
   const playerName: string = req.body.playerName;
   const sessionId: number = req.body.sessionId;
-  console.log(sessionId);
   try {
     const result = playerJoin(sessionId, playerName);
     saveData();
     res.status(200).json(result);
   } catch (error) {
     saveData();
-    console.log(error.message);
     return res.status(400).json({ error: error.message });
   }
 });
