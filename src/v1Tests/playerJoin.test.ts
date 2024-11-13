@@ -41,11 +41,36 @@ beforeEach(() => {
   });
   quiz = JSON.parse(quizRes.body.toString());
 
-  const sessionStartRes = request('POST', SERVER_URL + '/v1/admin/quiz/{quizid}/session/start', {
-    json: { autoStartNum: 1 },
-    timeout: TIMEOUT_MS
+  request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
+    json: {
+      questionBody: {
+        question: 'What is the largest mammal in the world?',
+        timeLimit: 4,
+        points: 5,
+        answerOptions: [
+          {
+            answer: 'Whale',
+            correct: true
+          },
+          {
+            answer: 'Frog',
+            correct: false
+          }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      }
+    },
+    headers: { token }
   });
-  sessionId = JSON.parse(sessionStartRes.body.toString());
+
+  const sessionStartRes = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quiz.quizId}/session/start`, {
+      json: { autoStartNum: 3 },
+      headers: { token },
+      timeout: TIMEOUT_MS
+    });
+  sessionId = JSON.parse(sessionStartRes.body.toString()).sessionId;
 });
 
 describe('Test for POST /v1/player/join', () => {
@@ -56,7 +81,7 @@ describe('Test for POST /v1/player/join', () => {
     expect(JSON.parse(response.body.toString())).toStrictEqual({ playerId: expect.any(Number) });
   });
 
-  //multiple players join
+  // multiple players join
   test('200: working case with multiple players joining', () => {
     const response = playerJoinRequest({ sessionId: sessionId, playerName: 'Hayden Smith' });
     expect(response.statusCode).toBe(200);
@@ -71,16 +96,17 @@ describe('Test for POST /v1/player/join', () => {
     expect(JSON.parse(response2.body.toString())).toStrictEqual({ playerId: expect.any(Number) });
   });
 
-  //error cases
+  // error cases
   test.each([
     '>:)',
     'c:ld',
     'Mew M@w',
-  ])('name contains invalid characters. valid characters are alohanumeric and spaces', (playerName) => {
-    const response = playerJoinRequest({ sessionId: sessionId, playerName: playerName });
-    expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  });
+  ])('name contains invalid characters. valid characters are alohanumeric and spaces',
+    (playerName) => {
+      const response = playerJoinRequest({ sessionId: sessionId, playerName: playerName });
+      expect(response.statusCode).toBe(400);
+      expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
+    });
 
   test('name of user entered is not unique (compared to others who have already join)', () => {
     const response1 = playerJoinRequest({ sessionId: sessionId, playerName: 'Hayden Smith' });
@@ -99,14 +125,22 @@ describe('Test for POST /v1/player/join', () => {
   });
 
   test('session is not in lobby state', () => {
-    const updateStateRequest = (quizid: number, sessionid: number, token: string, body: { action: string }) => {
-      return request('PUT', `${SERVER_URL}/v1/admin/quiz/{quizId}/session/{sessionid}`, {
-        json: { action: "NEXT QUESTION" },
+    const updateStateRequest = (quizid: number,
+      sessionid: number,
+      token: string,
+      body: { action: string }
+    ) => {
+      return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizid}/session/${sessionid}`, {
+        json: { action: 'NEXT_QUESTION' },
         headers: { token },
         timeout: TIMEOUT_MS
       });
     };
-    const updateRes = updateStateRequest(quiz.quizId, sessionId, token, { action: 'NEXT QUESTION' });
+    const updateRes = updateStateRequest(quiz.quizId,
+      sessionId,
+      token,
+      { action: 'NEXT_QUESTION' }
+    );
     expect(updateRes.statusCode).toBe(200);
     expect(JSON.parse(updateRes.body.toString())).toStrictEqual({});
 
@@ -114,4 +148,4 @@ describe('Test for POST /v1/player/join', () => {
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
-})
+});

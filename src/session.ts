@@ -293,33 +293,31 @@ export function adminQuizSessionStatus(
 }
 
 /** Allows player to join session using session number and player name
- * 
- * @param sessionId 
- * @param playerName 
- * @returns 
+ *
+ * @param sessionId
+ * @param playerName
+ * @returns
  */
 export function playerJoin(sessionId: number, playerName: string): PlayerId {
-  const data: Data = getData();
-  
   const validName = /^[a-zA-z0-9 ]+$/;
   // invalid name
-  if(!validName.test(playerName)) {
+  if (!validName.test(playerName)) {
     throw new Error('400 - Invalid name');
   }
-  
+
   const session = findSessionFromSessionId(sessionId);
   // session id doesn't exist
   if (!session) {
     throw new Error('400 - Session Id does not refer to a valid session');
   }
   // session not in lobby
-  if (session.state !== "LOBBY") {
+  if (session.state !== 'LOBBY') {
     throw new Error('400 - Session is not in lobby state');
   }
 
-  //player needs unique name
+  // player needs unique name
   const duplicateName = session.players.some(player => player.name === playerName);
-  if(duplicateName) {
+  if (duplicateName) {
     throw new Error('400 - Player must have a unique name');
   }
 
@@ -328,7 +326,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
     playerId: playerId,
     name: playerName,
     score: 0
-  })
+  });
 
   return { playerId };
-} 
+}
