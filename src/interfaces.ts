@@ -127,6 +127,10 @@ export interface SessionId {
   sessionId: number,
 }
 
+export interface PlayerId {
+  playerId: number,
+}
+
 export interface Message {
   messageBody: string,
   playerId: string,
