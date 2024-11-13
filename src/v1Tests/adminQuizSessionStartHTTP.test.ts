@@ -15,7 +15,7 @@ let quizId: number = 0;
 let questionId: number = 0;
 
 // function to start a quiz session
-const startQuizSession = (quizId: number, autoStartNum: number) => {
+const startQuizSession = (quizId: number, autoStartNum: number, token: string) => {
   return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
     headers: { token },
     json: { autoStartNum },
@@ -79,7 +79,7 @@ beforeEach(() => {
 describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
   // successful cases
   test('Create a session', () => {
-    const res = startQuizSession(quizId, 2);
+    const res = startQuizSession(quizId, 2, token);
 
     expect(res.statusCode).toStrictEqual(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({ sessionId: expect.any(Number) });
@@ -87,7 +87,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
 
   test('Create up to 9 sessions', () => {
     for (let i = 0; i < 10; i++) {
-      const res = startQuizSession(quizId, 2);
+      const res = startQuizSession(quizId, 2, token);
 
       expect(res.statusCode).toStrictEqual(200);
       expect(JSON.parse(res.body.toString())).toStrictEqual({ sessionId: expect.any(Number) });
@@ -126,18 +126,18 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
       timeout: TIMEOUT_MS
     });
 
-    res = startQuizSession(quizId, 2);
+    res = startQuizSession(quizId, 2, token);
     expect(res.statusCode).toStrictEqual(200);
     expect(JSON.parse(res.body.toString())).toStrictEqual({ sessionId: expect.any(Number) });
 
-    const res2 = startQuizSession(quizId2, 2);
+    const res2 = startQuizSession(quizId2, 2, token);
     expect(res2.statusCode).toStrictEqual(200);
     expect(JSON.parse(res2.body.toString())).toStrictEqual({ sessionId: expect.any(Number) });
   });
 
-  // error cases
+  // 400 error cases
   test('autoStartNum is a number greater than 50', () => {
-    const res = startQuizSession(quizId, 51);
+    const res = startQuizSession(quizId, 51, token);
 
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
@@ -145,10 +145,10 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
 
   test('10 sessions that are not in END state currently exist for this quiz', () => {
     for (let i = 0; i < 10; i++) {
-      startQuizSession(quizId, 2);
+      startQuizSession(quizId, 2, token);
     }
 
-    const res = startQuizSession(quizId, 2);
+    const res = startQuizSession(quizId, 2, token);
 
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
@@ -160,7 +160,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
       timeout: TIMEOUT_MS
     });
 
-    const res = startQuizSession(quizId, 2);
+    const res = startQuizSession(quizId, 2, token);
 
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
@@ -172,20 +172,17 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
       timeout: TIMEOUT_MS
     });
 
-    const res = startQuizSession(quizId, 2);
+    const res = startQuizSession(quizId, 2, token);
 
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
+  // 401 error cases
   test('Test for empty token', () => {
     const emptyToken: string = '';
 
-    const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
-      headers: { token: emptyToken },
-      json: { name: 'quiz1', description: 'description' },
-      timeout: TIMEOUT_MS
-    });
+    const res = startQuizSession(quizId, 2, emptyToken);
 
     expect(res.statusCode).toStrictEqual(401);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
@@ -195,15 +192,36 @@ describe('Test for POST /v1/admin/quiz/{quizId}/session/start', () => {
     const invalidToken: Token = { sessionId: 1, authUserId: 1531 };
     const encodedInvalid: string = createToken(invalidToken);
 
-    const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
-      headers: { token: encodedInvalid },
+    const res = startQuizSession(quizId, 2, encodedInvalid);
+
+    expect(res.statusCode).toStrictEqual(401);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  // 403 error cases
+  test('Test for invalid quizId', () => {
+    const res = startQuizSession(9999, 2, token);
+
+    expect(res.statusCode).toStrictEqual(403);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for user not owning the quiz', () => {
+    const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
       json: {
-        name: 'quiz1', description: 'description'
+        email: 'Aerospace2@gmail.com',
+        password: 'Aeropass2',
+        nameFirst: 'Jin',
+        nameLast: 'Kim'
       },
       timeout: TIMEOUT_MS
     });
 
-    expect(res.statusCode).toStrictEqual(401);
-    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+    const token2 = JSON.parse(res.body.toString()).token;
+
+    const res2 = startQuizSession(quizId, 2, token2);
+
+    expect(res2.statusCode).toStrictEqual(403);
+    expect(JSON.parse(res2.body.toString())).toStrictEqual(ERROR);
   });
 });
