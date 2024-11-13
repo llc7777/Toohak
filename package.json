@@ -12,8 +12,10 @@
     },
     "dependencies": {
         "cors": "^2.8.5",
+        "csv-stringify": "^6.5.1",
         "express": "^4.19.2",
         "morgan": "^1.10.0",
+        "node-hash-password": "^1.4.2",
         "ts-node": "^10.9.2",
         "validator": "^13.12.0",
         "yamljs": "^0.3.0"
