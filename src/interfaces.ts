@@ -54,6 +54,15 @@ export interface QuizInfo {
   questions: QuestionInfo[],
 }
 
+export interface QuizInfoSimple {
+  quizId: number,
+  name: string,
+}
+
+export interface QuizInfoSimpleArray {
+  quizzes: QuizInfoSimple[];
+}
+
 export interface QuizInfoDetailed {
   quizId: number,
   name: string,
@@ -66,6 +75,11 @@ export interface QuizInfoDetailed {
   thumbnailUrl: string,
 }
 
+export interface AnswerOptionsReq {
+  answer: string;
+  correct: boolean;
+}
+
 export interface AnswerOptions {
   answerId: number;
   answer: string;
@@ -74,12 +88,50 @@ export interface AnswerOptions {
 }
 
 export interface QuestionInfo {
-  questionId: number;
+  questionId: number,
+  question: string,
+  timeLimit: number,
+  thumbnailUrl: string,
+  points: number,
+  answerOptions: AnswerOptions[],
+  playersCorrect: string[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
+export interface QuestionCreateReq {
   question: string;
   timeLimit: number;
-  thumbnailUrl: string;
   points: number;
   answerOptions: AnswerOptions[];
+  thumbnailUrl?: string;
+}
+
+export interface sessionPlayer {
+  name: string,
+  playerId: number,
+  score: number,
+}
+
+export interface Session {
+  sessionId: number,
+  autoStartNum: number,
+  state: string,
+  atQuestion: number,
+  players: sessionPlayer[],
+  metaData: Quiz,
+  messages: Message[],
+}
+
+export interface SessionId {
+  sessionId: number,
+}
+
+export interface Message {
+  messageBody: string,
+  playerId: string,
+  playerName: string,
+  timeSent: number,
 }
 
 export interface Trash {
@@ -94,6 +146,7 @@ export interface Trash {
 export interface Data {
   users: User[];
   quizzes: Quiz[];
+  sessions: Session[];
   trash: Quiz[];
 }
 
@@ -126,3 +179,55 @@ export interface AuthLoginRes {
   email: string;
   password: string;
 }
+
+export interface QuizSessionsResponse {
+  activeSessions: number[];
+  inactiveSessions: number[];
+}
+
+export interface QuizSessionStatusResponse {
+  state: string;
+  atQuestion: number;
+  players: string[];
+  metadata: Metadata;
+}
+
+interface Metadata {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: Question[];
+  timeLimit: number;
+  thumbnailUrl: string;
+}
+
+interface Question {
+  questionId: number;
+  question: string;
+  timeLimit: number;
+  thumbnailUrl: string;
+  points: number;
+  answerOptions: AnswerOption[];
+}
+
+export interface AnswerOption {
+  answerId: number;
+  answer: string;
+  colour: string;
+  correct: boolean;
+}
+
+// export interface Player {
+//   name: string;
+// }
+
+// export interface QuizSession {
+//   sessionId: number;
+//   state: SessionState;
+//   atQuestion: number;
+//   players: Player[];
+//   metadata: Metadata;
+// }

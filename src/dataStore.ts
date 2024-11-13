@@ -4,6 +4,7 @@ const data: Data = {
 
   users: [],
   quizzes: [],
+  sessions: [],
   trash: [],
 };
 
