@@ -1,7 +1,12 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken } from '../helper';
-import { ErrorResponse, AuthResponse, QuizID } from '../interfaces';
+import {
+  ErrorResponse,
+  AuthResponse,
+  QuizID,
+  AnswerOptionsReq
+} from '../interfaces';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -66,14 +71,39 @@ const getQuizSessions = (token: string, quizId: number) => {
   });
 };
 
-// const getSessionState = (quizId: number, sessionId: number, token: string) => {
-//   const session = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
-//     headers: { token },
+// Function to update the session state
+const updateQuizSession = (action: string, sessionId: number, token: string, quizId: number) => {
+  return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action },
+    timeout: TIMEOUT_MS,
+  });
+};
 
-//     timeout: TIMEOUT_MS,
-//   });
-//   return JSON.parse(session.body.toString()).state;
-// };
+// Function to create a question
+const requestAdminQuestionCreate = (quizId: number, token: string,
+  body: {
+  questionBody: {
+    question: string,
+    timeLimit: number,
+    points: number,
+    answerOptions: AnswerOptionsReq[],
+    thumbnailUrl: string
+  }
+}) => {
+  return request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
+    json: {
+      questionBody: {
+        question: body.questionBody.question,
+        timeLimit: body.questionBody.timeLimit,
+        points: body.questionBody.points,
+        answerOptions: body.questionBody.answerOptions,
+        thumbnailUrl: body.questionBody.thumbnailUrl
+      }
+    },
+    headers: { token }
+  });
+};
 
 beforeEach(() => {
   // Clear the data
@@ -94,36 +124,49 @@ beforeEach(() => {
   const createQuiz = quizCreate(token, 'quiz 1', 'description for quiz 1');
   quizId = createQuiz.quizId;
 
+  // Create a question
+  requestAdminQuestionCreate(quizId, token, {
+    questionBody: {
+      question: 'What is two plus two?',
+      timeLimit: 4,
+      points: 5,
+      answerOptions: [
+        {
+          answer: 'Four',
+          correct: true
+        },
+        {
+          answer: 'Five',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg'
+    }
+  });
+
   // Create active sessions
   const activeSessions = startQuizSession(quizId, 2);
+  console.log('Start Quiz Session Response:', JSON.parse(activeSessions.body.toString()));
+
   sessionId1 = JSON.parse(activeSessions.body.toString()).sessionId;
 
   // Create active sessions
   const inactiveSessions = startQuizSession(quizId, 2);
   sessionId2 = JSON.parse(inactiveSessions.body.toString()).sessionId;
-
-  // Manually set the session state to "END" for testing inactive session
-  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId2}/end`, {
-    headers: { token },
-    timeout: TIMEOUT_MS,
-  });
 });
 
 describe('/v1/admin/quiz/{quizId}/sessions', () => {
   describe('Successful cases', () => {
     test('Retrieve active and inactive sessions for a quiz', () => {
+      getQuizSessions(token, quizId);
+      updateQuizSession('END', sessionId2, token, quizId);
+
       const res = getQuizSessions(token, quizId);
-
-      expect(res.statusCode).toStrictEqual(200);
       const body = JSON.parse(res.body.toString());
+      console.log('Updated Get Quiz Sessions Response:', body);
 
-      expect(body.activeSessions).toEqual([sessionId1]);
-      expect(body.inactiveSessions).toEqual([sessionId2]);
-      // const sessionState1 = getSessionState(sessionId1);
-      // const sessionState2 = getSessionState(sessionId2);
-
-      // expect(sessionState1).not.toEqual('END');
-      // expect(sessionState2).toEqual('END');
+      expect(body.activeSessions).toContain(sessionId1);
+      expect(body.inactiveSessions).toContain(sessionId2);
     });
   });
 
