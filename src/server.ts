@@ -20,12 +20,15 @@ import {
   adminQuizTrashList,
   adminQuizRestore,
   adminQuizTransfer,
+
+  adminQuizThumbnailUpdate,
+} from './quiz';
+import {
   adminQuizSessionStart,
   adminQuizSessionUpdate,
   adminQuizSessionView,
   adminQuizSessionStatus,
-  adminQuizThumbnailUpdate,
-} from './quiz';
+} from './session';
 import {
   adminQuizQuestionCreate,
   adminQuizMoveQuestion,
