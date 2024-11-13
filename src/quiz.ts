@@ -507,7 +507,7 @@ export function adminQuizSessionStart(
   // Check if there are more than 10 active sessions for this quiz
   const nonEndedSessionsCount: number = data.sessions.filter(
     session => session.state !== 'END' &&
-      session.metaData.quizId === quizId).length;
+      session.metadata.quizId === quizId).length;
 
   // Throw an error if there are more than 10 active sessions for this quiz
   if (nonEndedSessionsCount >= 10) {
@@ -529,7 +529,7 @@ export function adminQuizSessionStart(
     state: 'LOBBY',
     atQuestion: 0,
     players: [],
-    metaData: quiz,
+    metadata: quiz,
     messages: [],
   };
 
@@ -579,7 +579,7 @@ export function adminQuizSessionUpdate(
 
   // Find the session with the given session ID and quiz ID
   const session = data.sessions.find(session => session.sessionId === sessionId &&
-    session.metaData.quizId === quizId);
+    session.metadata.quizId === quizId);
 
   // Throw an error if the session does not exist
   if (!session) {
@@ -656,7 +656,7 @@ export function adminQuizSessionView(
   const inactiveSessions: number[] = [];
 
   data.sessions.forEach((session) => {
-    if (session.metaData.quizId === quizId) {
+    if (session.metadata.quizId === quizId) {
       if (session.state !== 'END') {
         activeSessions.push(session.sessionId);
       } else {
@@ -701,13 +701,13 @@ export function adminQuizSessionStatus(
       : session.atQuestion,
     players: session.players.map(player => player.name).sort(), // in ascending order
     metadata: {
-      quizId: session.metaData.quizId,
-      name: session.metaData.name,
-      timeCreated: session.metaData.timeCreated,
-      timeLastEdited: session.metaData.timeLastEdited,
-      description: session.metaData.description,
-      numQuestions: session.metaData.questions.length,
-      questions: session.metaData.questions.map(question => ({
+      quizId: session.metadata.quizId,
+      name: session.metadata.name,
+      timeCreated: session.metadata.timeCreated,
+      timeLastEdited: session.metadata.timeLastEdited,
+      description: session.metadata.description,
+      numQuestions: session.metadata.questions.length,
+      questions: session.metadata.questions.map(question => ({
         questionId: question.questionId,
         question: question.question,
         timeLimit: question.timeLimit,
@@ -720,8 +720,8 @@ export function adminQuizSessionStatus(
           correct: option.correct,
         })),
       })),
-      timeLimit: session.metaData.timeLimit,
-      thumbnailUrl: session.metaData.thumbnailUrl,
+      timeLimit: session.metadata.timeLimit,
+      thumbnailUrl: session.metadata.thumbnailUrl,
     }
   };
 
