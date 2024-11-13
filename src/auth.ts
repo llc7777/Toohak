@@ -20,6 +20,7 @@ import {
   adminAuthLoginErrorChecking
 } from './helper';
 import { ErrorResponse, Token, User, UserInfo, AuthResponse, Data } from './interfaces';
+import { hashWithSha256 } from 'node-hash-password';
 
 export function adminAuthRegister(email: string, password: string,
   nameFirst: string, nameLast: string) {
@@ -57,10 +58,12 @@ export function adminAuthRegister(email: string, password: string,
 
   const encodedToken = createToken(newToken);
 
+  const hashedPassword = hashWithSha256(password);
+
   const newUser = {
     authUserId: store.users.length + 1,
     email: email,
-    password: password,
+    password: hashedPassword,
     oldPasswords: [password],
     nameFirst: nameFirst,
     nameLast: nameLast,
@@ -86,7 +89,9 @@ Return object: authUserId: 1
 export function adminAuthLogin(
   email: string, password: string
 ): AuthResponse | ErrorResponse {
-  adminAuthLoginErrorChecking(email, password);
+  const hashedPassword = hashWithSha256(password);
+
+  adminAuthLoginErrorChecking(email, hashedPassword);
 
   const data = getData();
   const index = data.users.findIndex((user) => user.email === email);
@@ -220,19 +225,22 @@ export function adminUserPasswordUpdate(
   if (userIndex === -1) {
     throw new Error('401 - Token is invalid');
   }
+
+  const hashedPassword = hashWithSha256(oldPassword);
+
   // Search through the data to check if the old password is correct
-  if (data.users[userIndex].password === oldPassword) {
+  if (data.users[userIndex].password === hashedPassword) {
     checkOldPassword = true;
   }
   // Search through the users old passwords to see if the new password has already been used
   const alreadyUsedThisPassword: string | null = data.users[userIndex].oldPasswords.find(
-    (oldPassword: string) => oldPassword === newPassword);
+    (oldPassword: string) => oldPassword === hashWithSha256(newPassword));
 
   // Check password is right
   if (!checkOldPassword) {
     throw new Error('400 - Old password is incorrect');
     // Check new password is different to old password
-  } else if (oldPassword === newPassword) {
+  } else if (hashWithSha256(newPassword) === hashWithSha256(oldPassword)) {
     throw new Error('400 - New password must be different from the old password');
     // Check new password is already used
   } else if (alreadyUsedThisPassword) {
@@ -246,7 +254,7 @@ export function adminUserPasswordUpdate(
   }
 
   // Update password and return empty object for indication of no error
-  data.users[userIndex].oldPasswords.push(newPassword);
-  data.users[userIndex].password = newPassword;
+  data.users[userIndex].oldPasswords.push(hashWithSha256(oldPassword));
+  data.users[userIndex].password = hashWithSha256(newPassword);
   return {};
 }
