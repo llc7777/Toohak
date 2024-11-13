@@ -2,6 +2,7 @@ import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { createToken, sleep } from '../helper';
 import { ErrorResponse, Token } from '../interfaces';
+import { get } from 'http';
 
 const SERVER_URL: string = `${url}:${port}`;
 const TIMEOUT_MS: number = 5 * 1000;
@@ -367,8 +368,78 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
   });
 
-  test('Test for action cannot be applied in the current state', () => {
+  test('Test for LOBBY invalid action', () => {
     const res = updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for QUESTION_COUNTDOWN invalid action', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    const res = updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for QUESTION_OPEN invalid action', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for QUESTION_CLOSE invalid action', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    const res = getQuizSessionStatus();
+    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+
+    await sleep(duration * 1000);
+
+    // in QUESTION_CLOSE state
+
+    const res2 = updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    expect(res2.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res2.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for ANSWER_SHOW invalid action', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    // in ANSWER_SHOW state
+
+    const res = updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    expect(res.statusCode).toStrictEqual(400);
+    expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('Test for FINAL_RESULTS invalid action', async () => {
+    updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+
+    updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+    updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+
+    // in FINAL_RESULTS state
+
+    const res = updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
 
     expect(res.statusCode).toStrictEqual(400);
     expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
