@@ -191,23 +191,23 @@ describe('/v1/admin/quiz/{quizId}/session/{sessionId}', () => {
       });
     });
 
-    // test('Players are returned in ascending order', () => {
-    //   // Add players in non-alphabetical order to the session
-    //   const playerNames = ['Charlie', 'Alice', 'Bob'];
-    //   playerNames.forEach(playerName => {
-    //     request('POST', `${SERVER_URL}/v1/player/join`, {
-    //       json: { sessionId, playerName },
-    //       timeout: TIMEOUT_MS,
-    //     });
-    //   });
+    test('Players are returned in ascending order', () => {
+      // Add players in non-alphabetical order to the session
+      const playerNames = ['Charlie', 'Alice'];
+      playerNames.forEach(playerName => {
+        request('POST', `${SERVER_URL}/v1/player/join`, {
+          json: { sessionId, playerName },
+          timeout: TIMEOUT_MS,
+        });
+      });
 
-    //   const res = getSessionStatus(quizId, sessionId, token);
+      const res = getSessionStatus(quizId, sessionId, token);
 
-    //   expect(res.statusCode).toStrictEqual(200);
-    //   const body = JSON.parse(res.body.toString());
+      expect(res.statusCode).toStrictEqual(200);
+      const body = JSON.parse(res.body.toString());
 
-    //   expect(body.players).toStrictEqual(['Alice', 'Bob', 'Charlie']);
-    // });
+      expect(body.players).toStrictEqual(['Alice', 'Charlie']);
+    });
   });
 
   describe('Error cases', () => {

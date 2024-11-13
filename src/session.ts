@@ -256,7 +256,6 @@ export function adminQuizSessionStatus(
   adminQuizSessionStatusErrorChecking(quizId, sessionId, token);
 
   const session = findSession(quizId, sessionId);
-
   const response: QuizSessionStatusResponse = {
     state: session.state,
     atQuestion: session.state === 'LOBBY' || session.state === 'FINAL_RESULTS' ||
@@ -288,7 +287,6 @@ export function adminQuizSessionStatus(
       thumbnailUrl: session.metaData.thumbnailUrl,
     }
   };
-
   return response;
 }
 
