@@ -8,7 +8,7 @@ const TIMEOUT_MS = 5 * 1000;
 const ERROR: ErrorResponse = { error: expect.any(String) };
 
 const playerStatusRequest = (playerid : number) => {
-  return request('POST', `${SERVER_URL}/v1/player/{playerid}`, {});
+  return request('POST', `${SERVER_URL}/v1/player/${playerid}`, {});
 };
 
 let quiz: Quiz;
@@ -37,11 +37,36 @@ beforeEach(() => {
   });
   quiz = JSON.parse(quizRes.body.toString());
 
-  const sessionStartRes = request('POST', SERVER_URL + '/v1/admin/quiz/{quizid}/session/start', {
-    json: { autoStartNum: 1 },
-    timeout: TIMEOUT_MS
+  request('POST', `${SERVER_URL}/v2/admin/quiz/${quiz.quizId}/question`, {
+    json: {
+      questionBody: {
+        question: 'What is the largest mammal in the world?',
+        timeLimit: 4,
+        points: 5,
+        answerOptions: [
+          {
+            answer: 'Whale',
+            correct: true
+          },
+          {
+            answer: 'Frog',
+            correct: false
+          }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      }
+    },
+    headers: { token }
   });
-  sessionId = JSON.parse(sessionStartRes.body.toString());
+
+  const sessionStartRes = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quiz.quizId}/session/start`, {
+      json: { autoStartNum: 3 },
+      headers: { token },
+      timeout: TIMEOUT_MS
+    });
+  sessionId = JSON.parse(sessionStartRes.body.toString()).sessionId;
 
   const playerJoinRes = request('POST', `${SERVER_URL}/v1/player/join`, {
     json: {
