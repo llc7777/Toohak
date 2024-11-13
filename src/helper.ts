@@ -341,7 +341,7 @@ export function adminQuizRestoreErrorChecking(quizId: number, token: string): vo
 
 export function emptyTrashErrorChecking(token: string, quizIds: number[]): void {
   const data = getData();
-  console.log("quizIds:", quizIds);
+  console.log('quizIds:', quizIds);
   if (token === '') {
     throw new Error('401 - Token is empty');
   }

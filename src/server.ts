@@ -771,7 +771,6 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
     const result = emptyTrash(token, parsedQuizIds);
     saveData();
     res.status(200).json(result);
-    
   } catch (error) {
     saveData();
     if (error.message.includes('401')) {
