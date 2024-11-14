@@ -192,7 +192,7 @@ describe('/v1/player/{playersId}/chat', () => {
         {
           messageBody: 'How is everyone doing?',
           playerId: playerId,
-          playerName: 'HaydenSmith',
+          playerName: 'Hayden Smith',
           timeSent: expect.any(Number),
         }
       ] 

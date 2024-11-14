@@ -403,5 +403,7 @@ export function getChatMessageInfo(playerId: number) {
 
   const session = findSessionFromPlayerId(playerId);
 
-  return session.messages;
+  return {
+    messages: session.messages
+  };
 }
