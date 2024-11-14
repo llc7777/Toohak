@@ -236,7 +236,7 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
 
       expect(res.statusCode).toStrictEqual(200);
 
-      expect(JSON.parse(res.body.toString())).toStrictEqual({url: expect.any(String)});
+      expect(JSON.parse(res.body.toString())).toStrictEqual({ url: expect.any(String) });
     });
   });
 

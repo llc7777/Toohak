@@ -59,7 +59,6 @@ import {
 } from './interfaces';
 import { port, url } from './config.json';
 
-
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -753,7 +752,7 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, 
     adminQuizSessionResultCSV(quizId, sessionId, token);
     sessionURL = sessionId;
     saveData();
-    res.status(200).json({ url: SERVER_URL+`/view/session/${sessionURL}/csv`});
+    res.status(200).json({ url: SERVER_URL + `/view/session/${sessionURL}/csv` });
   } catch (error) {
     saveData();
     if (error.message.includes('401')) {
