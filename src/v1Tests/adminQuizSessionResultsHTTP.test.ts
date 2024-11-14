@@ -210,14 +210,11 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const playerIdTwo = createPlayer(sessionId, 'Liam');
 
       getSessionStatus(quizId, sessionId, token);
-      updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
       updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
       updateQuizSession('QUESTION_OPEN', sessionId, token, quizId);
 
       const answerResponse1 = submitAnswerRequest(token, playerIdOne, 1, [1]);
       const answerResponse2 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
-
-      console.log(answerResponse1.body.toString());
 
       expect(answerResponse1.statusCode).toBe(200);
       expect(answerResponse2.statusCode).toBe(200);
@@ -249,7 +246,6 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
           percentCorrect: expect.any(Number),
         },
       ]);
-      console.log(body.questionResults);
       const playersCorrect = body.questionResults[0].playersCorrect;
       expect(playersCorrect).toEqual(playersCorrect.sort());
     });
