@@ -94,11 +94,11 @@ export interface QuestionInfo {
   thumbnailUrl: string,
   points: number,
   answerOptions: AnswerOptions[],
-  playersCorrect: string[],
-  averageAnswerTime: number,
-  percentCorrect: number,
-  timeOpened: number,
-  playersAnswered: playerAnswerInfo[];
+  playersCorrect ?: string[],
+  averageAnswerTime ?: number,
+  percentCorrect ?: number,
+  timeOpened ?: number,
+  playersAnswered ?: playerAnswerInfo[];
 }
 
 export interface playerAnswerInfo {
@@ -210,7 +210,7 @@ interface Metadata {
   timeLastEdited: number;
   description: string;
   numQuestions: number;
-  questions: Question[];
+  questions: QuestionInfo[];
   timeLimit: number;
   thumbnailUrl: string;
 }
