@@ -348,7 +348,7 @@ export function adminQuizSessionResult(
       playerName: player.name,
       score: player.score,
     }));
-    
+
   // Map questions to results
   const questionResults = session.metadata.questions.map(question => ({
     questionId: question.questionId,
