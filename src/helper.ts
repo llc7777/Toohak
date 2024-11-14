@@ -568,7 +568,6 @@ export function findSessionFromPlayerId(playerId: number) {
 }
 
 export function sendChatMessageErrorChecking(playerId: number, message: string) {
-
   const session = findSessionFromPlayerId(playerId);
 
   if (session === null) {

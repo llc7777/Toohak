@@ -639,9 +639,9 @@ app.post('/v1/player/:playerId/chat', (req: Request, res: Response) => {
     return res.status(200).json({});
   } catch (error) {
     saveData();
-    return res.status(400).json({ error: error.message});
+    return res.status(400).json({ error: error.message });
   }
-})
+});
 
 /*
 * ===========================================================================

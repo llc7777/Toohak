@@ -385,7 +385,6 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 }
 
 export function sendChatMessage(playerId: number, message: string) {
-
   sendChatMessageErrorChecking(playerId, message);
 
   const session = findSessionFromPlayerId(playerId);
@@ -395,6 +394,6 @@ export function sendChatMessage(playerId: number, message: string) {
     playerId: playerId,
     playerName: player.name,
     timeSent: Math.floor(Date.now() / 1000),
-  }
+  };
   session.messages.push(newMessage);
 }
