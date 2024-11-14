@@ -1,7 +1,6 @@
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
 import { AnswerOptionsReq } from '../interfaces';
-import { info } from 'console';
 
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
@@ -96,7 +95,7 @@ function sendMessageWrapper(
 }
 
 function getChatMessageInfo(
-  playerId: number,
+  playerId: number
 ) {
   const res = request('GET', SERVER_URL + `/v1/player/${playerId}/chat`);
   return res;
@@ -195,7 +194,7 @@ describe('/v1/player/{playersId}/chat', () => {
           playerName: 'Hayden Smith',
           timeSent: expect.any(Number),
         }
-      ] 
+      ]
     });
     expect(infoRes.statusCode).toStrictEqual(200);
   });
@@ -209,7 +208,7 @@ describe('/v1/player/{playersId}/chat', () => {
     expect(JSON.parse(res.body.toString())).toStrictEqual({ });
     expect(res.statusCode).toStrictEqual(200);
 
-    sendMessageWrapper(playerId, 'Why is no one responding :(')
+    sendMessageWrapper(playerId, 'Why is no one responding :(');
 
     const infoRes = getChatMessageInfo(playerId);
     expect(JSON.parse(infoRes.body.toString())).toStrictEqual({
@@ -226,7 +225,7 @@ describe('/v1/player/{playersId}/chat', () => {
           playerName: 'Hayden Smith',
           timeSent: expect.any(Number),
         }
-      ] 
+      ]
     });
     expect(infoRes.statusCode).toStrictEqual(200);
   });
