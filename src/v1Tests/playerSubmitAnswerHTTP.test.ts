@@ -60,6 +60,24 @@ beforeEach(() => {
   });
   JSON.parse(questionRes.body.toString());
 
+  const questionRes2 = request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
+    json: {
+      questionBody: {
+        question: 'What is 2-2?',
+        timeLimit: 10,
+        points: 5,
+        answerOptions: [
+          { answer: '1', correct: false },
+          { answer: '0', correct: true },
+        ],
+        thumbnailUrl: 'http://example.com/image.jpg',
+      },
+    },
+    headers: { token },
+    timeout: TIMEOUT_MS,
+  });
+  JSON.parse(questionRes2.body.toString());
+
   const sessionStartRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
     json: { autoStartNum: 3 },
     headers: { token },
@@ -73,11 +91,6 @@ beforeEach(() => {
     timeout: TIMEOUT_MS,
   });
   playerId = JSON.parse(joinRes.body.toString()).playerId;
-
-  request('POST', `${SERVER_URL}/v1/admin/session/${sessionId}/start-questions`, {
-    headers: { token },
-    timeout: TIMEOUT_MS,
-  });
 
   request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
     headers: { token },
@@ -96,7 +109,16 @@ describe('Test for PUT /v1/player/:playerId/question/:questionPosition/answer', 
   test('200: successfully submit a correct answer', () => {
     const response = submitAnswerRequest(token, playerId, 1, [2]);
     expect(response.statusCode).toBe(200);
-    expect(response.body.toString()).toBe('{}');
+    expect(JSON.parse(response.body.toString())).toStrictEqual({});
+  });
+
+  test('200: successfully re-submit a correct answer', () => {
+    const response = submitAnswerRequest(token, playerId, 1, [2]);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body.toString())).toStrictEqual({});
+    const response2 = submitAnswerRequest(token, playerId, 1, [1]);
+    expect(response2.statusCode).toBe(200);
+    expect(JSON.parse(response2.body.toString())).toStrictEqual({});
   });
 
   test('400: invalid playerId provided', () => {
@@ -111,14 +133,20 @@ describe('Test for PUT /v1/player/:playerId/question/:questionPosition/answer', 
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
 
-  test('400: invalid answer IDs provided', () => {
-    const response = submitAnswerRequest(token, playerId, 1, [99]);
+  test('400: current question is not on given question', () => {
+    const response = submitAnswerRequest(token, playerId, 2, [2]);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
 
   test('400: duplicate answer IDs provided', () => {
     const response = submitAnswerRequest(token, playerId, 1, [2, 2]);
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
+  });
+
+  test('400: invalid answer IDs provided', () => {
+    const response = submitAnswerRequest(token, playerId, 1, [-1, 13]);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });

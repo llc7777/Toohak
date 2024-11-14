@@ -515,7 +515,7 @@ export function countDownTillQuestionStart(
   // Start the countdown and open the question
   skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
-    session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
+    session.metadata.questions[session.atQuestion - 1].timeOpened = Math.floor(Date.now() / 1000);
     countDownTillQuestionClose(session, timeLimitTimer);
   }, 3000);
 }
@@ -524,7 +524,7 @@ export function countDownTillQuestionClose(
   session: Session,
   timeLimitTimer: ReturnType<typeof setTimeout>
 ) {
-  const index: number = session.atQuestion;
+  const index: number = session.atQuestion - 1;
   const duration: number = session.metadata.questions[index].timeLimit;
 
   timeLimitTimer = setTimeout(() => {

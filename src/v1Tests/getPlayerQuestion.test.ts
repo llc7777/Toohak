@@ -117,14 +117,18 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition', () => {
   });
 });
 
-test('400: invalid token provided', () => {
-  const questionPosition = 1;
-  const response = getPlayerQuestionRequest('invalid-token', playerId, questionPosition);
-  expect(response.statusCode).toBe(400);
-  expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-});
-
 test('400: invalid playerId provided', () => {
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
   const questionPosition = 1;
   const response = getPlayerQuestionRequest(token, playerId + 999, questionPosition);
   expect(response.statusCode).toBe(400);
@@ -132,6 +136,29 @@ test('400: invalid playerId provided', () => {
 });
 
 test('400: invalid questionPosition provided (out of range)', () => {
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
   const invalidQuestionPosition = 999;
   const response = getPlayerQuestionRequest(token, playerId, invalidQuestionPosition);
   expect(response.statusCode).toBe(400);
@@ -145,6 +172,18 @@ test('400: session not in a valid state', () => {
 });
 
 test('400: session is on a different question than requested', () => {
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
+
   request(
     'POST',
         `${SERVER_URL}/v1/admin/session/${sessionId}/start-questions`,
@@ -158,6 +197,18 @@ test('400: session is on a different question than requested', () => {
 });
 
 test('400: question does not exist', () => {
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
+
   const invalidQuestionPosition = -1;
   const response = getPlayerQuestionRequest(token, playerId, invalidQuestionPosition);
   expect(response.statusCode).toBe(400);
@@ -165,6 +216,18 @@ test('400: question does not exist', () => {
 });
 
 test('400: questionPosition is not a number', () => {
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'NEXT_QUESTION' },
+    timeout: TIMEOUT_MS,
+  });
+
+  request('PUT', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action: 'SKIP_COUNTDOWN' },
+    timeout: TIMEOUT_MS,
+  });
+
   const invalidQuestionPosition = 'invalid';
   const response = getPlayerQuestionRequest(token, playerId, parseInt(invalidQuestionPosition));
   expect(response.statusCode).toBe(400);

@@ -182,6 +182,7 @@ export function adminQuizSessionUpdate(
       session.state = 'END';
     } else if (action === 'NEXT_QUESTION') {
       session.state = 'QUESTION_COUNTDOWN';
+      session.atQuestion++;
       countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
     } else {
       throw new Error('400 - Action cannot be applied to the current state');
@@ -192,7 +193,7 @@ export function adminQuizSessionUpdate(
     } else if (action === 'SKIP_COUNTDOWN') {
       clearTimeout(skipCountdownTimer);
       session.state = 'QUESTION_OPEN';
-      session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
+      session.metadata.questions[session.atQuestion - 1].timeOpened = Math.floor(Date.now() / 1000);
       // After clear timeout, start new timer for question close
       countDownTillQuestionClose(session, timeLimitTimer);
     } else {
@@ -456,15 +457,11 @@ export function getPlayerQuestion(
   ) {
     throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
   }
-  if (session.atQuestion + 1 !== questionPosition) {
+  if (session.atQuestion !== questionPosition) {
     throw new Error('400 - Session is not currently on the requested question');
   }
 
   const question = session.metadata.questions[questionPosition - 1];
-
-  if (!question) {
-    throw new Error('400 - Question does not exist');
-  }
 
   return {
     questionId: question.questionId,
@@ -486,19 +483,17 @@ export function playerSubmitAnswer(
   questionPosition: number,
   answerIds: number[]
 ): object {
-  const data = getData();
 
   // Find the session the player belongs to
-  const session = data.sessions.find((s: Session) =>
-    s.players.some((p: sessionPlayer) => p.playerId === playerId)
-  );
-
-  if (session.state !== 'QUESTION_OPEN') {
-    throw new Error('400 - Session is not in QUESTION_OPEN state');
-  }
+  const session = findSessionFromPlayerId(playerId);
+  console.log(session);
 
   if (!session) {
     throw new Error('400 - Player ID does not exist in any session');
+  }
+
+  if (session.state !== 'QUESTION_OPEN') {
+    throw new Error('400 - Session is not in QUESTION_OPEN state');
   }
 
   const totalQuestions = session.metadata.questions.length;
@@ -506,14 +501,11 @@ export function playerSubmitAnswer(
     throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
   }
 
-  if (session.atQuestion + 1 !== questionPosition) {
+  if (session.atQuestion !== questionPosition) {
     throw new Error('400 - Session is not currently on the requested question');
   }
 
   const question = session.metadata.questions[questionPosition - 1];
-  if (!question) {
-    throw new Error('400 - Question does not exist');
-  }
 
   const validAnswerIds = question.answerOptions.map((option: AnswerOptions) => option.answerId);
   const invalidAnswers = answerIds.filter((id) => !validAnswerIds.includes(id));
@@ -533,12 +525,9 @@ export function playerSubmitAnswer(
   }
 
   const player = session.players.find((p: sessionPlayer) => p.playerId === playerId);
-  if (!player) {
-    throw new Error('400 - Player ID does not exist in the session');
-  }
 
   const currentTime = Math.floor(Date.now() / 1000);
-  const timeTaken = currentTime - (question.timeOpened || 0);
+  const timeTaken = currentTime - (question.timeOpened);
 
   // Ensure playerAnswerInfo exists for the question
   const playerAnswerIndex = question.playersAnswered.findIndex(
@@ -564,7 +553,7 @@ export function playerSubmitAnswer(
     if (!question.playersCorrect.includes(playerId.toString())) {
       question.playersCorrect.push(playerId.toString());
     }
-    player.score += question.points;
+    player.score += question.points / question.playersCorrect.length;
   }
 
   return {};
