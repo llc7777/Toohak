@@ -84,6 +84,8 @@ let data = {
               playersCorrect: ['string'],
               averageAnswerTime: -1,
               percentCorrect: -1,
+              timeOpened: -1,
+              playersAnswered: ['string'],
             }
           ],
         },

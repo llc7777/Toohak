@@ -215,15 +215,6 @@ interface Metadata {
   thumbnailUrl: string;
 }
 
-// interface Question {
-//   questionId: number;
-//   question: string;
-//   timeLimit: number;
-//   thumbnailUrl: string;
-//   points: number;
-//   answerOptions: AnswerOption[];
-// }
-
 export interface AnswerOption {
   answerId: number;
   answer: string;
