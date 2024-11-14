@@ -29,7 +29,9 @@ import {
   adminQuizSessionView,
   adminQuizSessionStatus,
   playerJoin,
-  getPlayerQuestion
+  playerStatus,
+  sendChatMessage,
+  getChatMessageInfo
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -629,14 +631,40 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
   }
 });
 
-app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: Response) => {
-  const playerId: number = parseInt(req.params.playerId as string);
-  const questionPosition: number = parseInt(req.params.questionPosition as string);
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  const playerId: number = parseInt(req.params.playerid as string);
 
   try {
-    const result = getPlayerQuestion(playerId, questionPosition);
+    const result = playerStatus(playerId);
     saveData();
     res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/v1/player/:playerId/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerId as string);
+  const message = req.body.message.messageBody;
+
+  try {
+    sendChatMessage(playerId, message);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/v1/player/:playerId/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerId as string);
+
+  try {
+    const result = getChatMessageInfo(playerId);
+    saveData();
+    return res.status(200).json(result);
   } catch (error) {
     saveData();
     return res.status(400).json({ error: error.message });
