@@ -11,6 +11,7 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
+  generateGuestName
 } from './helper';
 import {
   User,
@@ -337,7 +338,7 @@ export function adminQuizSessionStatus(
 export function playerJoin(sessionId: number, playerName: string): PlayerId {
   const validName = /^[a-zA-z0-9 ]+$/;
   // invalid name
-  if (!validName.test(playerName)) {
+  if (!validName.test(playerName) && playerName !== '') {
     throw new Error('400 - Invalid name');
   }
 
@@ -355,6 +356,13 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   const duplicateName = session.players.some(player => player.name === playerName);
   if (duplicateName) {
     throw new Error('400 - Player must have a unique name');
+  }
+
+  if (playerName === '') {
+    playerName = generateGuestName();
+    while (session.players.find(player => player.name === playerName)) {
+      playerName = generateGuestName();
+    }
   }
 
   const playerId = session.players.length + 1;

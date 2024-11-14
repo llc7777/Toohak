@@ -545,5 +545,17 @@ export function checkUrlIsValid(url: string) {
   }
 }
 
+export function generateGuestName() {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  let guestName = '';
+  for (let i = 0; i < 5; i++) {
+    guestName += letters[Math.floor(Math.random() * letters.length)];
+  }
+  for (let i = 0; i < 3; i++) {
+    guestName += Math.floor(Math.random() * 1000) % 10;
+  }
+  return guestName;
+}
+
 // Helper function to delay execution for session update tests
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
