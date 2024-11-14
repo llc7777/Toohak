@@ -12,6 +12,7 @@ let token: string = '';
 let nonOwnerToken: string = '';
 let quizId: number = 0;
 let sessionId: number = 0;
+let playerId: number;
 
 // Function to register a user
 const requestAdminAuthRegister = (
@@ -75,7 +76,7 @@ const requestAdminQuestionCreate = (quizId: number, token: string,
 };
 
 // Function to start a quiz session
-const startQuizSession = (quizId: number, autoStartNum: number) => {
+const startQuizSession = (token: string, quizId: number, autoStartNum: number) => {
   return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
     headers: { token },
     json: { autoStartNum },
@@ -94,11 +95,11 @@ const updateQuizSession = (action: string, sessionId: number, token: string, qui
 
 // Function to get session status
 const getSessionStatus = (quizId: number, sessionId: number, token: string) => {
-  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+  const res =  request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
     headers: { token },
     timeout: TIMEOUT_MS,
   });
-  console.log('Raw Response:', res);
+  return JSON.parse(res.body.toString()).state;
 };
 
 // Function to get session results
@@ -113,6 +114,27 @@ const getSessionResults = (
     statusCode: res.statusCode,
     body: JSON.parse(res.body.toString()),
   };
+};
+
+// Function to submit player's answer
+const submitAnswerRequest = (
+  token: string, playerId: number, questionPosition: number, answerIds: number[]
+) => {
+  return request('PUT', `${SERVER_URL}/v1/player/${playerId}/question/${questionPosition}/answer`, {
+    json: { answerIds },
+    headers: { token },
+    timeout: TIMEOUT_MS,
+  });
+};
+
+// Function to join a player
+const createPlayer = (sessionId: number, playerName: string) => {
+  const res = request('POST', SERVER_URL + '/v1/player/join', {
+    json: { sessionId, playerName },
+    headers: { token },
+    timeout: TIMEOUT_MS,
+  });
+  return JSON.parse(res.body.toString()).playerId;
 };
 
 beforeEach(() => {
@@ -162,41 +184,54 @@ beforeEach(() => {
   });
 
   // Start a quiz session
-  const startSessionRes = startQuizSession(quizId, 2);
+  const startSessionRes = startQuizSession(token, quizId, 2);
   sessionId = JSON.parse(startSessionRes.body.toString()).sessionId;
 });
 
 describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
   describe('Successful cases', () => {
-    test.only('Retrieve session results successfully', () => {
+    test('Retrieve session results successfully', () => {
+      // Add players to the session
+      const playerIdOne = createPlayer(sessionId, 'Bahar');
+      const playerIdTwo = createPlayer(sessionId, 'Liam');
+      const playerIdThree = createPlayer(sessionId, 'Nora');
 
-      const res1 = getSessionStatus(quizId, sessionId, token);
-      console.log('Current Session State:', JSON.stringify(getSessionStatus));
+      getSessionStatus(quizId, sessionId, token);
+      updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
+      updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
+      updateQuizSession('QUESTION_OPEN', sessionId, token, quizId);
+      
+      const answerResponse1 = submitAnswerRequest(token, playerIdOne, 1, [1]);
+      const answerResponse2 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
+      const answerResponse3 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
+      expect(answerResponse1.statusCode).toBe(200);
+      expect(answerResponse2.statusCode).toBe(200);
+      expect(answerResponse3.statusCode).toBe(200);
 
-      const sessionState = updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
-      console.log('Session State:', JSON.stringify(sessionState)
-      );
+      updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+      updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+
       // Get session results
       const res = getSessionResults(quizId, sessionId, token);
-      console.log(res);
-
       expect(res.statusCode).toBe(200);
-      const body = JSON.parse(res.body.toString());
-      console.log(body);
 
-      expect(body.usersRankedByScore).toEqual(
-        [
+      const body = res.body;
+
+      expect(body.usersRankedByScore).toEqual([
           { playerName: expect.any(String), score: expect.any(Number) },
-        ]
-      );
+          { playerName: expect.any(String), score: expect.any(Number) },
+        ]);
       expect(body.questionResults).toEqual([
         {
-          questionResults: expect.any(Number),
+          questionId: expect.any(Number),
           playersCorrect: expect.any(Array),
           averageAnswerTime: expect.any(Number),
           percentCorrect: expect.any(Number),
         },
       ]);
+      console.log(body.questionResults);
+      const playersCorrect = body.questionResults[0].playersCorrect;
+      expect(playersCorrect).toEqual(playersCorrect.sort());
     });
   });
 
@@ -244,7 +279,7 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
 
     test('Session not in FINAL_RESULTS state', () => {
       // Create a new session that hasn't reached FINAL_RESULTS state
-      const newSession = startQuizSession(quizId, 1);
+      const newSession = startQuizSession(token, quizId, 1);
       const newSessionId = JSON.parse(newSession.body.toString()).sessionId;
 
       const res = getSessionResults(quizId, newSessionId, token);
