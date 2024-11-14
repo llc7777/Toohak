@@ -650,9 +650,6 @@ export function playerQuestionResult(
   }
 
   const question = session.metadata.questions[questionPosition - 1];
-  if (!question) {
-    throw new Error('400 - Question does not exist');
-  }
 
   // Calculate the percentage of players who answered correctly
   const percentCorrect = Math.round(
@@ -660,31 +657,19 @@ export function playerQuestionResult(
   );
 
   // Calculate the average answer time for this question
-  const totalAnswerTime = question.playersAnswered.reduce(function(sum, entry) {
-    return sum + entry.timeAnswered;
-  }, 0);
+  let totalAnswerTime = 0;
+  for (const player of question.playersAnswered) {
+    totalAnswerTime += player.timeAnswered;
+  }
 
   let averageAnswerTime = 0;
   if (question.playersAnswered.length > 0) {
     averageAnswerTime = Math.round(totalAnswerTime / question.playersAnswered.length);
   }
 
-  // Get the names of players who answered correctly
-  const playersCorrect = question.playersCorrect.map(function(playerId) {
-    const player = session.players.find(function(p) {
-      return p.playerId.toString() === playerId;
-    });
-    if (player) {
-      return player.name;
-    }
-    return null;
-  }).filter(function(name) {
-    return name !== null;
-  });
-
   return {
     questionId: question.questionId,
-    playersCorrect: playersCorrect,
+    playersCorrect: question.playersCorrect,
     averageAnswerTime: averageAnswerTime,
     percentCorrect: percentCorrect,
   };
