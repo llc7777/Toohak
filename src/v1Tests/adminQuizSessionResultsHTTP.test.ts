@@ -83,6 +83,24 @@ const startQuizSession = (quizId: number, autoStartNum: number) => {
   });
 };
 
+// Function to update the session state
+const updateQuizSession = (action: string, sessionId: number, token: string, quizId: number) => {
+  return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+    headers: { token },
+    json: { action },
+    timeout: TIMEOUT_MS,
+  });
+};
+
+// Function to get session status
+const getSessionStatus = (quizId: number, sessionId: number, token: string) => {
+  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+    headers: { token },
+    timeout: TIMEOUT_MS,
+  });
+  console.log('Raw Response:', res);
+};
+
 // Function to get session results
 const getSessionResults = (
   quizId: number, sessionId: number, token: string) => {
@@ -151,27 +169,34 @@ beforeEach(() => {
 describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
   describe('Successful cases', () => {
     test.only('Retrieve session results successfully', () => {
+
+      const res1 = getSessionStatus(quizId, sessionId, token);
+      console.log('Current Session State:', JSON.stringify(getSessionStatus));
+
+      const sessionState = updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
+      console.log('Session State:', JSON.stringify(sessionState)
+      );
       // Get session results
       const res = getSessionResults(quizId, sessionId, token);
+      console.log(res);
 
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.body.toString());
+      console.log(body);
 
       expect(body.usersRankedByScore).toEqual(
-        expect.arrayContaining([
+        [
           { playerName: expect.any(String), score: expect.any(Number) },
-        ])
+        ]
       );
-      expect(body.questionResults).toEqual(
-        expect.arrayContaining([
-          {
-            questionResults: expect.any(Number),
-            playersCorrect: expect.any(Array),
-            averageAnswerTime: expect.any(Number),
-            percentCorrect: expect.any(Number),
-          },
-        ])
-      );
+      expect(body.questionResults).toEqual([
+        {
+          questionResults: expect.any(Number),
+          playersCorrect: expect.any(Array),
+          averageAnswerTime: expect.any(Number),
+          percentCorrect: expect.any(Number),
+        },
+      ]);
     });
   });
 
