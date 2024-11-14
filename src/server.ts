@@ -702,20 +702,20 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request,
   }
 });
 
-app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
-  const playerId: number = parseInt(req.params.playerid, 10);
-  const questionPosition: number = parseInt(req.params.questionposition, 10);
-  const token: string = req.headers.token as string;
+app.get('/v1/player/:playerid/question/:questionposition/results',
+  (req: Request, res: Response) => {
+    const playerId: number = parseInt(req.params.playerid, 10);
+    const questionPosition: number = parseInt(req.params.questionposition, 10);
 
-  try {
-    const result = playerQuestionResult(playerId, questionPosition);
-    saveData();
-    return res.status(200).json(result);
-  } catch (error) {
-    saveData();
-    return res.status(400).json({ error: error.message });
-  }
-});
+    try {
+      const result = playerQuestionResult(playerId, questionPosition);
+      saveData();
+      return res.status(200).json(result);
+    } catch (error) {
+      saveData();
+      return res.status(400).json({ error: error.message });
+    }
+  });
 
 /*
 * ===========================================================================

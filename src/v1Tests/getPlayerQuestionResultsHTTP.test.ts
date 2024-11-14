@@ -87,18 +87,18 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
       json: { action: 'NEXT_QUESTION' },
       timeout: TIMEOUT_MS,
     });
-    
+
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
       json: { action: 'SKIP_COUNTDOWN' },
       timeout: TIMEOUT_MS,
-    });    
+    });
 
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
       json: { action: 'GO_TO_ANSWER' },
       timeout: TIMEOUT_MS,
-    });    
+    });
 
     const questionPosition = 1;
     const response = getQuestionResultsRequest(token, playerId, questionPosition);
@@ -138,7 +138,7 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
   });
 
   test('400: no questions in quiz', () => {
-    const emptyQuizId = request('POST', `${SERVER_URL}/v2/admin/quiz`, {
+    request('POST', `${SERVER_URL}/v2/admin/quiz`, {
       json: { name: 'Empty Quiz', description: 'No Questions' },
       headers: { token },
       timeout: TIMEOUT_MS,
@@ -163,7 +163,7 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
     const response = getQuestionResultsRequest(token, newPlayerId, 1);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  });  
+  });
 
   test('400: session not currently on the requested question', () => {
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
