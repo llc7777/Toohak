@@ -415,6 +415,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 
   if (session.players.length === session.autoStartNum) {
     session.state = 'QUESTION_COUNTDOWN';
+    session.atQuestion++;
   }
   return { playerId };
 }
