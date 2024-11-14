@@ -493,12 +493,12 @@ export function playerSubmitAnswer(
     s.players.some((p: sessionPlayer) => p.playerId === playerId)
   );
 
-  if (!session) {
-    throw new Error('400 - Player ID does not exist in any session');
-  }
-
   if (session.state !== 'QUESTION_OPEN') {
     throw new Error('400 - Session is not in QUESTION_OPEN state');
+  }
+
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
   }
 
   const totalQuestions = session.metadata.questions.length;
@@ -567,8 +567,5 @@ export function playerSubmitAnswer(
     player.score += question.points;
   }
 
-  return {
-    isCorrect,
-    updatedScore: player.score,
-  };
+  return {};
 }

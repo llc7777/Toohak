@@ -131,12 +131,12 @@ describe('Test for PUT /v1/player/:playerId/question/:questionPosition/answer', 
   test('400: session not in QUESTION_OPEN state', () => {
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
-      json: { action: 'END_SESSION' },
+      json: { action: 'NEXT_QUESTION' }, 
       timeout: TIMEOUT_MS,
     });
-
+  
     const response = submitAnswerRequest(token, playerId, 1, [2]);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  });
+  });  
 });
