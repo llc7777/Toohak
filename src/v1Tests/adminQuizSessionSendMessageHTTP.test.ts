@@ -151,7 +151,7 @@ describe('/v1/player/{playersId}/chat', () => {
   test('playerId does not exists', () => {
     const res = sendMessageWrapper(12345, 'hello everyone');
 
-    expect(JSON.parse(toString())).toStrictEqual({ error: expect.any(String) });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
     expect(res.statusCode).toStrictEqual(400);
   });
 
@@ -161,7 +161,7 @@ describe('/v1/player/{playersId}/chat', () => {
 
     const res = sendMessageWrapper(playerId, '');
 
-    expect(JSON.parse(toString())).toStrictEqual({ error: expect.any(String) });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
     expect(res.statusCode).toStrictEqual(400);
   });
 
@@ -175,7 +175,7 @@ describe('/v1/player/{playersId}/chat', () => {
 
     const res = sendMessageWrapper(playerId, longMessage);
 
-    expect(JSON.parse(toString())).toStrictEqual({ error: expect.any(String) });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: expect.any(String) });
     expect(res.statusCode).toStrictEqual(400);
   });
 
@@ -185,7 +185,7 @@ describe('/v1/player/{playersId}/chat', () => {
 
     const res = sendMessageWrapper(playerId, 'How is everyone doing?');
 
-    expect(JSON.parse(toString())).toStrictEqual({ });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ });
     expect(res.statusCode).toStrictEqual(200);
   });
 });
