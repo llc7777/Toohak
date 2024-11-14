@@ -483,7 +483,6 @@ export function playerSubmitAnswer(
   questionPosition: number,
   answerIds: number[]
 ): object {
-
   // Find the session the player belongs to
   const session = findSessionFromPlayerId(playerId);
   console.log(session);
