@@ -557,5 +557,31 @@ export function generateGuestName() {
   return guestName;
 }
 
+export function findSessionFromPlayerId(playerId: number) {
+  const data: Data = getData();
+  for (const session of data.sessions) {
+    if (session.players.find(player => player.playerId === playerId)) {
+      return session;
+    }
+  }
+  return null;
+}
+
+export function sendChatMessageErrorChecking(playerId: number, message: string) {
+  const session = findSessionFromPlayerId(playerId);
+
+  if (session === null) {
+    throw new Error('PlayerId does not exist in any session');
+  }
+
+  if (message.length > 100) {
+    throw new Error('Message length is larger than 100 characters');
+  }
+
+  if (message.length < 1) {
+    throw new Error('Message length is less than 1 character');
+  }
+}
+
 // Helper function to delay execution for session update tests
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
