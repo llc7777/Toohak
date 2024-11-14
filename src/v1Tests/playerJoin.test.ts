@@ -96,6 +96,12 @@ describe('Test for POST /v1/player/join', () => {
     expect(JSON.parse(response2.body.toString())).toStrictEqual({ playerId: expect.any(Number) });
   });
 
+  test('200: working case with a player joining with empty string', () => {
+    const response = playerJoinRequest({ sessionId: sessionId, playerName: '' });
+    expect(JSON.parse(response.body.toString())).toStrictEqual({ playerId: expect.any(Number) });
+    expect(response.statusCode).toBe(200);
+  });
+
   // error cases
   test.each([
     '>:)',
