@@ -94,15 +94,15 @@ export interface QuestionInfo {
   thumbnailUrl: string,
   points: number,
   answerOptions: AnswerOptions[],
-  playersCorrect: string[],
-  averageAnswerTime: number,
-  percentCorrect: number,
-  timeOpened: number,
-  playersAnswered: playerAnswerInfo[];
+  playersCorrect ?: string[],
+  averageAnswerTime ?: number,
+  percentCorrect ?: number,
+  timeOpened ?: number,
+  playersAnswered ?: playerAnswerInfo[];
 }
 
 export interface playerAnswerInfo {
-  playerId: string,
+  playerId: number,
   timeAnswered: number,
 }
 
@@ -210,19 +210,19 @@ interface Metadata {
   timeLastEdited: number;
   description: string;
   numQuestions: number;
-  questions: Question[];
+  questions: QuestionInfo[];
   timeLimit: number;
   thumbnailUrl: string;
 }
 
-interface Question {
-  questionId: number;
-  question: string;
-  timeLimit: number;
-  thumbnailUrl: string;
-  points: number;
-  answerOptions: AnswerOption[];
-}
+// interface Question {
+//   questionId: number;
+//   question: string;
+//   timeLimit: number;
+//   thumbnailUrl: string;
+//   points: number;
+//   answerOptions: AnswerOption[];
+// }
 
 export interface AnswerOption {
   answerId: number;
@@ -231,14 +231,19 @@ export interface AnswerOption {
   correct: boolean;
 }
 
-// export interface Player {
-//   name: string;
-// }
+export interface SessionResultResponse {
+  usersRankedByScore: UserRanked[];
+  questionResults: QuestionResult[];
+}
 
-// export interface QuizSession {
-//   sessionId: number;
-//   state: SessionState;
-//   atQuestion: number;
-//   players: Player[];
-//   metadata: Metadata;
-// }
+export interface UserRanked {
+  playerName: string;
+  score: number;
+}
+
+export interface QuestionResult {
+  questionId: number;
+  playersCorrect: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
