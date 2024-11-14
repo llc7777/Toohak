@@ -363,11 +363,9 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   if (playerName === '') {
     playerName = generateGuestName();
   }
-  console.log(getData());
 
   let playerId: number = 0;
   for (const session of getData().sessions) {
-    console.log('hey');
     playerId += session.players.length;
   }
 
