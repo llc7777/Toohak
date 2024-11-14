@@ -11,7 +11,10 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
-  findSessionFromPlayerId
+  generateGuestName,
+  findSessionFromPlayerId,
+  sendChatMessageErrorChecking,
+  getChatMessageInfoErrorMessaging
 } from './helper';
 import {
   User,
@@ -259,12 +262,10 @@ export function adminQuizSessionView(
   const inactiveSessions: number[] = [];
 
   data.sessions.forEach((session) => {
-    if (session.metadata.quizId === quizId) {
-      if (session.state !== 'END') {
-        activeSessions.push(session.sessionId);
-      } else {
-        inactiveSessions.push(session.sessionId);
-      }
+    if (session.state !== 'END') {
+      activeSessions.push(session.sessionId);
+    } else {
+      inactiveSessions.push(session.sessionId);
     }
   });
 
@@ -338,7 +339,7 @@ export function adminQuizSessionStatus(
 export function playerJoin(sessionId: number, playerName: string): PlayerId {
   const validName = /^[a-zA-z0-9 ]+$/;
   // invalid name
-  if (!validName.test(playerName)) {
+  if (!validName.test(playerName) && playerName !== '') {
     throw new Error('400 - Invalid name');
   }
 
@@ -358,7 +359,15 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
     throw new Error('400 - Player must have a unique name');
   }
 
-  const playerId = totalPlayers() + 1;
+  if (playerName === '') {
+    playerName = generateGuestName();
+  }
+
+  let playerId: number = 0;
+  for (const session of getData().sessions) {
+    playerId += session.players.length;
+  }
+
   session.players.push({
     playerId: playerId,
     name: playerName,
@@ -373,9 +382,9 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 }
 
 /** Gives player status from playerid
- * 
- * @param playerId 
- * @returns 
+ *
+ * @param playerId
+ * @returns
  */
 export function playerStatus(playerId: number) {
   const session = findSessionFromPlayerId(playerId);
@@ -388,5 +397,29 @@ export function playerStatus(playerId: number) {
     state: session.state,
     numQuestions: session.metadata.questions.length,
     atQuestion: session.atQuestion
+  };
+}
+
+export function sendChatMessage(playerId: number, message: string) {
+  sendChatMessageErrorChecking(playerId, message);
+
+  const session = findSessionFromPlayerId(playerId);
+  const player = session.players.find(player => player.playerId === playerId);
+  const newMessage = {
+    messageBody: message,
+    playerId: playerId,
+    playerName: player.name,
+    timeSent: Math.floor(Date.now() / 1000),
+  };
+  session.messages.push(newMessage);
+}
+
+export function getChatMessageInfo(playerId: number) {
+  getChatMessageInfoErrorMessaging(playerId);
+
+  const session = findSessionFromPlayerId(playerId);
+
+  return {
+    messages: session.messages
   };
 }

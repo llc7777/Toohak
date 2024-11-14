@@ -8,7 +8,7 @@ const TIMEOUT_MS = 5 * 1000;
 const ERROR: ErrorResponse = { error: expect.any(String) };
 
 const playerStatusRequest = (playerid : number) => {
-  return request('POST', `${SERVER_URL}/v1/player/${playerid}`, {});
+  return request('GET', `${SERVER_URL}/v1/player/${playerid}`, {});
 };
 
 let quiz: Quiz;
@@ -74,7 +74,7 @@ beforeEach(() => {
       playerName: 'Hayden Smith'
     },
   });
-  playerId = JSON.parse(playerJoinRes.body.toString());
+  playerId = JSON.parse(playerJoinRes.body.toString()).playerId;
 });
 
 describe('Test for POST /v1/player/{playerid}', () => {
@@ -85,7 +85,7 @@ describe('Test for POST /v1/player/{playerid}', () => {
     expect(JSON.parse(response.body.toString())).toStrictEqual({
       state: expect.any(String),
       numQuestions: expect.any(Number),
-      atQuestions: expect.any(Number)
+      atQuestion: expect.any(Number)
     });
   });
 
