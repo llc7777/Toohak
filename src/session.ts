@@ -583,11 +583,11 @@ export function playerSubmitAnswer(
   }
 
   let numCorrectOptions = 0;
- for (const answer of question.answerOptions) {
-   if (answer.correct) {
-     numCorrectOptions++;
-   }
- }
+  for (const answer of question.answerOptions) {
+    if (answer.correct) {
+      numCorrectOptions++;
+    }
+  }
 
   let isCorrect = true;
   console.log(question.answerOptions);
