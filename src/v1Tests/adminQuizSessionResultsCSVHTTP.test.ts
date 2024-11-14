@@ -104,7 +104,7 @@ const getSessionStatus = (quizId: number, sessionId: number, token: string) => {
 // Function to get session results
 const getSessionResultsCSV = (
   quizId: number, sessionId: number, token: string) => {
-  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/` + 
+  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/` +
     `${sessionId}/results/csv`, {
     headers: { token },
     timeout: TIMEOUT_MS,
@@ -235,7 +235,6 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const res = getSessionResultsCSV(quizId, sessionId, token);
 
       expect(res.statusCode).toStrictEqual(200);
-
     });
   });
 

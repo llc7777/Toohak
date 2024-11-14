@@ -633,13 +633,12 @@ export function getChatMessageInfoErrorMessaging(playerId: number) {
 }
 
 export function generateFinalResults(session: Session) {
-
   const data: string[][] = [];
 
   // Go through each player
   for (const player of session.players) {
-    let newItem: string[] = [];
-    
+    const newItem: string[] = [];
+
     newItem.push(player.name);
 
     // Go through each question for that player
@@ -655,7 +654,6 @@ export function generateFinalResults(session: Session) {
 }
 
 export function getPlayerScoreForQuestion(question: QuestionInfo, player: sessionPlayer) {
-  let score = 0;
   const index = question.playersCorrect.findIndex(name => name === player.name);
   if (index === -1) {
     return 0;
@@ -664,7 +662,6 @@ export function getPlayerScoreForQuestion(question: QuestionInfo, player: sessio
 }
 
 export function getPlayerRankForQuestion(question: QuestionInfo, player: sessionPlayer) {
-  let score = 0;
   const index = question.playersCorrect.findIndex(name => name === player.name);
   if (index === -1) {
     return question.playersCorrect.length + 1;

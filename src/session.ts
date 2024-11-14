@@ -37,7 +37,6 @@ import {
 import { stringify } from 'csv-stringify/sync';
 import fs from 'fs';
 
-
 /**
  * Start a new quiz session
  * @param {number} quizId - The ID of the quiz to start a session for
@@ -377,7 +376,6 @@ export function adminQuizSessionResult(
 export function adminQuizSessionResultCSV(
   quizId: number, sessionId: number, token: string
 ) {
-
   adminQuizSessionResultsErrorChecking(quizId, sessionId, token);
 
   const session = findSession(quizId, sessionId);
