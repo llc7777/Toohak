@@ -20,7 +20,6 @@ import {
   adminQuizTrashList,
   adminQuizRestore,
   adminQuizTransfer,
-
   adminQuizThumbnailUpdate,
 } from './quiz';
 import {
@@ -32,7 +31,8 @@ import {
   playerStatus,
   sendChatMessage,
   getChatMessageInfo,
-  getPlayerQuestion
+  getPlayerQuestion,
+  playerSubmitAnswer
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -685,6 +685,22 @@ app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: R
     return res.status(400).json({ error: error.message });
   }
 });
+
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
+  const playerId: number = parseInt(req.params.playerid, 10);
+  const questionPosition: number = parseInt(req.params.questionposition, 10);
+  const { answerIds } = req.body;
+
+  try {
+    const result = playerSubmitAnswer(playerId, questionPosition, answerIds);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    res.status(400).json({ error: error.message });
+  }
+});
+
 /*
 * ===========================================================================
 * ============================= V2 ROUTES BELOW =============================
