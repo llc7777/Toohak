@@ -382,14 +382,10 @@ export function adminQuizSessionResultCSV(
 
   const finalResults = generateFinalResults(session);
 
-  console.log(finalResults);
-
   // Sort final results
   const finalResultsSorted = finalResults.sort((a, b) => {
     return a[0].localeCompare(b[0], 'en', { sensitivity: 'base' });
   });
-
-  console.log(finalResultsSorted);
 
   const headers = generateHeaders(session.metadata.questions.length);
 

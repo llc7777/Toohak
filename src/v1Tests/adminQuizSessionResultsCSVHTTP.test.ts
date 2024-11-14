@@ -235,6 +235,8 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const res = getSessionResultsCSV(quizId, sessionId, token);
 
       expect(res.statusCode).toStrictEqual(200);
+
+      expect(JSON.parse(res.body.toString())).toStrictEqual({url: expect.any(String)});
     });
   });
 

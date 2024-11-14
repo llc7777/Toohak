@@ -57,6 +57,8 @@ import {
   QuizInfoSimpleArray,
   ErrorResponse,
 } from './interfaces';
+import { port, url } from './config.json';
+
 
 // Set up web app
 const app = express();
@@ -745,13 +747,13 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, 
   const sessionId: number = parseInt(req.params.sessionId as string);
   const token: string = req.headers.token as string;
 
-  console.log('HEYYYY');
+  const SERVER_URL = `${url}:${port}`;
 
   try {
     adminQuizSessionResultCSV(quizId, sessionId, token);
     sessionURL = sessionId;
     saveData();
-    res.status(200).json({ url: HOST + PORT + `/view/session/${sessionURL}/csv` });
+    res.status(200).json({ url: SERVER_URL+`/view/session/${sessionURL}/csv`});
   } catch (error) {
     saveData();
     if (error.message.includes('401')) {
@@ -764,7 +766,7 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, 
 });
 
 let sessionURL = 0;
-app.use(HOST + PORT + `/view/session/${sessionURL}/csv`, express.static(
+app.use('/view/session/:sessionURL/csv', express.static(
   './results.csv'
 )
 );
