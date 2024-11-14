@@ -485,7 +485,6 @@ export function playerSubmitAnswer(
 ): object {
   // Find the session the player belongs to
   const session = findSessionFromPlayerId(playerId);
-  console.log(session);
 
   if (!session) {
     throw new Error('400 - Player ID does not exist in any session');
