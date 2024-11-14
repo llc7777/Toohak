@@ -7,7 +7,8 @@ const TIMEOUT_MS = 5 * 1000;
 
 const ERROR: ErrorResponse = { error: expect.any(String) };
 
-const submitAnswerRequest = (token: string, playerId: number, questionPosition: number, answerIds: number[]) => {
+const submitAnswerRequest =
+(token: string, playerId: number, questionPosition: number, answerIds: number[]) => {
   return request('PUT', `${SERVER_URL}/v1/player/${playerId}/question/${questionPosition}/answer`, {
     json: { answerIds },
     headers: { token },
@@ -131,12 +132,12 @@ describe('Test for PUT /v1/player/:playerId/question/:questionPosition/answer', 
   test('400: session not in QUESTION_OPEN state', () => {
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
-      json: { action: 'NEXT_QUESTION' }, 
+      json: { action: 'END' },
       timeout: TIMEOUT_MS,
     });
-  
+
     const response = submitAnswerRequest(token, playerId, 1, [2]);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  });  
+  });
 });
