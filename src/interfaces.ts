@@ -140,7 +140,7 @@ export interface PlayerId {
 
 export interface Message {
   messageBody: string,
-  playerId: string,
+  playerId: number,
   playerName: string,
   timeSent: number,
 }
