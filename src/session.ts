@@ -11,7 +11,7 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
-  generateGuestName
+  generateGuestName,
 } from './helper';
 import {
   User,
@@ -22,7 +22,9 @@ import {
   SessionId,
   QuizSessionsResponse,
   QuizSessionStatusResponse,
-  PlayerId
+  PlayerId,
+  sessionPlayer,
+  AnswerOptions
 } from './interfaces';
 
 /**
@@ -380,4 +382,67 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   }
 
   return { playerId };
+}
+
+/**
+ * Get the information about a question the guest player is on.
+ * @param {number} playerId - The ID of the player
+ * @param {number} questionPosition - The position of the question (starting at 1)
+ * @returns {object} - The question details
+ */
+export function getPlayerQuestion(
+  playerId: number,
+  questionPosition: number
+): object {
+  const data = getData();
+
+  const session = data.sessions.find((s: Session) =>
+    s.players.some((p: sessionPlayer) => p.playerId === playerId)
+  );
+
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
+  }
+
+  // Array of valid session states
+  const validStates = ['QUESTION_OPEN', 'ANSWER_SHOW', 'QUESTION_COUNTDOWN'];
+  if (!validStates.includes(session.state)) {
+    throw new Error(`400 - Session is not in a valid state to access questions. Current state: ${session.state}`);
+  }
+
+  // Validate question position
+  const totalQuestions = session.metadata.questions.length;
+  if (
+    typeof questionPosition !== 'number' ||
+    questionPosition < 1 ||
+    questionPosition > totalQuestions
+  ) {
+    throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
+  }
+
+  // Ensure the session's current question matches the requested question
+  if (session.atQuestion + 1 !== questionPosition) {
+    throw new Error('400 - Session is not currently on the requested question');
+  }
+
+  // Retrieve the question details
+  const question = session.metadata.questions[questionPosition - 1];
+  if (!question) {
+    throw new Error('400 - Question does not exist');
+  }
+
+  // Return the question details
+  return {
+    questionId: question.questionId,
+    question: question.question,
+    timeLimit: question.timeLimit,
+    thumbnailUrl: question.thumbnailUrl,
+    points: question.points,
+    answerOptions: question.answerOptions.map((option: AnswerOptions) => ({
+      answerId: option.answerId,
+      answer: option.answer,
+      colour: option.colour,
+      correct: option.correct,
+    })),
+  };
 }

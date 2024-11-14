@@ -29,6 +29,7 @@ import {
   adminQuizSessionView,
   adminQuizSessionStatus,
   playerJoin,
+  getPlayerQuestion
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -624,6 +625,21 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
     res.status(200).json(result);
   } catch (error) {
     saveData();
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: Response) => {
+  const playerId: number = parseInt(req.params.playerId as string);
+  const questionPosition: number = parseInt(req.params.questionPosition as string);
+
+  try {
+    const result = getPlayerQuestion(playerId, questionPosition);
+    saveData();   
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    console.log(error.message)
     return res.status(400).json({ error: error.message });
   }
 });
