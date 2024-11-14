@@ -11,8 +11,6 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
-  totalPlayers,
-  findPlayerFromPlayerId,
   findSessionFromPlayerId
 } from './helper';
 import {
@@ -380,7 +378,6 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
  * @returns 
  */
 export function playerStatus(playerId: number) {
-  const player = findPlayerFromPlayerId(playerId);
   const session = findSessionFromPlayerId(playerId);
   // session id doesn't exist
   if (!session) {
@@ -389,7 +386,7 @@ export function playerStatus(playerId: number) {
 
   return {
     state: session.state,
-    numQuestions: player.score,
+    numQuestions: session.metadata.questions.length,
     atQuestion: session.atQuestion
   };
 }

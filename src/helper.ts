@@ -548,15 +548,6 @@ export function checkUrlIsValid(url: string) {
 // Helper function to delay execution for session update tests
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
-
-export function totalPlayers() {
-  const data = getData();
-  let totalPlayers = 0;
-  data.sessions.forEach(sessions => {
-    totalPlayers += sessions.players.length 
-  });
-  return totalPlayers;
-}
 // finds player from playerid
 export function findPlayerFromPlayerId(playerId: number) {
   const data = getData();
