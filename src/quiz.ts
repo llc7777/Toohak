@@ -154,7 +154,7 @@ export function adminQuizCreate(
     description,
     questions: [],
     timeLimit: 0,
-    thumbnailUrl: '',
+    thumbnailUrl: 'http://google.com/some/image/path.jpg',
   };
 
   data.quizzes.push(newQuiz);
