@@ -15,7 +15,8 @@ import {
   findSessionFromPlayerId,
   sendChatMessageErrorChecking,
   getChatMessageInfoErrorMessaging,
-  adminQuizSessionResultsErrorChecking
+  adminQuizSessionResultsErrorChecking,
+  getAvarageAnswerTime
 } from './helper';
 import {
   User,
@@ -339,7 +340,7 @@ export function adminQuizSessionResult(
 
   // Session details
   const session = findSession(quizId, sessionId);
-
+  
   // Ranked players sort by score in descending order
   const rankedPlayers = session.players
     .sort((a, b) => b.score - a.score)
@@ -347,7 +348,7 @@ export function adminQuizSessionResult(
       playerName: player.name,
       score: player.score,
     }));
-
+  
   // Map questions to results
   const questionResults = session.metadata.questions.map(question => ({
     questionId: question.questionId,
@@ -355,7 +356,7 @@ export function adminQuizSessionResult(
       .filter(player => question.playersCorrect.includes(player.name))
       .map(player => player.name)
       .sort(), // sort in ascending alphabetical order
-    averageAnswerTime: 0,
+    averageAnswerTime: getAvarageAnswerTime(question),
     percentCorrect: session.players.length
       ? Math.round((question.playersCorrect.length / session.players.length) * 100)
       : 0,
