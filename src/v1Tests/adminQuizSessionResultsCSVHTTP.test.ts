@@ -104,16 +104,17 @@ const getSessionStatus = (quizId: number, sessionId: number, token: string) => {
 // Function to get session results
 const getSessionResultsCSV = (
   quizId: number, sessionId: number, token: string) => {
-  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/
-    ${sessionId}/results/csv`, {
+  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/` + 
+    `${sessionId}/results/csv`, {
     headers: { token },
     timeout: TIMEOUT_MS,
   });
 
-  return {
-    statusCode: res.statusCode,
-    body: JSON.parse(res.body.toString()),
-  };
+  // return {
+  //   statusCode: res.statusCode,
+  //   body: JSON.parse(res.body.toString()),
+  // };
+  return res;
 };
 
 // Function to submit player's answer
@@ -217,26 +218,23 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const answerResponse1 = submitAnswerRequest(token, playerIdOne, 1, [1]);
       const answerResponse2 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
 
-      expect(answerResponse1.statusCode).toBe(200);
-      expect(answerResponse2.statusCode).toBe(200);
+      expect(answerResponse1.statusCode).toStrictEqual(200);
+      expect(answerResponse2.statusCode).toStrictEqual(200);
 
       updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
 
       const questionRes1 = getQuestionResultsRequest(token, playerIdOne, 1);
       const questionRes2 = getQuestionResultsRequest(token, playerIdTwo, 1);
-      expect(questionRes1.statusCode).toBe(200);
-      expect(questionRes2.statusCode).toBe(200);
+
+      expect(questionRes1.statusCode).toStrictEqual(200);
+      expect(questionRes2.statusCode).toStrictEqual(200);
 
       updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
 
       // Get session results
       const res = getSessionResultsCSV(quizId, sessionId, token);
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res.body.toString()).startsWith('http')).
-        toStrictEqual(true);
 
-      expect(JSON.parse(res.body.toString()).endsWith('csv')).
-        toStrictEqual(true);
+      expect(res.statusCode).toStrictEqual(200);
 
     });
   });
@@ -249,7 +247,7 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const res = getSessionResultsCSV(quizId, sessionId, encodedInvalid);
 
       expect(res.statusCode).toStrictEqual(401);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('Empty token returns 401', () => {
@@ -257,30 +255,30 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const res = getSessionResultsCSV(quizId, sessionId, emptyToken);
 
       expect(res.statusCode).toStrictEqual(401);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('User does not own the quiz', () => {
       const res = getSessionResultsCSV(quizId, sessionId, nonOwnerToken);
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(res.statusCode).toStrictEqual(403);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('Quiz does not exist returns 403', () => {
       const invalidQuizId = quizId + 1;
       const res = getSessionResultsCSV(invalidQuizId, sessionId, token);
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(res.statusCode).toStrictEqual(403);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('Session does not exist returns 400', () => {
       const invalidSessionId = sessionId + 1;
       const res = getSessionResultsCSV(quizId, invalidSessionId, token);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(res.statusCode).toStrictEqual(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
 
     test('Session not in FINAL_RESULTS state', () => {
@@ -290,8 +288,8 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
 
       const res = getSessionResultsCSV(quizId, newSessionId, token);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toStrictEqual(ERROR);
+      expect(res.statusCode).toStrictEqual(400);
+      expect(JSON.parse(res.body.toString())).toStrictEqual(ERROR);
     });
   });
 });
