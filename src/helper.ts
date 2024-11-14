@@ -9,6 +9,7 @@ import {
   QuestionInfo,
   Session,
 } from './interfaces';
+import { availableParallelism } from 'os';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
@@ -525,6 +526,13 @@ export function adminQuizSessionResultsErrorChecking(
   }
 }
 
+export function getAvarageAnswerTime(question: QuestionInfo) {
+  let averageAnswerTime = 0;
+  for (const player of question.playersAnswered) {
+    averageAnswerTime += player.timeAnswered;
+  }
+  return Math.floor(averageAnswerTime / (question.playersAnswered.length));
+}
 export function findSession(quizId: number, sessionId: number) {
   const data = getData();
   return data.sessions.find(
