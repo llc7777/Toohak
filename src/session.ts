@@ -11,7 +11,9 @@ import {
   findSession,
   countDownTillQuestionClose,
   findSessionFromSessionId,
-  generateGuestName
+  generateGuestName,
+  findSessionFromPlayerId,
+  sendChatMessageErrorChecking
 } from './helper';
 import {
   User,
@@ -380,4 +382,19 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   }
 
   return { playerId };
+}
+
+export function sendChatMessage(playerId: number, message: string) {
+
+  sendChatMessageErrorChecking(playerId, message);
+
+  const session = findSessionFromPlayerId(playerId);
+  const player = session.players.find(player => player.playerId === playerId);
+  const newMessage = {
+    messageBody: message,
+    playerId: playerId,
+    playerName: player.name,
+    timeSent: Math.floor(Date.now() / 1000),
+  }
+  session.messages.push(newMessage);
 }
