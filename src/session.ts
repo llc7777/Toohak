@@ -480,3 +480,95 @@ export function getPlayerQuestion(
     })),
   };
 }
+
+export function playerSubmitAnswer(
+  playerId: number,
+  questionPosition: number,
+  answerIds: number[]
+): object {
+  const data = getData();
+
+  // Find the session the player belongs to
+  const session = data.sessions.find((s: Session) =>
+    s.players.some((p: sessionPlayer) => p.playerId === playerId)
+  );
+
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
+  }
+
+  if (session.state !== 'QUESTION_OPEN') {
+    throw new Error('400 - Session is not in QUESTION_OPEN state');
+  }
+
+  const totalQuestions = session.metadata.questions.length;
+  if (questionPosition < 1 || questionPosition > totalQuestions) {
+    throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
+  }
+
+  if (session.atQuestion + 1 !== questionPosition) {
+    throw new Error('400 - Session is not currently on the requested question');
+  }
+
+  const question = session.metadata.questions[questionPosition - 1];
+  if (!question) {
+    throw new Error('400 - Question does not exist');
+  }
+
+  const validAnswerIds = question.answerOptions.map((option: AnswerOptions) => option.answerId);
+  const invalidAnswers = answerIds.filter((id) => !validAnswerIds.includes(id));
+  if (invalidAnswers.length > 0) {
+    throw new Error(
+      `400 - The following answer IDs are invalid: ${invalidAnswers.join(', ')}`
+    );
+  }
+
+  const uniqueAnswers = new Set(answerIds);
+  if (uniqueAnswers.size !== answerIds.length) {
+    throw new Error('400 - Duplicate answer IDs provided');
+  }
+
+  if (answerIds.length < 1) {
+    throw new Error('400 - At least one answer ID must be provided');
+  }
+
+  const player = session.players.find((p: sessionPlayer) => p.playerId === playerId);
+  if (!player) {
+    throw new Error('400 - Player ID does not exist in the session');
+  }
+
+  const currentTime = Math.floor(Date.now() / 1000);
+  const timeTaken = currentTime - (question.timeOpened || 0);
+
+  // Ensure playerAnswerInfo exists for the question
+  const playerAnswerIndex = question.playersAnswered.findIndex(
+    (entry) => entry.playerId === playerId.toString()
+  );
+
+  if (playerAnswerIndex === -1) {
+    question.playersAnswered.push({
+      playerId: playerId.toString(),
+      timeAnswered: timeTaken,
+    });
+  } else {
+    question.playersAnswered[playerAnswerIndex].timeAnswered = timeTaken;
+  }
+
+  const correctAnswers =
+    question.answerOptions.filter((option) => option.correct).map((option) => option.answerId);
+  const isCorrect =
+    answerIds.length === correctAnswers.length &&
+    answerIds.every((id) => correctAnswers.includes(id));
+
+  if (isCorrect) {
+    if (!question.playersCorrect.includes(playerId.toString())) {
+      question.playersCorrect.push(playerId.toString());
+    }
+    player.score += question.points;
+  }
+
+  return {
+    isCorrect,
+    updatedScore: player.score,
+  };
+}
