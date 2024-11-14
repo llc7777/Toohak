@@ -30,6 +30,7 @@ import {
   adminQuizSessionStatus,
   playerJoin,
   sendChatMessage,
+  getChatMessageInfo
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -637,6 +638,19 @@ app.post('/v1/player/:playerId/chat', (req: Request, res: Response) => {
     sendChatMessage(playerId, message);
     saveData();
     return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/v1/player/:playerId/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerId as string);
+
+  try {
+    const result = getChatMessageInfo(playerId);
+    saveData();
+    return res.status(200).json(result);
   } catch (error) {
     saveData();
     return res.status(400).json({ error: error.message });
