@@ -404,13 +404,11 @@ export function getPlayerQuestion(
     throw new Error('400 - Player ID does not exist in any session');
   }
 
-  // Array of valid session states
-  const validStates = ['QUESTION_OPEN', 'ANSWER_SHOW', 'QUESTION_COUNTDOWN'];
-  if (!validStates.includes(session.state)) {
-    throw new Error(`400 - Session is not in a valid state to access questions. Current state: ${session.state}`);
+  if (session.state !== 'QUESTION_OPEN') {
+    throw new Error(`400 - Session is not in a valid state to access questions. Current state: 
+    ${session.state}`);
   }
 
-  // Validate question position
   const totalQuestions = session.metadata.questions.length;
   if (
     typeof questionPosition !== 'number' ||
@@ -420,18 +418,15 @@ export function getPlayerQuestion(
     throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
   }
 
-  // Ensure the session's current question matches the requested question
   if (session.atQuestion + 1 !== questionPosition) {
     throw new Error('400 - Session is not currently on the requested question');
   }
 
-  // Retrieve the question details
   const question = session.metadata.questions[questionPosition - 1];
   if (!question) {
     throw new Error('400 - Question does not exist');
   }
 
-  // Return the question details
   return {
     questionId: question.questionId,
     question: question.question,
