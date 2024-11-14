@@ -571,15 +571,23 @@ export function sendChatMessageErrorChecking(playerId: number, message: string) 
   const session = findSessionFromPlayerId(playerId);
 
   if (session === null) {
-    throw new Error('PlayerId does not exist in any session');
+    throw new Error('400 - PlayerId does not exist in any session');
   }
 
   if (message.length > 100) {
-    throw new Error('Message length is larger than 100 characters');
+    throw new Error('400 - Message length is larger than 100 characters');
   }
 
   if (message.length < 1) {
-    throw new Error('Message length is less than 1 character');
+    throw new Error('400 - Message length is less than 1 character');
+  }
+}
+
+export function getChatMessageInfoErrorMessaging(playerId: number) {
+  const session = findSessionFromPlayerId(playerId);
+
+  if (session === null) {
+    throw new Error('400 - PlayerId does not exist in any session');
   }
 }
 

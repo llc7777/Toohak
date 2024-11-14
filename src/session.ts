@@ -13,7 +13,8 @@ import {
   findSessionFromSessionId,
   generateGuestName,
   findSessionFromPlayerId,
-  sendChatMessageErrorChecking
+  sendChatMessageErrorChecking,
+  getChatMessageInfoErrorMessaging
 } from './helper';
 import {
   User,
@@ -383,6 +384,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 }
 
 export function sendChatMessage(playerId: number, message: string) {
+
   sendChatMessageErrorChecking(playerId, message);
 
   const session = findSessionFromPlayerId(playerId);
@@ -394,4 +396,12 @@ export function sendChatMessage(playerId: number, message: string) {
     timeSent: Math.floor(Date.now() / 1000),
   };
   session.messages.push(newMessage);
+}
+
+export function getChatMessageInfo(playerId: number) {
+  getChatMessageInfoErrorMessaging(playerId);
+
+  const session = findSessionFromPlayerId(playerId);
+
+  return session.messages;
 }
