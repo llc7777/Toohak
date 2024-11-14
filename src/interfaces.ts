@@ -102,7 +102,7 @@ export interface QuestionInfo {
 }
 
 export interface playerAnswerInfo {
-  playerId: string,
+  playerId: number,
   timeAnswered: number,
 }
 
