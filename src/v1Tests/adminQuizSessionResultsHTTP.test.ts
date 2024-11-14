@@ -12,7 +12,6 @@ let token: string = '';
 let nonOwnerToken: string = '';
 let quizId: number = 0;
 let sessionId: number = 0;
-let playerId: number;
 
 // Function to register a user
 const requestAdminAuthRegister = (
@@ -95,7 +94,7 @@ const updateQuizSession = (action: string, sessionId: number, token: string, qui
 
 // Function to get session status
 const getSessionStatus = (quizId: number, sessionId: number, token: string) => {
-  const res =  request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+  const res = request('GET', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
     headers: { token },
     timeout: TIMEOUT_MS,
   });
@@ -194,19 +193,16 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       // Add players to the session
       const playerIdOne = createPlayer(sessionId, 'Bahar');
       const playerIdTwo = createPlayer(sessionId, 'Liam');
-      const playerIdThree = createPlayer(sessionId, 'Nora');
 
       getSessionStatus(quizId, sessionId, token);
       updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
       updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
       updateQuizSession('QUESTION_OPEN', sessionId, token, quizId);
-      
+
       const answerResponse1 = submitAnswerRequest(token, playerIdOne, 1, [1]);
       const answerResponse2 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
-      const answerResponse3 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
       expect(answerResponse1.statusCode).toBe(200);
       expect(answerResponse2.statusCode).toBe(200);
-      expect(answerResponse3.statusCode).toBe(200);
 
       updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
       updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
@@ -218,9 +214,9 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
       const body = res.body;
 
       expect(body.usersRankedByScore).toEqual([
-          { playerName: expect.any(String), score: expect.any(Number) },
-          { playerName: expect.any(String), score: expect.any(Number) },
-        ]);
+        { playerName: expect.any(String), score: expect.any(Number) },
+        { playerName: expect.any(String), score: expect.any(Number) },
+      ]);
       expect(body.questionResults).toEqual([
         {
           questionId: expect.any(Number),

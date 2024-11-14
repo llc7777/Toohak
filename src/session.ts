@@ -340,7 +340,7 @@ export function adminQuizSessionResult(
 
   // Session details
   const session = findSession(quizId, sessionId);
-  
+
   // Ranked players sort by score in descending order
   const rankedPlayers = session.players
     .sort((a, b) => b.score - a.score)
@@ -348,7 +348,7 @@ export function adminQuizSessionResult(
       playerName: player.name,
       score: player.score,
     }));
-  
+
   // Map questions to results
   const questionResults = session.metadata.questions.map(question => ({
     questionId: question.questionId,

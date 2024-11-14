@@ -9,7 +9,6 @@ import {
   QuestionInfo,
   Session,
 } from './interfaces';
-import { availableParallelism } from 'os';
 
 // Helper function for adminAuthRegister
 export function isValidEmail(email: string): string {
