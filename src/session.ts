@@ -14,7 +14,9 @@ import {
   generateGuestName,
   findSessionFromPlayerId,
   sendChatMessageErrorChecking,
-  getChatMessageInfoErrorMessaging
+  getChatMessageInfoErrorMessaging,
+  adminQuizSessionResultsErrorChecking,
+  getAvarageAnswerTime
 } from './helper';
 import {
   User,
@@ -25,6 +27,7 @@ import {
   SessionId,
   QuizSessionsResponse,
   QuizSessionStatusResponse,
+  SessionResultResponse,
   PlayerId,
   AnswerOptions,
   sessionPlayer
@@ -330,6 +333,42 @@ export function adminQuizSessionStatus(
   return response;
 }
 
+export function adminQuizSessionResult(
+  quizId: number, sessionId: number, token: string
+): SessionResultResponse {
+  // Error checking
+  adminQuizSessionResultsErrorChecking(quizId, sessionId, token);
+
+  // Session details
+  const session = findSession(quizId, sessionId);
+
+  // Ranked players sort by score in descending order
+  const rankedPlayers = session.players
+    .sort((a, b) => b.score - a.score)
+    .map(player => ({
+      playerName: player.name,
+      score: player.score,
+    }));
+
+  // Map questions to results
+  const questionResults = session.metadata.questions.map(question => ({
+    questionId: question.questionId,
+    playersCorrect: session.players
+      .filter(player => question.playersCorrect.includes(player.name))
+      .map(player => player.name)
+      .sort(), // sort in ascending alphabetical order
+    averageAnswerTime: getAvarageAnswerTime(question),
+    percentCorrect: session.players.length
+      ? Math.round((question.playersCorrect.length / session.players.length) * 100)
+      : 0,
+  }));
+
+  return {
+    usersRankedByScore: rankedPlayers,
+    questionResults,
+  };
+}
+
 /** Allows player to join session using session number and player name
  *
  * @param sessionId
@@ -376,6 +415,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 
   if (session.players.length === session.autoStartNum) {
     session.state = 'QUESTION_COUNTDOWN';
+    session.atQuestion++;
   }
   return { playerId };
 }
@@ -485,7 +525,6 @@ export function playerSubmitAnswer(
 ): object {
   // Find the session the player belongs to
   const session = findSessionFromPlayerId(playerId);
-  console.log(session);
 
   if (!session) {
     throw new Error('400 - Player ID does not exist in any session');
@@ -530,28 +569,36 @@ export function playerSubmitAnswer(
 
   // Ensure playerAnswerInfo exists for the question
   const playerAnswerIndex = question.playersAnswered.findIndex(
-    (entry) => entry.playerId === playerId.toString()
+    (entry) => entry.playerId === playerId
   );
 
   if (playerAnswerIndex === -1) {
     question.playersAnswered.push({
-      playerId: playerId.toString(),
+      playerId: playerId,
       timeAnswered: timeTaken,
     });
   } else {
     question.playersAnswered[playerAnswerIndex].timeAnswered = timeTaken;
   }
 
-  const correctAnswers =
-    question.answerOptions.filter((option) => option.correct).map((option) => option.answerId);
-  const isCorrect =
-    answerIds.length === correctAnswers.length &&
-    answerIds.every((id) => correctAnswers.includes(id));
-
-  if (isCorrect) {
-    if (!question.playersCorrect.includes(playerId.toString())) {
-      question.playersCorrect.push(playerId.toString());
+  let numCorrectOptions = 0;
+  for (const answer of question.answerOptions) {
+    if (answer.correct) {
+      numCorrectOptions++;
     }
+  }
+
+  let isCorrect = true;
+  console.log(question.answerOptions);
+  for (const answerId of answerIds) {
+    const answer = question.answerOptions.find(answer => answer.answerId === answerId);
+    if (answer.correct === false) {
+      isCorrect = false;
+    }
+  }
+
+  if (numCorrectOptions === answerIds.length && isCorrect) {
+    question.playersCorrect.push(player.name);
     player.score += question.points / question.playersCorrect.length;
   }
 
