@@ -545,5 +545,51 @@ export function checkUrlIsValid(url: string) {
   }
 }
 
+export function generateGuestName() {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  let guestName = '';
+  for (let i = 0; i < 5; i++) {
+    guestName += letters[Math.floor(Math.random() * letters.length)];
+  }
+  for (let i = 0; i < 3; i++) {
+    guestName += Math.floor(Math.random() * 1000) % 10;
+  }
+  return guestName;
+}
+
+export function findSessionFromPlayerId(playerId: number) {
+  const data: Data = getData();
+  for (const session of data.sessions) {
+    if (session.players.find(player => player.playerId === playerId)) {
+      return session;
+    }
+  }
+  return null;
+}
+
+export function sendChatMessageErrorChecking(playerId: number, message: string) {
+  const session = findSessionFromPlayerId(playerId);
+
+  if (session === null) {
+    throw new Error('400 - PlayerId does not exist in any session');
+  }
+
+  if (message.length > 100) {
+    throw new Error('400 - Message length is larger than 100 characters');
+  }
+
+  if (message.length < 1) {
+    throw new Error('400 - Message length is less than 1 character');
+  }
+}
+
+export function getChatMessageInfoErrorMessaging(playerId: number) {
+  const session = findSessionFromPlayerId(playerId);
+
+  if (session === null) {
+    throw new Error('400 - PlayerId does not exist in any session');
+  }
+}
+
 // Helper function to delay execution for session update tests
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
