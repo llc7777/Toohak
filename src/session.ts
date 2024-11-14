@@ -16,7 +16,9 @@ import {
   sendChatMessageErrorChecking,
   getChatMessageInfoErrorMessaging,
   adminQuizSessionResultsErrorChecking,
-  getAvarageAnswerTime
+  getAvarageAnswerTime,
+  generateFinalResults,
+  generateHeaders,
 } from './helper';
 import {
   User,
@@ -32,6 +34,8 @@ import {
   AnswerOptions,
   sessionPlayer
 } from './interfaces';
+import { stringify } from 'csv-stringify/sync';
+import fs from 'fs';
 
 /**
  * Start a new quiz session
@@ -367,6 +371,27 @@ export function adminQuizSessionResult(
     usersRankedByScore: rankedPlayers,
     questionResults,
   };
+}
+
+export function adminQuizSessionResultCSV(
+  quizId: number, sessionId: number, token: string
+) {
+  adminQuizSessionResultsErrorChecking(quizId, sessionId, token);
+
+  const session = findSession(quizId, sessionId);
+
+  const finalResults = generateFinalResults(session);
+
+  // Sort final results
+  const finalResultsSorted = finalResults.sort((a, b) => {
+    return a[0].localeCompare(b[0], 'en', { sensitivity: 'base' });
+  });
+
+  const headers = generateHeaders(session.metadata.questions.length);
+
+  const CSVFormat = stringify(finalResultsSorted, { header: true, columns: headers });
+
+  fs.writeFileSync(`./results.${sessionId}.csv`, CSVFormat);
 }
 
 /** Allows player to join session using session number and player name

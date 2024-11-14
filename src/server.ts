@@ -35,6 +35,7 @@ import {
   getPlayerQuestion,
   playerSubmitAnswer,
   playerQuestionResult,
+  adminQuizSessionResultCSV
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -56,6 +57,7 @@ import {
   QuizInfoSimpleArray,
   ErrorResponse,
 } from './interfaces';
+import { port, url } from './config.json';
 
 // Set up web app
 const app = express();
@@ -629,8 +631,10 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results', (req: Request, res:
 
   try {
     const result = adminQuizSessionResult(quizId, sessionId, token);
+    saveData();
     res.status(200).json(result);
   } catch (error) {
+    saveData();
     if (error.message.includes('401')) {
       return res.status(401).json({ error: error.message });
     } else if (error.message.includes('400')) {
@@ -736,6 +740,35 @@ app.get('/v1/player/:playerid/question/:questionposition/results',
       return res.status(400).json({ error: error.message });
     }
   });
+///       v1/admin/quiz/:quizId/session/:sessionId/results/csv
+app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizId as string);
+  const sessionId: number = parseInt(req.params.sessionId as string);
+  const token: string = req.headers.token as string;
+
+  const SERVER_URL = `${url}:${port}`;
+
+  try {
+    adminQuizSessionResultCSV(quizId, sessionId, token);
+    sessionURL = sessionId;
+    saveData();
+    res.status(200).json({ url: SERVER_URL + `/view/session/${sessionURL}/csv` });
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+});
+
+let sessionURL = 0;
+app.use('/view/session/:sessionURL/csv', express.static(
+  './results.csv'
+)
+);
 
 /*
 * ===========================================================================
