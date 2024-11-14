@@ -582,16 +582,24 @@ export function playerSubmitAnswer(
     question.playersAnswered[playerAnswerIndex].timeAnswered = timeTaken;
   }
 
-  const correctAnswers =
-    question.answerOptions.filter((option) => option.correct).map((option) => option.answerId);
-  const isCorrect =
-    answerIds.length === correctAnswers.length &&
-    answerIds.every((id) => correctAnswers.includes(id));
+  let numCorrectOptions = 0;
+ for (const answer of question.answerOptions) {
+   if (answer.correct) {
+     numCorrectOptions++;
+   }
+ }
 
-  if (isCorrect) {
-    if (!question.playersCorrect.includes(playerId.toString())) {
-      question.playersCorrect.push(playerId.toString());
+  let isCorrect = true;
+  console.log(question.answerOptions);
+  for (const answerId of answerIds) {
+    const answer = question.answerOptions.find(answer => answer.answerId === answerId);
+    if (answer.correct === false) {
+      isCorrect = false;
     }
+  }
+
+  if (numCorrectOptions === answerIds.length && isCorrect) {
+    question.playersCorrect.push(player.name);
     player.score += question.points / question.playersCorrect.length;
   }
 
