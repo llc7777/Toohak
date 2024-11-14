@@ -14,7 +14,8 @@ import {
   generateGuestName,
   findSessionFromPlayerId,
   sendChatMessageErrorChecking,
-  getChatMessageInfoErrorMessaging
+  getChatMessageInfoErrorMessaging,
+  adminQuizSessionResultsErrorChecking
 } from './helper';
 import {
   User,
@@ -25,6 +26,7 @@ import {
   SessionId,
   QuizSessionsResponse,
   QuizSessionStatusResponse,
+  SessionResultResponse,
   PlayerId
 } from './interfaces';
 
@@ -328,6 +330,42 @@ export function adminQuizSessionStatus(
     }
   };
   return response;
+}
+
+export function adminQuizSessionResult(
+  quizId: number, sessionId: number, token: string
+): SessionResultResponse {
+  // Error checking
+  adminQuizSessionResultsErrorChecking(quizId, sessionId, token);
+
+  // Session details
+  const session = findSession(quizId, sessionId);
+
+  // Ranked players sort by score in descending order
+  const rankedPlayers = session.players
+    .sort((a, b) => b.score - a.score)
+    .map(player => ({
+      playerName: player.name,
+      score: player.score,
+    }));
+    
+  // Map questions to results
+  const questionResults = session.metadata.questions.map(question => ({
+    questionId: question.questionId,
+    playersCorrect: session.players
+      .filter(player => question.playersCorrect.includes(player.name))
+      .map(player => player.name)
+      .sort(), // sort in ascending alphabetical order
+    averageAnswerTime: 0,
+    percentCorrect: session.players.length
+      ? Math.round((question.playersCorrect.length / session.players.length) * 100)
+      : 0,
+  }));
+
+  return {
+    usersRankedByScore: rankedPlayers,
+    questionResults,
+  };
 }
 
 /** Allows player to join session using session number and player name

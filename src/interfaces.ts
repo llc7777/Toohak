@@ -231,14 +231,19 @@ export interface AnswerOption {
   correct: boolean;
 }
 
-// export interface Player {
-//   name: string;
-// }
+export interface SessionResultResponse {
+  usersRankedByScore: UserRanked[];
+  questionResults: QuestionResult[];
+}
 
-// export interface QuizSession {
-//   sessionId: number;
-//   state: SessionState;
-//   atQuestion: number;
-//   players: Player[];
-//   metadata: Metadata;
-// }
+export interface UserRanked {
+  playerName: string;
+  score: number;
+}
+
+export interface QuestionResult {
+  questionId: number;
+  playersCorrect: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}

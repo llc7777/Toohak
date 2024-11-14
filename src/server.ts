@@ -28,9 +28,10 @@ import {
   adminQuizSessionUpdate,
   adminQuizSessionView,
   adminQuizSessionStatus,
+  adminQuizSessionResult,
   playerJoin,
   sendChatMessage,
-  getChatMessageInfo
+  getChatMessageInfo,
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -606,6 +607,25 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId', (req: Request, res: Respons
 
   try {
     const result = adminQuizSessionStatus(quizId, sessionId, token);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+});
+
+// v1 adminQuizSessionResults GET request
+app.get('/v1/admin/quiz/:quizId/session/:sessionId/results', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizId as string);
+  const sessionId: number = parseInt(req.params.sessionId as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizSessionResult(quizId, sessionId, token);
     res.status(200).json(result);
   } catch (error) {
     if (error.message.includes('401')) {
