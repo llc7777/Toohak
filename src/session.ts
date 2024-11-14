@@ -620,21 +620,9 @@ export function playerQuestionResult(
     averageAnswerTime = Math.round(totalAnswerTime / question.playersAnswered.length);
   }
 
-  // Get the names of players who answered correctly
-  const playersCorrect = question.playersCorrect.map(function(playerId) {
-    const player = session.players.find(function(p) {
-      return p.playerId.toString() === playerId;
-    });
-    if (player) {
-      return player.name;
-    }
-  }).filter(function(name) {
-    return name !== null;
-  });
-
   return {
     questionId: question.questionId,
-    playersCorrect: playersCorrect,
+    playersCorrect: question.playersCorrect,
     averageAnswerTime: averageAnswerTime,
     percentCorrect: percentCorrect,
   };

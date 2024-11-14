@@ -94,7 +94,7 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
       timeout: TIMEOUT_MS,
     });
 
-    const res2 = request('PUT', `${SERVER_URL}/v1/player/${playerId}/question/${1}/answer`, {
+    request('PUT', `${SERVER_URL}/v1/player/${playerId}/question/${1}/answer`, {
       json: {
         answerIds: [2],
       },
@@ -106,7 +106,7 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
       json: { action: 'GO_TO_ANSWER' },
       timeout: TIMEOUT_MS,
     });
-    
+
     const questionPosition = 1;
     const response = getQuestionResultsRequest(token, playerId, questionPosition);
 
@@ -213,7 +213,6 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
   });
 
   test('400: session not currently on the requested question', () => {
-
     request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
       json: {
         questionBody: {
@@ -252,6 +251,5 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
     const response = getQuestionResultsRequest(token, playerId, 2);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-    console.log(JSON.parse(response.body.toString()));
   });
 });
