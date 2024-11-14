@@ -462,10 +462,6 @@ export function getPlayerQuestion(
 
   const question = session.metadata.questions[questionPosition - 1];
 
-  if (!question) {
-    throw new Error('400 - Question does not exist');
-  }
-
   return {
     questionId: question.questionId,
     question: question.question,
