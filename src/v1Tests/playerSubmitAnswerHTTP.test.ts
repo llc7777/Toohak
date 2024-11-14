@@ -76,7 +76,7 @@ beforeEach(() => {
     headers: { token },
     timeout: TIMEOUT_MS,
   });
-  JSON.parse(questionRes2.body.toString())
+  JSON.parse(questionRes2.body.toString());
 
   const sessionStartRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
     json: { autoStartNum: 3 },
@@ -137,7 +137,7 @@ describe('Test for PUT /v1/player/:playerId/question/:questionPosition/answer', 
     const response = submitAnswerRequest(token, playerId, 2, [2]);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  })
+  });
 
   test('400: duplicate answer IDs provided', () => {
     const response = submitAnswerRequest(token, playerId, 1, [2, 2]);

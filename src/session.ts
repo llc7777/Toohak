@@ -483,7 +483,6 @@ export function playerSubmitAnswer(
   questionPosition: number,
   answerIds: number[]
 ): object {
-  const data = getData();
 
   // Find the session the player belongs to
   const session = findSessionFromPlayerId(playerId);
@@ -554,7 +553,7 @@ export function playerSubmitAnswer(
     if (!question.playersCorrect.includes(playerId.toString())) {
       question.playersCorrect.push(playerId.toString());
     }
-    player.score += question.points/question.playersCorrect.length;
+    player.score += question.points / question.playersCorrect.length;
   }
 
   return {};
