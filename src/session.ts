@@ -25,7 +25,9 @@ import {
   SessionId,
   QuizSessionsResponse,
   QuizSessionStatusResponse,
-  PlayerId
+  PlayerId,
+  AnswerOptions,
+  sessionPlayer
 } from './interfaces';
 
 /**
@@ -83,7 +85,6 @@ export function adminQuizSessionStart(
   const nonEndedSessionsCount: number = data.sessions.filter(
     session => session.state !== 'END' &&
       session.metadata.quizId === quizId).length;
-
   // Throw an error if there are more than 10 active sessions for this quiz
   if (nonEndedSessionsCount >= 10) {
     throw new Error('400 - There are more than 10 active sessions for this quiz');
@@ -146,7 +147,6 @@ export function adminQuizSessionUpdate(
   if (!quiz) {
     throw new Error('403 - Quiz does not exist');
   }
-
   // Throw an error if the user does not own the quiz
   if (quiz.authUserId !== user.authUserId) {
     throw new Error('403 - User does not own the quiz');
@@ -272,7 +272,6 @@ export function adminQuizSessionView(
   // Sort sessions in ascending order
   activeSessions.sort((a, b) => a - b);
   inactiveSessions.sort((a, b) => a - b);
-
   // Return the session data
   return {
     activeSessions,
@@ -377,7 +376,6 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   if (session.players.length === session.autoStartNum) {
     session.state = 'QUESTION_COUNTDOWN';
   }
-
   return { playerId };
 }
 
@@ -421,5 +419,64 @@ export function getChatMessageInfo(playerId: number) {
 
   return {
     messages: session.messages
+  };
+}
+
+/**
+* Get the information about a question the guest player is on.
+* @param {number} playerId - The ID of the player
+* @param {number} questionPosition - The position of the question (starting at 1)
+* @returns {object} - The question details
+*/
+
+export function getPlayerQuestion(
+  playerId: number,
+  questionPosition: number
+): object {
+  const data = getData();
+  const session = data.sessions.find((s: Session) =>
+    s.players.some((p: sessionPlayer) => p.playerId === playerId)
+  );
+
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
+  }
+
+  if (session.state !== 'QUESTION_OPEN') {
+    throw new Error(`400 - Session is not in a valid state to access questions. Current state:
+  ${session.state}`);
+  }
+
+  const totalQuestions = session.metadata.questions.length;
+
+  if (
+    typeof questionPosition !== 'number' ||
+  questionPosition < 1 ||
+  questionPosition > totalQuestions
+  ) {
+    throw new Error(`400 - Invalid question position. Valid range is 1 to ${totalQuestions}`);
+  }
+  if (session.atQuestion + 1 !== questionPosition) {
+    throw new Error('400 - Session is not currently on the requested question');
+  }
+
+  const question = session.metadata.questions[questionPosition - 1];
+
+  if (!question) {
+    throw new Error('400 - Question does not exist');
+  }
+
+  return {
+    questionId: question.questionId,
+    question: question.question,
+    timeLimit: question.timeLimit,
+    thumbnailUrl: question.thumbnailUrl,
+    points: question.points,
+    answerOptions: question.answerOptions.map((option: AnswerOptions) => ({
+      answerId: option.answerId,
+      answer: option.answer,
+      colour: option.colour,
+      correct: option.correct,
+    })),
   };
 }

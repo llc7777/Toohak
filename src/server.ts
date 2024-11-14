@@ -31,7 +31,8 @@ import {
   playerJoin,
   playerStatus,
   sendChatMessage,
-  getChatMessageInfo
+  getChatMessageInfo,
+  getPlayerQuestion
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -671,6 +672,19 @@ app.get('/v1/player/:playerId/chat', (req: Request, res: Response) => {
   }
 });
 
+app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: Response) => {
+  const playerId: number = parseInt(req.params.playerId, 10);
+  const questionPosition: number = parseInt(req.params.questionPosition, 10);
+
+  try {
+    const result = getPlayerQuestion(playerId, questionPosition);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message });
+  }
+});
 /*
 * ===========================================================================
 * ============================= V2 ROUTES BELOW =============================
