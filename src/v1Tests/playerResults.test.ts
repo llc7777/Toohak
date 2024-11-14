@@ -89,6 +89,22 @@ describe('Test for POST /v1/player/{playerid}', () => {
     const response = playerResultsRequest(playerId);
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body.toString())).toStrictEqual({
+      usersRankedByScore: [
+        {
+          playerName: expect.any(String),
+          score: expect.any(Number),
+        }
+      ],
+      questionResults: [
+        {
+          questionId: expect.any(Number),
+          playersCorrect: [
+            expect.any(Number),
+          ],
+          averageAnswerTime: expect.any(Number),
+          percentCorrect: expect.any(Number), 
+        }
+      ]
     });
   });
 
@@ -99,5 +115,28 @@ describe('Test for POST /v1/player/{playerid}', () => {
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
 
-  test.todo('session is not in final_results state');
+  test('session is not in final_results state', () => {
+    const updateStateRequest = (quizid: number,
+      sessionid: number,
+      token: string,
+      body: { action: string }
+    ) => {
+      return request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizid}/session/${sessionid}`, {
+        json: { action: 'END' },
+        headers: { token },
+        timeout: TIMEOUT_MS
+      });
+    };
+    const updateRes = updateStateRequest(quiz.quizId,
+      sessionId,
+      token,
+      { action: 'END' }
+    );
+    expect(updateRes.statusCode).toBe(200);
+    expect(JSON.parse(updateRes.body.toString())).toStrictEqual({});
+
+    const response = playerResultsRequest(playerId);
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
+  });
 });
