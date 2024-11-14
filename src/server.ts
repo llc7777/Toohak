@@ -685,7 +685,6 @@ app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: R
     return res.status(400).json({ error: error.message });
   }
 });
-
 /*
 * ===========================================================================
 * ============================= V2 ROUTES BELOW =============================
