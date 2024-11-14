@@ -360,12 +360,15 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
 
   if (playerName === '') {
     playerName = generateGuestName();
-    while (session.players.find(player => player.name === playerName)) {
-      playerName = generateGuestName();
-    }
+  }
+  console.log(getData());
+
+  let playerId: number = 0;
+  for (const session of getData().sessions) {
+    console.log('hey');
+    playerId += session.players.length;
   }
 
-  const playerId = session.players.length + 1;
   session.players.push({
     playerId: playerId,
     name: playerName,
