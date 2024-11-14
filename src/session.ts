@@ -381,6 +381,25 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   return { playerId };
 }
 
+/** Gives player status from playerid
+ *
+ * @param playerId
+ * @returns
+ */
+export function playerStatus(playerId: number) {
+  const session = findSessionFromPlayerId(playerId);
+  // session id doesn't exist
+  if (!session) {
+    throw new Error('400 - Player Id does not exist');
+  }
+
+  return {
+    state: session.state,
+    numQuestions: session.metadata.questions.length,
+    atQuestion: session.atQuestion
+  };
+}
+
 export function sendChatMessage(playerId: number, message: string) {
   sendChatMessageErrorChecking(playerId, message);
 
