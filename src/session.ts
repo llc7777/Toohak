@@ -569,12 +569,12 @@ export function playerSubmitAnswer(
 
   // Ensure playerAnswerInfo exists for the question
   const playerAnswerIndex = question.playersAnswered.findIndex(
-    (entry) => entry.playerId === playerId.toString()
+    (entry) => entry.playerId === playerId
   );
 
   if (playerAnswerIndex === -1) {
     question.playersAnswered.push({
-      playerId: playerId.toString(),
+      playerId: playerId,
       timeAnswered: timeTaken,
     });
   } else {
