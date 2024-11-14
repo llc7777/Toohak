@@ -610,7 +610,7 @@ export function playerQuestionResult(
     throw new Error('400 - Invalid question position. Valid range is 1 to ' + totalQuestions);
   }
 
-  if (session.atQuestion + 1 !== questionPosition) {
+  if (session.atQuestion !== questionPosition) {
     throw new Error('400 - Session is not currently on the requested question');
   }
 
