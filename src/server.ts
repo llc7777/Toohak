@@ -29,6 +29,7 @@ import {
   adminQuizSessionView,
   adminQuizSessionStatus,
   playerJoin,
+  sendChatMessage,
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -1017,6 +1018,20 @@ app.delete('/v2/admin/quiz/:quizId/question/:questionId', (req: Request, res: Re
     }
   }
 });
+
+app.post('v1/player/:playerId/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerId as string);
+  const message = req.body.message.messageBody;
+
+  try {
+    sendChatMessage(playerId, message);
+    saveData();
+    return res.status(200).json({});
+  } catch (error) {
+    saveData();
+    return res.status(400).json({ error: error.message});
+  }
+})
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
