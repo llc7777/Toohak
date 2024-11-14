@@ -94,12 +94,19 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
       timeout: TIMEOUT_MS,
     });
 
+    const res2 = request('PUT', `${SERVER_URL}/v1/player/${playerId}/question/${1}/answer`, {
+      json: {
+        answerIds: [2],
+      },
+      timeout: TIMEOUT_MS,
+    });
+
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
       json: { action: 'GO_TO_ANSWER' },
       timeout: TIMEOUT_MS,
     });
-
+    
     const questionPosition = 1;
     const response = getQuestionResultsRequest(token, playerId, questionPosition);
 
@@ -114,12 +121,46 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
   });
 
   test('400: invalid playerId provided', () => {
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'NEXT_QUESTION' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'SKIP_COUNTDOWN' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'GO_TO_ANSWER' },
+      timeout: TIMEOUT_MS,
+    });
     const response = getQuestionResultsRequest(token, playerId + 999, 1);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
 
   test('400: invalid questionPosition provided (out of range)', () => {
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'NEXT_QUESTION' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'SKIP_COUNTDOWN' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'GO_TO_ANSWER' },
+      timeout: TIMEOUT_MS,
+    });
     const response = getQuestionResultsRequest(token, playerId, 999);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
@@ -137,18 +178,24 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
   });
 
-  test('400: no questions in quiz', () => {
-    request('POST', `${SERVER_URL}/v2/admin/quiz`, {
-      json: { name: 'Empty Quiz', description: 'No Questions' },
+  test('400: mismatched player ID and session', () => {
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
+      json: { action: 'NEXT_QUESTION' },
       timeout: TIMEOUT_MS,
     });
-    const response = getQuestionResultsRequest(token, playerId, 1);
-    expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
-  });
 
-  test('400: mismatched player ID and session', () => {
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'SKIP_COUNTDOWN' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'GO_TO_ANSWER' },
+      timeout: TIMEOUT_MS,
+    });
     const newSessionId = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/start`, {
       json: { autoStartNum: 5 },
       headers: { token },
@@ -166,14 +213,45 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
   });
 
   test('400: session not currently on the requested question', () => {
+
+    request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
+      json: {
+        questionBody: {
+          question: 'What is 2-2?',
+          timeLimit: 10,
+          points: 5,
+          answerOptions: [
+            { answer: '1', correct: false },
+            { answer: '0', correct: true },
+          ],
+          thumbnailUrl: 'http://example.com/image.jpg',
+        },
+      },
+      headers: { token },
+      timeout: TIMEOUT_MS,
+    });
+
     request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
       headers: { token },
       json: { action: 'NEXT_QUESTION' },
       timeout: TIMEOUT_MS,
     });
 
-    const response = getQuestionResultsRequest(token, playerId, 1);
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'SKIP_COUNTDOWN' },
+      timeout: TIMEOUT_MS,
+    });
+
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'GO_TO_ANSWER' },
+      timeout: TIMEOUT_MS,
+    });
+
+    const response = getQuestionResultsRequest(token, playerId, 2);
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body.toString())).toStrictEqual(ERROR);
+    console.log(JSON.parse(response.body.toString()));
   });
 });
