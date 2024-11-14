@@ -94,6 +94,12 @@ describe('Test for GET /v1/player/:playerId/question/:questionPosition/results',
       timeout: TIMEOUT_MS,
     });    
 
+    request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/session/${sessionId}`, {
+      headers: { token },
+      json: { action: 'GO_TO_ANSWER' },
+      timeout: TIMEOUT_MS,
+    });    
+
     const questionPosition = 1;
     const response = getQuestionResultsRequest(token, playerId, questionPosition);
 
