@@ -689,7 +689,7 @@ app.get('/v1/player/:playerId/question/:questionPosition', (req: Request, res: R
 app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
   const playerId: number = parseInt(req.params.playerid, 10);
   const questionPosition: number = parseInt(req.params.questionposition, 10);
-  const { answerIds } = req.body; 
+  const { answerIds } = req.body;
 
   try {
     const result = playerSubmitAnswer(playerId, questionPosition, answerIds);
@@ -700,8 +700,6 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request,
     res.status(400).json({ error: error.message });
   }
 });
-
-
 
 /*
 * ===========================================================================
