@@ -136,6 +136,21 @@ const createPlayer = (sessionId: number, playerName: string) => {
   return JSON.parse(res.body.toString()).playerId;
 };
 
+const getQuestionResultsRequest = (
+  token: string,
+  playerId: number,
+  questionPosition: number
+) => {
+  return request(
+    'GET',
+    `${SERVER_URL}/v1/player/${playerId}/question/${questionPosition}/results`,
+    {
+      headers: { token },
+      timeout: TIMEOUT_MS,
+    }
+  );
+};
+
 beforeEach(() => {
   // Clear the data
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
@@ -201,10 +216,19 @@ describe('/v1/admin/quiz/:quizId/session/:sessionId/results', () => {
 
       const answerResponse1 = submitAnswerRequest(token, playerIdOne, 1, [1]);
       const answerResponse2 = submitAnswerRequest(token, playerIdTwo, 1, [2]);
+
+      console.log(answerResponse1.body.toString());
+
       expect(answerResponse1.statusCode).toBe(200);
       expect(answerResponse2.statusCode).toBe(200);
 
       updateQuizSession('GO_TO_ANSWER', sessionId, token, quizId);
+
+      const questionRes1 = getQuestionResultsRequest(token, playerIdOne, 1);
+      const questionRes2 = getQuestionResultsRequest(token, playerIdTwo, 1);
+      expect(questionRes1.statusCode).toBe(200);
+      expect(questionRes2.statusCode).toBe(200);
+
       updateQuizSession('GO_TO_FINAL_RESULTS', sessionId, token, quizId);
 
       // Get session results
