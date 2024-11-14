@@ -262,12 +262,10 @@ export function adminQuizSessionView(
   const inactiveSessions: number[] = [];
 
   data.sessions.forEach((session) => {
-    if (session.metadata.quizId === quizId) {
-      if (session.state !== 'END') {
-        activeSessions.push(session.sessionId);
-      } else {
-        inactiveSessions.push(session.sessionId);
-      }
+    if (session.state !== 'END') {
+      activeSessions.push(session.sessionId);
+    } else {
+      inactiveSessions.push(session.sessionId);
     }
   });
 
