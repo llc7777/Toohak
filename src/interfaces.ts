@@ -51,7 +51,16 @@ export interface QuizInfo {
   timeLastEdited: number,
   description: string,
   numOfQuestions: number,
-  questions: QuestionInfo[],
+  questions: QuestionInfoSimple[],
+}
+
+export interface QuestionInfoSimple {
+  questionId: number,
+  question: string,
+  timeLimit: number,
+  thumbnailUrl: string,
+  points: number,
+  answerOptions: AnswerOptions[],
 }
 
 export interface QuizInfoSimple {

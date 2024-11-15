@@ -632,7 +632,7 @@ export function playerSubmitAnswer(
 
 /**
  * Get the result of a question for a player session
- *
+*
  * @param playerId {number} - The ID of the player
  * @param questionPosition {number} - The position of the question
  * @returns {object} - The question result details
@@ -697,5 +697,42 @@ export function playerQuestionResult(
     playersCorrect: question.playersCorrect,
     averageAnswerTime: averageAnswerTime,
     percentCorrect: percentCorrect,
+  };
+}
+
+export function playerResults(playerId: number) {
+  const session = findSessionFromPlayerId(playerId);
+  // error checking
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw new Error('400 - Session must be in final results state');
+  }
+
+  // Ranked players sort by score in descending order
+  const rankedPlayers = session.players
+    .sort((a, b) => b.score - a.score)
+    .map(player => ({
+      playerName: player.name,
+      score: player.score,
+    }));
+
+  // Map questions to results
+  const questionResults = session.metadata.questions.map(question => ({
+    questionId: question.questionId,
+    playersCorrect: session.players
+      .filter(player => question.playersCorrect.includes(player.name))
+      .map(player => player.name)
+      .sort(), // sort in ascending alphabetical order
+    averageAnswerTime: getAvarageAnswerTime(question),
+    percentCorrect: session.players.length
+      ? Math.round((question.playersCorrect.length / session.players.length) * 100)
+      : 0,
+  }));
+
+  return {
+    usersRankedByScore: rankedPlayers,
+    questionResults,
   };
 }
