@@ -226,7 +226,7 @@ export function adminQuizInfo(
           thumbnailUrl: question.thumbnailUrl,
           points: question.points,
           answerOptions: question.answerOptions,
-        }
+        };
       }),
       timeLimit: quiz.timeLimit,
       thumbnailUrl: quiz.thumbnailUrl,
@@ -247,7 +247,7 @@ export function adminQuizInfo(
           thumbnailUrl: question.thumbnailUrl,
           points: question.points,
           answerOptions: question.answerOptions,
-        }
+        };
       }),
     };
   }
