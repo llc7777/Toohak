@@ -249,6 +249,7 @@ export function adminQuizInfo(
           answerOptions: question.answerOptions,
         };
       }),
+      timeLimit: quiz.timeLimit,
     };
   }
 }
