@@ -132,7 +132,7 @@ export function adminQuizQuestionCreate(
   const data = getData();
 
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
-  data.quizzes[quizIndex].timeLimit += totalTime;
+  data.quizzes[quizIndex].timeLimit += timeLimit;
 
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
@@ -375,6 +375,7 @@ export function adminQuizQuestionDelete(
     throw new Error('400 - Cannot delete question while there is an active session for this quiz.');
   }
 
+  quiz.timeLimit = quiz.timeLimit - quiz.questions[questionIndex].timeLimit;
   quiz.questions.splice(questionIndex, 1);
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
