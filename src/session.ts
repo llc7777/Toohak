@@ -630,7 +630,6 @@ export function playerSubmitAnswer(
   return {};
 }
 
-
 /**
  * Get the result of a question for a player session
 *
@@ -654,14 +653,14 @@ export function playerQuestionResult(
   if (!session) {
     throw new Error('400 - Player ID does not exist in any session');
   }
-  
+
   // Validate the session state
   if (session.state !== 'ANSWER_SHOW') {
     throw new Error('400 - Session is not in ANSWER_SHOW state');
   }
-  
+
   const totalQuestions = session.metadata.questions.length;
-  
+
   // Validate question position
   if (
     typeof questionPosition !== 'number' ||
@@ -674,25 +673,25 @@ export function playerQuestionResult(
   if (session.atQuestion !== questionPosition) {
     throw new Error('400 - Session is not currently on the requested question');
   }
-  
+
   const question = session.metadata.questions[questionPosition - 1];
-  
+
   // Calculate the percentage of players who answered correctly
   const percentCorrect = Math.round(
     (question.playersCorrect.length / session.players.length) * 100
   );
-  
+
   // Calculate the average answer time for this question
   let totalAnswerTime = 0;
   for (const player of question.playersAnswered) {
     totalAnswerTime += player.timeAnswered;
   }
-  
+
   let averageAnswerTime = 0;
   if (question.playersAnswered.length > 0) {
     averageAnswerTime = Math.round(totalAnswerTime / question.playersAnswered.length);
   }
-  
+
   return {
     questionId: question.questionId,
     playersCorrect: question.playersCorrect,
@@ -711,41 +710,29 @@ export function playerResults(playerId: number) {
     throw new Error('400 - Session must be in final results state');
   }
 
-  const usersRankedByScore = session.players.slice()
-  .sort((a: sessionPlayer, b: sessionPlayer) => b.score -a.score)
-  .map(player => ({
-    playerName: player.name,
-    score: player.score
+  // Ranked players sort by score in descending order
+  const rankedPlayers = session.players
+    .sort((a, b) => b.score - a.score)
+    .map(player => ({
+      playerName: player.name,
+      score: player.score,
+    }));
+
+  // Map questions to results
+  const questionResults = session.metadata.questions.map(question => ({
+    questionId: question.questionId,
+    playersCorrect: session.players
+      .filter(player => question.playersCorrect.includes(player.name))
+      .map(player => player.name)
+      .sort(), // sort in ascending alphabetical order
+    averageAnswerTime: getAvarageAnswerTime(question),
+    percentCorrect: session.players.length
+      ? Math.round((question.playersCorrect.length / session.players.length) * 100)
+      : 0,
   }));
 
-  const totalQuestions = session.metadata.questions.length;
-
-  
-  // Calculate the average answer time for this question
-  const questionResults = session.metadata.questions.map((question:any) => {
-    // calculate percent correct for each q.
-    const percentCorrect = Math.round(
-      (question.playersCorrect.length / session.players.length) * 100
-    );
-    // calculate average time for each q
-    let totalAnswerTime = 0;
-    for (const player of question.playersAnswered) {
-      totalAnswerTime += player.timeAnswered;
-    }
-    let averageAnswerTime = 0;
-    if (question.playersAnswered.length > 0) {
-      averageAnswerTime = Math.round(totalAnswerTime / question.playersAnswered.length);
-    }
-    return {
-      questionId: question.questionId,
-      playersCorrect: question.playersCorrect,
-      averageAnswerTime: averageAnswerTime,
-      percentCorrect: percentCorrect,
-    };
-  });
-
   return {
-    usersRankedByScore, 
-    questionResults
-  }
+    usersRankedByScore: rankedPlayers,
+    questionResults,
+  };
 }

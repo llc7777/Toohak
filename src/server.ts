@@ -727,7 +727,6 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request,
   }
 });
 
-
 app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   const playerId: number = parseInt(req.params.playerid as string);
 
@@ -739,7 +738,7 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
     saveData();
     res.status(400).json({ error: error.message });
   }
-})
+});
 
 app.get('/v1/player/:playerid/question/:questionposition/results',
   (req: Request, res: Response) => {
