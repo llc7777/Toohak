@@ -222,6 +222,7 @@ export function adminQuizSessionUpdate(
       session.state = 'END';
     } else if (action === 'NEXT_QUESTION') {
       session.state = 'QUESTION_COUNTDOWN';
+      session.atQuestion++;
       countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
     } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = 'FINAL_RESULTS';
@@ -231,6 +232,7 @@ export function adminQuizSessionUpdate(
   } else if (session.state === 'ANSWER_SHOW') {
     if (action === 'NEXT_QUESTION') {
       session.state = 'QUESTION_COUNTDOWN';
+      session.atQuestion++;
       countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
     } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = 'FINAL_RESULTS';
@@ -360,7 +362,7 @@ export function adminQuizSessionResult(
       .filter(player => question.playersCorrect.includes(player.name))
       .map(player => player.name)
       .sort(), // sort in ascending alphabetical order
-    averageAnswerTime: getAvarageAnswerTime(question),
+    averageAnswerTime: getAvarageAnswerTime(question, session),
     percentCorrect: session.players.length
       ? Math.round((question.playersCorrect.length / session.players.length) * 100)
       : 0,
@@ -725,7 +727,7 @@ export function playerResults(playerId: number) {
       .filter(player => question.playersCorrect.includes(player.name))
       .map(player => player.name)
       .sort(), // sort in ascending alphabetical order
-    averageAnswerTime: getAvarageAnswerTime(question),
+    averageAnswerTime: getAvarageAnswerTime(question, session),
     percentCorrect: session.players.length
       ? Math.round((question.playersCorrect.length / session.players.length) * 100)
       : 0,
