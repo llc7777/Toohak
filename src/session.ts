@@ -510,7 +510,9 @@ export function getPlayerQuestion(
     throw new Error('400 - Player ID does not exist in any session');
   }
 
-  if (session.state !== 'QUESTION_OPEN') {
+  if (session.state === 'LOBBY' || session.state === 'QUESTION_COUNTDOWN' ||
+    session.state === 'END' || session.state === 'FINAL_RESULTS'
+  ) {
     throw new Error(`400 - Session is not in a valid state to access questions. Current state:
   ${session.state}`);
   }
@@ -540,7 +542,6 @@ export function getPlayerQuestion(
       answerId: option.answerId,
       answer: option.answer,
       colour: option.colour,
-      correct: option.correct,
     })),
   };
 }
@@ -616,7 +617,6 @@ export function playerSubmitAnswer(
   }
 
   let isCorrect = true;
-  console.log(question.answerOptions);
   for (const answerId of answerIds) {
     const answer = question.answerOptions.find(answer => answer.answerId === answerId);
     if (answer.correct === false) {
@@ -627,6 +627,7 @@ export function playerSubmitAnswer(
   if (numCorrectOptions === answerIds.length && isCorrect) {
     question.playersCorrect.push(player.name);
     player.score += question.points / question.playersCorrect.length;
+    player.score = Math.floor(player.score);
   }
 
   return {};
@@ -691,7 +692,7 @@ export function playerQuestionResult(
 
   let averageAnswerTime = 0;
   if (question.playersAnswered.length > 0) {
-    averageAnswerTime = Math.round(totalAnswerTime / question.playersAnswered.length);
+    averageAnswerTime = Math.round(totalAnswerTime / session.players.length);
   }
 
   return {
