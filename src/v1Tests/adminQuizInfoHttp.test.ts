@@ -172,6 +172,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       description: 'Just a normal quiz',
       numOfQuestions: 0,
       questions: [],
+      timeLimit: expect.any(Number),
     });
   });
   test('successfully returns quiz info when a multiple quizzes exists', () => {
@@ -224,6 +225,7 @@ describe('GET /v1/admin/quiz/:quizId', () => {
       description: 'Just a normal quiz',
       numOfQuestions: 0,
       questions: [],
+      timeLimit: expect.any(Number),
     });
   });
 });
