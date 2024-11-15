@@ -760,7 +760,7 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, 
   const sessionId: number = parseInt(req.params.sessionId as string);
   const token: string = req.headers.token as string;
 
-  const SERVER_URL = `${url}:${port}`;
+  const SERVER_URL = `${HOST}:${PORT}`;
 
   try {
     adminQuizSessionResultCSV(quizId, sessionId, token);
