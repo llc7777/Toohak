@@ -90,6 +90,30 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
+  // create a second quiz question
+  request('POST', `${SERVER_URL}/v2/admin/quiz/${quizId}/question`, {
+    headers: { token },
+    json: {
+      questionBody: {
+        question: 'What is two plus two?',
+        timeLimit: 1,
+        points: 5,
+        answerOptions: [
+          {
+            answer: 'Three',
+            correct: false
+          },
+          {
+            answer: 'Four',
+            correct: true
+          }
+        ],
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      }
+    },
+    timeout: TIMEOUT_MS
+  });
+
   const res4 = startQuizSession(quizId, 2);
 
   sessionId = JSON.parse(res4.body.toString()).sessionId;
@@ -255,7 +279,7 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
 
     const res = getQuizSessionStatus();
-    const duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
+    let duration = JSON.parse(res.body.toString()).metadata.questions[0].timeLimit;
 
     await sleep(duration * 1000);
 
@@ -267,13 +291,16 @@ describe('Test for PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     updateQuizSession('NEXT_QUESTION', sessionId, token, quizId);
 
     const res3 = getQuizSessionStatus();
+
     expect(JSON.parse(res3.body.toString()).state).toStrictEqual('QUESTION_COUNTDOWN');
 
     updateQuizSession('SKIP_COUNTDOWN', sessionId, token, quizId);
 
     const res4 = getQuizSessionStatus();
+
     expect(JSON.parse(res4.body.toString()).state).toStrictEqual('QUESTION_OPEN');
 
+    duration = JSON.parse(res4.body.toString()).metadata.questions[1].timeLimit;
     await sleep(duration * 1000);
 
     const res5 = getQuizSessionStatus();
