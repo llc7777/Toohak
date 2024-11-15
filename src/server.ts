@@ -58,7 +58,6 @@ import {
   QuizInfoSimpleArray,
   ErrorResponse,
 } from './interfaces';
-import { port, url } from './config.json';
 
 // Set up web app
 const app = express();
@@ -760,7 +759,7 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, 
   const sessionId: number = parseInt(req.params.sessionId as string);
   const token: string = req.headers.token as string;
 
-  const SERVER_URL = `${url}:${port}`;
+  const SERVER_URL = `${HOST}:${PORT}`;
 
   try {
     adminQuizSessionResultCSV(quizId, sessionId, token);

@@ -391,7 +391,7 @@ export function adminQuizSessionResultCSV(
 
   const CSVFormat = stringify(finalResultsSorted, { header: true, columns: headers });
 
-  fs.writeFileSync(`./results.${sessionId}.csv`, CSVFormat);
+  fs.writeFileSync('./results.csv', CSVFormat);
 }
 
 /** Allows player to join session using session number and player name
