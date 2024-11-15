@@ -27,13 +27,16 @@ import {
   adminQuizSessionUpdate,
   adminQuizSessionView,
   adminQuizSessionStatus,
+  adminQuizSessionResult,
   playerJoin,
   playerStatus,
   sendChatMessage,
   getChatMessageInfo,
   getPlayerQuestion,
   playerSubmitAnswer,
-  playerResults
+  playerResults,
+  playerQuestionResult,
+  adminQuizSessionResultCSV
 } from './session';
 import {
   adminQuizQuestionCreate,
@@ -55,6 +58,7 @@ import {
   QuizInfoSimpleArray,
   ErrorResponse,
 } from './interfaces';
+import { port, url } from './config.json';
 
 // Set up web app
 const app = express();
@@ -620,6 +624,27 @@ app.get('/v1/admin/quiz/:quizId/session/:sessionId', (req: Request, res: Respons
   }
 });
 
+// v1 adminQuizSessionResults GET request
+app.get('/v1/admin/quiz/:quizId/session/:sessionId/results', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizId as string);
+  const sessionId: number = parseInt(req.params.sessionId as string);
+  const token: string = req.headers.token as string;
+
+  try {
+    const result = adminQuizSessionResult(quizId, sessionId, token);
+    saveData();
+    res.status(200).json(result);
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+});
+
 app.post('/v1/player/join', (req: Request, res: Response) => {
   const playerName: string = req.body.playerName;
   const sessionId: number = req.body.sessionId;
@@ -702,6 +727,7 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request,
   }
 });
 
+
 app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   const playerId: number = parseInt(req.params.playerid as string);
 
@@ -714,6 +740,51 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 })
+
+app.get('/v1/player/:playerid/question/:questionposition/results',
+  (req: Request, res: Response) => {
+    const playerId: number = parseInt(req.params.playerid, 10);
+    const questionPosition: number = parseInt(req.params.questionposition, 10);
+
+    try {
+      const result = playerQuestionResult(playerId, questionPosition);
+      saveData();
+      return res.status(200).json(result);
+    } catch (error) {
+      saveData();
+      return res.status(400).json({ error: error.message });
+    }
+  });
+///       v1/admin/quiz/:quizId/session/:sessionId/results/csv
+app.get('/v1/admin/quiz/:quizId/session/:sessionId/results/csv', (req: Request, res: Response) => {
+  const quizId: number = parseInt(req.params.quizId as string);
+  const sessionId: number = parseInt(req.params.sessionId as string);
+  const token: string = req.headers.token as string;
+
+  const SERVER_URL = `${url}:${port}`;
+
+  try {
+    adminQuizSessionResultCSV(quizId, sessionId, token);
+    sessionURL = sessionId;
+    saveData();
+    res.status(200).json({ url: SERVER_URL + `/view/session/${sessionURL}/csv` });
+  } catch (error) {
+    saveData();
+    if (error.message.includes('401')) {
+      return res.status(401).json({ error: error.message });
+    } else if (error.message.includes('400')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+});
+
+let sessionURL = 0;
+app.use('/view/session/:sessionURL/csv', express.static(
+  './results.csv'
+)
+);
+
 /*
 * ===========================================================================
 * ============================= V2 ROUTES BELOW =============================

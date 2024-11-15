@@ -8,6 +8,7 @@ import {
   Data,
   QuestionInfo,
   Session,
+  sessionPlayer,
 } from './interfaces';
 
 // Helper function for adminAuthRegister
@@ -341,7 +342,6 @@ export function adminQuizRestoreErrorChecking(quizId: number, token: string): vo
 
 export function emptyTrashErrorChecking(token: string, quizIds: number[]): void {
   const data = getData();
-  console.log('quizIds:', quizIds);
   if (token === '') {
     throw new Error('401 - Token is empty');
   }
@@ -492,6 +492,46 @@ export function adminQuizSessionStatusErrorChecking(
   }
 }
 
+export function adminQuizSessionResultsErrorChecking(
+  quizId: number, sessionId: number, token: string
+): void {
+  if (token === '') {
+    throw new Error('401 - Token is empty');
+  }
+
+  // Find the user from the token
+  const tokenData = decodeToken(token);
+  const user = findUserFromToken(tokenData);
+  if (!user) {
+    throw new Error('401 - Token is invalid');
+  }
+
+  const quiz: Quiz = findQuizFromQuizId(quizId);
+  if (!quiz) {
+    throw new Error('403 - Quiz not found');
+  }
+
+  if (quiz.authUserId !== user.authUserId) {
+    throw new Error('403 - User does not own the quiz');
+  }
+
+  const session = findSession(quizId, sessionId);
+  if (!session) {
+    throw new Error('400 - Session does not exist for this quiz');
+  }
+
+  if (session.state !== 'FINAL_RESULTS') {
+    throw new Error('400 - Session is not in FINAL_RESULTS state');
+  }
+}
+
+export function getAvarageAnswerTime(question: QuestionInfo) {
+  let averageAnswerTime = 0;
+  for (const player of question.playersAnswered) {
+    averageAnswerTime += player.timeAnswered;
+  }
+  return Math.floor(averageAnswerTime / (question.playersAnswered.length));
+}
 export function findSession(quizId: number, sessionId: number) {
   const data = getData();
   return data.sessions.find(
@@ -515,7 +555,7 @@ export function countDownTillQuestionStart(
   // Start the countdown and open the question
   skipCountdownTimer = setTimeout(() => {
     session.state = 'QUESTION_OPEN';
-    session.metadata.questions[session.atQuestion].timeOpened = Math.floor(Date.now() / 1000);
+    session.metadata.questions[session.atQuestion - 1].timeOpened = Math.floor(Date.now() / 1000);
     countDownTillQuestionClose(session, timeLimitTimer);
   }, 3000);
 }
@@ -524,7 +564,7 @@ export function countDownTillQuestionClose(
   session: Session,
   timeLimitTimer: ReturnType<typeof setTimeout>
 ) {
-  const index: number = session.atQuestion;
+  const index: number = session.atQuestion - 1;
   const duration: number = session.metadata.questions[index].timeLimit;
 
   timeLimitTimer = setTimeout(() => {
@@ -589,6 +629,52 @@ export function getChatMessageInfoErrorMessaging(playerId: number) {
   if (session === null) {
     throw new Error('400 - PlayerId does not exist in any session');
   }
+}
+
+export function generateFinalResults(session: Session) {
+  const data: string[][] = [];
+
+  // Go through each player
+  for (const player of session.players) {
+    const newItem: string[] = [];
+
+    newItem.push(player.name);
+
+    // Go through each question for that player
+    for (const question of session.metadata.questions) {
+      const score = getPlayerScoreForQuestion(question, player);
+      const rank = getPlayerRankForQuestion(question, player);
+      newItem.push(score.toString());
+      newItem.push(rank.toString());
+    }
+    data.push(newItem);
+  }
+  return data;
+}
+
+export function getPlayerScoreForQuestion(question: QuestionInfo, player: sessionPlayer) {
+  const index = question.playersCorrect.findIndex(name => name === player.name);
+  if (index === -1) {
+    return 0;
+  }
+  return question.points / (index + 1);
+}
+
+export function getPlayerRankForQuestion(question: QuestionInfo, player: sessionPlayer) {
+  const index = question.playersCorrect.findIndex(name => name === player.name);
+  if (index === -1) {
+    return question.playersCorrect.length + 1;
+  }
+  return index + 1;
+}
+
+export function generateHeaders(numOfHeaders: number) {
+  const headers: string[] = ['Player'];
+  for (let i = 0; i < numOfHeaders; i++) {
+    headers.push(`question${i + 1}score`);
+    headers.push(`question${i + 1}rank`);
+  }
+  return headers;
 }
 
 // Helper function to delay execution for session update tests
