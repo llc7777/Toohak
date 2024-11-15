@@ -569,3 +569,28 @@ export function playerSubmitAnswer(
 
   return {};
 }
+
+export function playerResults(playerId: number) {
+  const session = findSessionFromPlayerId(playerId);
+  // error checking
+  if (!session) {
+    throw new Error('400 - Player ID does not exist in any session');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw new Error('400 - Session must be in final results state');
+  }
+
+  const usersRankedByScore = session.players.slice()
+  .sort((a: sessionPlayer, b: sessionPlayer) => b.score -a.score)
+  .map(player => ({
+    playerName: player.name,
+    score: player.score
+  }));
+
+  const questionResults = ;
+
+  return {
+    usersRankedByScore, 
+    questionResults
+  }
+}
