@@ -123,6 +123,9 @@ export function adminQuizSessionStart(
   return { sessionId };
 }
 
+
+let skipCountdownTimer: ReturnType<typeof setTimeout>;
+let timeLimitTimer: ReturnType<typeof setTimeout>;
 /**
  * Update the state of a quiz session
  * @param {number} quizId - The ID of the quiz
@@ -180,9 +183,6 @@ export function adminQuizSessionUpdate(
   if (!actionCommand.includes(action)) {
     throw new Error('400 - Invalid action');
   }
-
-  let skipCountdownTimer: ReturnType<typeof setTimeout>;
-  let timeLimitTimer: ReturnType<typeof setTimeout>;
 
   if (session.state === 'LOBBY') {
     if (action === 'END') {
@@ -441,6 +441,7 @@ export function playerJoin(sessionId: number, playerName: string): PlayerId {
   if (session.players.length === session.autoStartNum) {
     session.state = 'QUESTION_COUNTDOWN';
     session.atQuestion++;
+    countDownTillQuestionStart(session, skipCountdownTimer, timeLimitTimer);
   }
   return { playerId };
 }
