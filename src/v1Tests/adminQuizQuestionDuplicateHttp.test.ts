@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import request from 'sync-request-curl';
 import config from '../config.json';
 
@@ -23,14 +22,14 @@ const requestAdminQuestionDuplicate = (
 };
 
 describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
-  let quiz;
-  let token;
-  let question;
+  let quizId: number;
+  let token: string;
+  let questionId: number;
 
   beforeEach(() => {
     request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 
-    token = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    const tokenRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aero@mail.com',
         password: 'Aeropass1',
@@ -39,15 +38,15 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
       },
       timeout: timeout
     });
-    token = JSON.parse(token.body.toString()).token;
+    token = JSON.parse(tokenRes.body.toString()).token;
 
-    quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+    const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
       json: { token, name: 'quiz1', description: 'random description' },
       timeout: timeout
     });
-    quiz = JSON.parse(quiz.body.toString());
+    quizId = JSON.parse(quizRes.body.toString()).quizId;
 
-    question = request('POST', `${SERVER_URL}/v1/admin/quiz/${quiz.quizId}/question`, {
+    const questionRes = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
       json: {
         token: token,
         questionBody: {
@@ -69,11 +68,11 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
       timeout: timeout
     });
 
-    question = JSON.parse(question.body.toString());
+    questionId = JSON.parse(questionRes.body.toString()).questionId;
   });
 
   test('200: successful case', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId,
+    const response = requestAdminQuestionDuplicate(quizId, questionId,
       { token: token });
 
     expect(response.statusCode).toBe(200);
@@ -83,7 +82,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
   });
 
   test('400: QuestionId does not refer to a valid question within the quiz', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId + 1,
+    const response = requestAdminQuestionDuplicate(quizId, questionId + 1,
       { token: token });
 
     expect(response.statusCode).toBe(400);
@@ -91,7 +90,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
   });
 
   test('401: Token is empty', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId,
+    const response = requestAdminQuestionDuplicate(quizId, questionId,
       { token: '' });
 
     expect(response.statusCode).toBe(401);
@@ -99,7 +98,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
   });
 
   test('401: Token is invalid', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId,
+    const response = requestAdminQuestionDuplicate(quizId, questionId,
       { token: 'invalidToken' });
 
     expect(response.statusCode).toBe(401);
@@ -107,7 +106,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
   });
 
   test('403: Valid token but the user is not an owner of the quiz', () => {
-    let incorrectUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    const incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'mew@mail.com',
         password: 'Aeropass1',
@@ -116,8 +115,8 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
       },
       timeout: timeout
     });
-    incorrectUser = JSON.parse(incorrectUser.body.toString());
-    const response = requestAdminQuestionDuplicate(quiz.quizId, question.questionId, {
+    const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
+    const response = requestAdminQuestionDuplicate(quizId, questionId, {
       token: incorrectUser.token
     });
     expect(response.statusCode).toBe(403);
@@ -125,7 +124,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
   });
 
   test('403: Valid token but the quiz does not exist', () => {
-    const response = requestAdminQuestionDuplicate(quiz.quizId + 1, question.questionId,
+    const response = requestAdminQuestionDuplicate(quizId + 1, questionId,
       { token: token });
 
     expect(response.statusCode).toBe(403);

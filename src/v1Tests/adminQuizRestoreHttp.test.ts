@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
@@ -9,7 +7,7 @@ const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Helper function for creating quiz
-const quizCreate = (token, name, description) => {
+const quizCreate = (token: string, name: string, description: string) => {
   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: { token, name, description },
     timeout: TIMEOUT_MS
@@ -18,7 +16,12 @@ const quizCreate = (token, name, description) => {
 };
 
 // Helper function to register a user
-const registerUser = (email, password, nameFirst, nameLast) => {
+const registerUser = (
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+) => {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: { email, password, nameFirst, nameLast },
     timeout: TIMEOUT_MS
@@ -27,7 +30,7 @@ const registerUser = (email, password, nameFirst, nameLast) => {
 };
 
 // Helper function to restore quiz from trash
-const restoreQuiz = (quizId, token) => {
+const restoreQuiz = (quizId: number, token: string) => {
   const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
     json: { token },
     timeout: TIMEOUT_MS
@@ -39,7 +42,7 @@ const restoreQuiz = (quizId, token) => {
 };
 
 // Helper function to get the timeLastEdited timestamp from adminQuizInfo
-const quizInfo = (token, quizId) => {
+const quizInfo = (token: string, quizId: number) => {
   const result = request('GET', SERVER_URL + `/v1/admin/quiz/${quizId}`, {
     qs: { token },
     timeout: TIMEOUT_MS
@@ -47,8 +50,8 @@ const quizInfo = (token, quizId) => {
   return JSON.parse(result.body.toString()).timeLastEdited;
 };
 
-let token = {};
-let validQuizId = [];
+let token: string;
+let validQuizId: number;
 
 describe('POST /v1/admin/quiz/:quizId/restore', () => {
   beforeEach(() => {
@@ -151,7 +154,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
     });
 
     test('quiz IDs does not exist in trash', () => {
-      const invalidQuizId = validQuizId + '1';
+      const invalidQuizId = validQuizId + 1;
       const res = restoreQuiz(invalidQuizId, token);
 
       expect(res.statusCode).toStrictEqual(403);

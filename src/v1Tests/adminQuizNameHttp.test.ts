@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import request from 'sync-request-curl';
 import config from '../config.json';
 
@@ -15,13 +14,13 @@ const requestAdminQuizName = (quizId: number, body: { token: string, name: strin
 };
 
 describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
-  let quiz;
-  let token;
+  let quizId: number;
+  let token: string;
 
   beforeEach(() => {
     request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 
-    token = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    const tokenRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aero@mail.com',
         password: 'Aeropass1',
@@ -30,30 +29,30 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
       },
       timeout: timeout
     });
-    token = JSON.parse(token.body.toString()).token;
+    token = JSON.parse(tokenRes.body.toString()).token;
 
-    quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+    const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
       json: { token, name: 'quiz1', description: 'random description' },
       timeout: timeout
     });
-    quiz = JSON.parse(quiz.body.toString());
+    quizId = JSON.parse(quizRes.body.toString()).quizId;
   });
 
   describe('error cases', () => {
     test('401: empty token', () => {
-      const response = requestAdminQuizName(quiz.quizId, { token: '', name: 'new name' });
+      const response = requestAdminQuizName(quizId, { token: '', name: 'new name' });
       expect(response.statusCode).toBe(401);
     });
 
     test('401: invalid token', () => {
-      const response = requestAdminQuizName(quiz.quizId, {
+      const response = requestAdminQuizName(quizId, {
         token: 'notaToken', name: 'new name'
       });
       expect(response.statusCode).toBe(401);
     });
 
     test('403: valid token with incorrect owner', () => {
-      let incorrectUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      let incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'mew@mail.com',
           password: 'Aeropass1',
@@ -62,16 +61,16 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
         },
         timeout: timeout
       });
-      incorrectUser = JSON.parse(incorrectUser.body.toString());
+      const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
       // to check how to retrieve token
-      const response = requestAdminQuizName(quiz.quizId, {
+      const response = requestAdminQuizName(quizId, {
         token: incorrectUser.token, name: 'new name'
       });
       expect(response.statusCode).toBe(403);
     });
 
     test('400: quiz id nonexistent', () => {
-      const response = requestAdminQuizName(quiz.quizId + 1, { token: token, name: 'new name' });
+      const response = requestAdminQuizName(quizId + 1, { token: token, name: 'new name' });
       expect(response.statusCode).toBe(403);
     });
 
@@ -82,19 +81,19 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
       'VIM@',
       'VIM#'
     ])('400: invalid characters for new name', (invalidName) => {
-      const response = requestAdminQuizName(quiz.quizId, { token: token, name: invalidName });
+      const response = requestAdminQuizName(quizId, { token: token, name: invalidName });
       expect(response.statusCode).toBe(400);
     });
 
     test('400: new quiz name is too long >30 characters', () => {
-      const response = requestAdminQuizName(quiz.quizId, {
+      const response = requestAdminQuizName(quizId, {
         token: token, name: 'a really really long name that exceeds thirty characters'
       });
       expect(response.statusCode).toBe(400);
     });
 
     test('400: name is already used by loggin in user for another quiz', () => {
-      let quiz2 = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+      let quiz2Res = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
         json: {
           token,
           name: 'quiz2',
@@ -102,7 +101,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
         },
         timeout: timeout
       });
-      quiz2 = JSON.parse(quiz2.body.toString());
+      const quiz2 = JSON.parse(quiz2Res.body.toString());
       const response = requestAdminQuizName(quiz2.quizId, { token: token, name: 'quiz1' });
       expect(response.statusCode).toBe(400);
     });
@@ -110,7 +109,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
 
   describe('successful case', () => {
     test('200: successful name change', () => {
-      const response = requestAdminQuizName(quiz.quizId, { token: token, name: 'new name' });
+      const response = requestAdminQuizName(quizId, { token: token, name: 'new name' });
       const resultBody = JSON.parse(response.body.toString());
       expect(response.statusCode).toBe(200);
       expect(resultBody).toEqual({});
