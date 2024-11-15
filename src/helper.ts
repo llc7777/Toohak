@@ -323,9 +323,14 @@ export function adminQuizRestoreErrorChecking(quizId: number, token: string): vo
   }
 
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
 
-  if (quizIndex === -1) {
+  if (quizIndex === -1 && quizInQuizzes) {
     throw new Error('400 - Quiz ID does not refer to a quiz in the trash.');
+  }
+
+  if (quizIndex === -1 && !quizInQuizzes) {
+    throw new Error('403 - You do not own quiz ID, or quiz does not exist');
   }
 
   const quiz = data.trash[quizIndex];
@@ -359,8 +364,14 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]): void 
   for (const quizId of quizIds) {
     const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
 
-    if (!quizInTrash) {
+    const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
+
+    if (!quizInTrash && quizInQuizzes) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+    }
+
+    if (!quizInTrash && !quizInQuizzes) {
+      throw new Error('403 - One or more quiz IDs do not exist.');
     }
 
     if (quizInTrash.authUserId !== user.authUserId) {
