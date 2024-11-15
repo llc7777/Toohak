@@ -357,10 +357,6 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]): void 
     throw new Error('401 - Token is invalid');
   }
 
-  if (!Array.isArray(quizIds)) {
-    throw new Error('400 - quizIds must be an array');
-  }
-
   for (const quizId of quizIds) {
     const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
 

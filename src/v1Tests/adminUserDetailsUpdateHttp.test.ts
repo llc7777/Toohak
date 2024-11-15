@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
@@ -8,12 +6,12 @@ import { createToken } from '../helper';
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
-let token = {};
+let token: string;
 
 beforeEach(() => {
   request('DELETE', `${SERVER_URL}/v1/clear`, { timeout: TIMEOUT_MS });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'jake.renzella@gmail.com',
       password: 'Password123',
@@ -23,7 +21,7 @@ beforeEach(() => {
     timeout: TIMEOUT_MS
   });
 
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(tokenRes.body.toString()).token;
 });
 
 describe('PUT /v1/admin/user/details', () => {

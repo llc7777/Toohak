@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import request from 'sync-request-curl';
 import { port, url } from '../config.json';
@@ -9,7 +7,7 @@ const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 5 * 1000;
 
 // Helper function for emptyTrash
-const emptyTrash = (token, quizIds) => {
+const emptyTrash = (token: string, quizIds: number[]) => {
   return request('DELETE', `${SERVER_URL}/v1/admin/quiz/trash/empty`, {
     qs: { token, quizIds: JSON.stringify(quizIds) },
     timeout: TIMEOUT_MS
@@ -17,7 +15,7 @@ const emptyTrash = (token, quizIds) => {
 };
 
 // Helper function for creating quiz
-const quizCreate = (token, name, description) => {
+const quizCreate = (token: string, name: string, description: string) => {
   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: { token, name, description },
     timeout: TIMEOUT_MS
@@ -26,7 +24,12 @@ const quizCreate = (token, name, description) => {
 };
 
 // Helper function to register a user
-const registerUser = (email, password, nameFirst, nameLast) => {
+const registerUser = (
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+) => {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: { email, password, nameFirst, nameLast },
     timeout: TIMEOUT_MS
@@ -34,8 +37,8 @@ const registerUser = (email, password, nameFirst, nameLast) => {
   return JSON.parse(res.body.toString());
 };
 
-let token = {};
-let validQuizId = [];
+let token: string;
+let validQuizId: number;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: TIMEOUT_MS });
@@ -106,10 +109,10 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
     });
 
     test('quiz IDs does not exist', () => {
-      const invalidQuizId = validQuizId + '1';
-      const res = emptyTrash(token, invalidQuizId);
+      const invalidQuizId = validQuizId + 1;
+      const res = emptyTrash(token, [invalidQuizId]);
 
-      expect(res.statusCode).toStrictEqual(400);
+      expect(res.statusCode).toStrictEqual(403);
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });

@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 import request from 'sync-request-curl';
 import config from '../config.json';
+import { AnswerOptionsReq } from '../interfaces';
 
 const port = config.port;
 const url = config.url;
@@ -14,12 +14,7 @@ const requestAdminQuestionCreate = (quizId: number, body: {
     question: string,
     timeLimit: number,
     points: number,
-    answerOptions: [
-      {
-        answer: string,
-        correct: boolean
-      }
-    ]
+    answerOptions: AnswerOptionsReq[]
   }
 }) => {
   return request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/question`, {
@@ -35,13 +30,13 @@ const requestAdminQuestionCreate = (quizId: number, body: {
   });
 };
 
-let quiz;
-let token;
+let quizId: number;
+let token: string;
 
 beforeEach(() => {
   request('DELETE', SERVER_URL + '/v1/clear', { timeout: timeout });
 
-  token = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+  const tokenRes = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: 'Aerospace@gmail.com',
       password: 'Aeropass1',
@@ -50,19 +45,19 @@ beforeEach(() => {
     },
     timeout: timeout
   });
-  token = JSON.parse(token.body.toString()).token;
+  token = JSON.parse(tokenRes.body.toString()).token;
 
-  quiz = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+  const quizRes = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
     json: { token, name: 'quiz1', description: 'random description' },
     timeout: timeout
   });
-  quiz = JSON.parse(quiz.body.toString());
+  quizId = JSON.parse(quizRes.body.toString()).quizId;
 });
 
 describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
   // successful cases
   test('200: working case with 1 question', () => {
-    const response = requestAdminQuestionCreate(quiz.quizId, {
+    const response = requestAdminQuestionCreate(quizId, {
       token: token,
       questionBody: {
         question: 'What is the largest mammal in the world?',
@@ -85,7 +80,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('200: sum of question time limits in quiz equal 3 minutes', () => {
-    const response = requestAdminQuestionCreate(quiz.quizId, {
+    const response = requestAdminQuestionCreate(quizId, {
       token: token,
       questionBody: {
         question: 'What is the largest mammal in the world?',
@@ -103,7 +98,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         ]
       }
     });
-    const response2 = requestAdminQuestionCreate(quiz.quizId, {
+    const response2 = requestAdminQuestionCreate(quizId, {
       token: token,
       questionBody: {
         question: 'How many sides on a square',
@@ -116,10 +111,6 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
           },
           {
             answer: '3',
-            correct: false
-          },
-          {
-            answer: '6',
             correct: false
           }
         ]
@@ -134,7 +125,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       'Who?',
       'A question string that is greater than fifty characters and is too long'
     ])('400: question string less than 5 or greater than 50', (WrongLengthQuestion) => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: WrongLengthQuestion,
@@ -157,7 +148,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: question has more than 6 answers', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -199,7 +190,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       expect(JSON.parse(response.body.toString())).toStrictEqual({ error: expect.any(String) });
     });
     test('400: question has less than 2 answers', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -218,7 +209,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: timelimit not positive number', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -241,7 +232,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: sum of question time limits in quiz exceeds 3 minutes', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -259,7 +250,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
           ]
         }
       });
-      const response2 = requestAdminQuestionCreate(quiz.quizId, {
+      const response2 = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'How many sides on a square',
@@ -292,7 +283,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       394
     ])('400: Points awarded for the question are less than 1 or greater than 10)',
       (wrongNumPoints) => {
-        const response = requestAdminQuestionCreate(quiz.quizId, {
+        const response = requestAdminQuestionCreate(quizId, {
           token: token,
           questionBody: {
             question: 'What is the largest mammal in the world?',
@@ -315,7 +306,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
       });
 
     test('400: length of any answers is shorter than 1 character long', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -338,7 +329,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: length of any answers is longer than 30 characters', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -361,7 +352,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: answer strings are duplicates of one another for the same question', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -384,7 +375,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: no correct answers', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -407,7 +398,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('401: empty token', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: '',
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -430,7 +421,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('401: invalid token', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: 'notaToken',
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -453,7 +444,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('403: valid token with incorrect owner', () => {
-      let incorrectUser = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'mew@mail.com',
           password: 'Aeropass1',
@@ -462,9 +453,9 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
         },
         timeout: timeout
       });
-      incorrectUser = JSON.parse(incorrectUser.body.toString());
+      const incorrectUser = JSON.parse(incorrectUserRes.body.toString());
       // to check how to retrieve token
-      const response = requestAdminQuestionCreate(quiz.quizId, {
+      const response = requestAdminQuestionCreate(quizId, {
         token: incorrectUser.token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
@@ -487,7 +478,7 @@ describe('Test for POST /v1/admin/quiz/{quizId}/question', () => {
     });
 
     test('400: quiz id nonexistent', () => {
-      const response = requestAdminQuestionCreate(quiz.quizId + 1, {
+      const response = requestAdminQuestionCreate(quizId + 1, {
         token: token,
         questionBody: {
           question: 'What is the largest mammal in the world?',
