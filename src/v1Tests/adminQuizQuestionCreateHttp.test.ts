@@ -1,7 +1,7 @@
 
 import request from 'sync-request-curl';
 import config from '../config.json';
-import {AnswerOptionsReq} from '../interfaces'
+import { AnswerOptionsReq } from '../interfaces';
 
 const port = config.port;
 const url = config.url;

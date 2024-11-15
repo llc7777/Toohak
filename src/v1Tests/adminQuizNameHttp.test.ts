@@ -52,7 +52,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
     });
 
     test('403: valid token with incorrect owner', () => {
-      let incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const incorrectUserRes = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'mew@mail.com',
           password: 'Aeropass1',
@@ -93,7 +93,7 @@ describe('HTTP tests for /v1/admin/quiz/{quizId}/name', () => {
     });
 
     test('400: name is already used by loggin in user for another quiz', () => {
-      let quiz2Res = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+      const quiz2Res = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
         json: {
           token,
           name: 'quiz2',
