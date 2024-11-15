@@ -532,12 +532,12 @@ export function adminQuizSessionResultsErrorChecking(
   }
 }
 
-export function getAvarageAnswerTime(question: QuestionInfo) {
+export function getAvarageAnswerTime(question: QuestionInfo, session: Session) {
   let averageAnswerTime = 0;
   for (const player of question.playersAnswered) {
     averageAnswerTime += player.timeAnswered;
   }
-  return Math.floor(averageAnswerTime / (question.playersAnswered.length));
+  return Math.floor(averageAnswerTime / (session.players.length));
 }
 export function findSession(quizId: number, sessionId: number) {
   const data = getData();

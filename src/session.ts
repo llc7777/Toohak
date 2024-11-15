@@ -362,7 +362,7 @@ export function adminQuizSessionResult(
       .filter(player => question.playersCorrect.includes(player.name))
       .map(player => player.name)
       .sort(), // sort in ascending alphabetical order
-    averageAnswerTime: getAvarageAnswerTime(question),
+    averageAnswerTime: getAvarageAnswerTime(question, session),
     percentCorrect: session.players.length
       ? Math.round((question.playersCorrect.length / session.players.length) * 100)
       : 0,
@@ -727,7 +727,7 @@ export function playerResults(playerId: number) {
       .filter(player => question.playersCorrect.includes(player.name))
       .map(player => player.name)
       .sort(), // sort in ascending alphabetical order
-    averageAnswerTime: getAvarageAnswerTime(question),
+    averageAnswerTime: getAvarageAnswerTime(question, session),
     percentCorrect: session.players.length
       ? Math.round((question.playersCorrect.length / session.players.length) * 100)
       : 0,
