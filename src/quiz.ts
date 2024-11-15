@@ -218,7 +218,16 @@ export function adminQuizInfo(
       timeLastEdited: quiz.timeLastEdited,
       description: quiz.description,
       numOfQuestions: quiz.questions.length,
-      questions: quiz.questions,
+      questions: quiz.questions.map((question) => {
+        return {
+          questionId: question.questionId,
+          question: question.question,
+          timeLimit: question.timeLimit,
+          thumbnailUrl: question.thumbnailUrl,
+          points: question.points,
+          answerOptions: question.answerOptions,
+        };
+      }),
       timeLimit: quiz.timeLimit,
       thumbnailUrl: quiz.thumbnailUrl,
     };
@@ -230,7 +239,16 @@ export function adminQuizInfo(
       timeLastEdited: quiz.timeLastEdited,
       description: quiz.description,
       numOfQuestions: quiz.questions.length,
-      questions: quiz.questions,
+      questions: quiz.questions.map((question) => {
+        return {
+          questionId: question.questionId,
+          question: question.question,
+          timeLimit: question.timeLimit,
+          thumbnailUrl: question.thumbnailUrl,
+          points: question.points,
+          answerOptions: question.answerOptions,
+        };
+      }),
     };
   }
 }
