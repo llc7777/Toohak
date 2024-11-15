@@ -117,7 +117,7 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
     test('one or more quiz IDs are not in the trash', () => {
       const res = emptyTrash(token, [100, 200, 300, 400]);
 
-      expect(res.statusCode).toStrictEqual(400);
+      expect(res.statusCode).toStrictEqual(403);
       const body = JSON.parse(res.body.toString());
       expect(body).toStrictEqual({ error: expect.any(String) });
     });
@@ -127,7 +127,7 @@ describe('DELETE /v1/admin/quiz/trash/empty', () => {
       const res2 = emptyTrash(token, [validQuizId]);
 
       expect(res1.statusCode).toStrictEqual(200);
-      expect(res2.statusCode).toStrictEqual(400);
+      expect(res2.statusCode).toStrictEqual(403);
 
       const body1 = JSON.parse(res1.body.toString());
       const body2 = JSON.parse(res2.body.toString());

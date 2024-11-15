@@ -359,8 +359,14 @@ export function emptyTrashErrorChecking(token: string, quizIds: number[]): void 
   for (const quizId of quizIds) {
     const quizInTrash = data.trash.find(quiz => quiz.quizId === quizId);
 
-    if (!quizInTrash) {
+    const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
+
+    if (!quizInTrash && quizInQuizzes) {
       throw new Error('400 - One or more quiz IDs is not currently in the trash.');
+    }
+
+    if (!quizInTrash && !quizInQuizzes) {
+      throw new Error('403 - One or more quiz IDs do not exist.');
     }
 
     if (quizInTrash.authUserId !== user.authUserId) {
