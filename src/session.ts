@@ -123,7 +123,6 @@ export function adminQuizSessionStart(
   return { sessionId };
 }
 
-
 let skipCountdownTimer: ReturnType<typeof setTimeout>;
 let timeLimitTimer: ReturnType<typeof setTimeout>;
 /**
