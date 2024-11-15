@@ -323,9 +323,14 @@ export function adminQuizRestoreErrorChecking(quizId: number, token: string): vo
   }
 
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+  const quizInQuizzes = data.quizzes.find(quiz => quiz.quizId === quizId);
 
-  if (quizIndex === -1) {
+  if (quizIndex === -1 && quizInQuizzes) {
     throw new Error('400 - Quiz ID does not refer to a quiz in the trash.');
+  }
+
+  if (quizIndex === -1 && !quizInQuizzes) {
+    throw new Error('403 - You do not own quiz ID, or quiz does not exist');
   }
 
   const quiz = data.trash[quizIndex];

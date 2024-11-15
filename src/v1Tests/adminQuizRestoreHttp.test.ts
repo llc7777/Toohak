@@ -154,7 +154,7 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       const invalidQuizId = validQuizId + '1';
       const res = restoreQuiz(invalidQuizId, token);
 
-      expect(res.statusCode).toStrictEqual(400);
+      expect(res.statusCode).toStrictEqual(403);
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -184,13 +184,12 @@ describe('POST /v1/admin/quiz/:quizId/restore', () => {
       expect(res.body).toStrictEqual({ error: expect.any(String) });
     });
 
-    // test('quiz ID is an active quiz', () => {
-    //   const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
+    test('quiz ID is an active quiz', () => {
+      const quizId1 = quizCreate(token, 'New quiz', 'Good description').quizId;
 
-    //   const res = restoreQuiz(quizId1, token);
-
-    //   expect(res.statusCode).toStrictEqual(400);
-    //   expect(res.body).toStrictEqual({ error: expect.any(String) });
-    // });
+      const res = restoreQuiz(quizId1, token);
+      expect(res.statusCode).toStrictEqual(400);
+      expect(res.body).toStrictEqual({ error: expect.any(String) });
+    });
   });
 });
