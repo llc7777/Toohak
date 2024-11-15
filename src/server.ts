@@ -58,7 +58,6 @@ import {
   QuizInfoSimpleArray,
   ErrorResponse,
 } from './interfaces';
-import { port, url } from './config.json';
 
 // Set up web app
 const app = express();
