@@ -132,7 +132,7 @@ export function adminQuizQuestionCreate(
   const data = getData();
 
   data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
-  data.quizzes[quizIndex].timeLimit += totalTime;
+  data.quizzes[quizIndex].timeLimit += timeLimit;
 
   data.quizzes[quizIndex].questions.push(newQuestion);
   return { questionId: newQuestionId };
@@ -377,6 +377,7 @@ export function adminQuizQuestionDelete(
 
   quiz.questions.splice(questionIndex, 1);
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+  quiz.timeCreated -= quiz.questions[questionIndex].timeLimit;
 
   return {};
 }
