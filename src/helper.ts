@@ -664,7 +664,7 @@ export function getPlayerScoreForQuestion(question: QuestionInfo, player: sessio
   if (index === -1) {
     return 0;
   }
-  return question.points / (index + 1);
+  return Math.floor(question.points / (index + 1));
 }
 
 export function getPlayerRankForQuestion(question: QuestionInfo, player: sessionPlayer) {
